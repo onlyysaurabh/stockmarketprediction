@@ -4,6 +4,8 @@ from pymongo import MongoClient
 from datetime import datetime, timezone # Import timezone
 import pandas as pd
 import logging
+from django.db import models
+import time
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -380,6 +382,110 @@ def get_commodity_historical_data(symbol: str, name: str, period='1y', force_upd
 
     logger.info(f"Returning {len(filtered_data)} historical commodity data points for {symbol} over {period}")
     return filtered_data
+
+
+# --- Utility Functions ---
+
+def update_stock_prices(symbols=None, delay=1.0, update_django_model=True):
+    """
+    Robust function to update stock prices for either specified symbols or all stocks.
+    
+    Args:
+        symbols (list): List of stock symbols to update. If None, updates all stocks in the database.
+        delay (float): Delay in seconds between API calls to avoid rate limiting.
+        update_django_model (bool): If True, also updates the Django Stock model.
+        
+    Returns:
+        dict: Summary of update results with counts of successes, failures, and error details.
+    """
+    from .models import Stock  # Import here to avoid circular import
+    
+    results = {
+        "success": 0,
+        "failed": 0,
+        "not_found": 0,
+        "errors": {}
+    }
+    
+    # If no symbols provided, get all symbols from both MongoDB and Django models
+    if symbols is None:
+        mongo_symbols = {doc['symbol'] for doc in stock_collection.find({}, {'symbol': 1})}
+        django_symbols = set(Stock.objects.values_list('symbol', flat=True)) if update_django_model else set()
+        symbols = list(mongo_symbols.union(django_symbols))
+        logger.info(f"Updating all {len(symbols)} stocks in the database")
+    
+    total = len(symbols)
+    count = 0
+    
+    # Process each symbol with error handling and retries
+    for symbol in symbols:
+        symbol = symbol.upper().strip()
+        count += 1
+        logger.info(f"Processing {symbol} ({count}/{total})")
+        
+        try:
+            # First, try to update MongoDB data
+            mongo_data = fetch_and_store_stock_data(symbol, force_update=True)
+            
+            if mongo_data:
+                # If MongoDB update successful, update Django model if requested
+                if update_django_model:
+                    try:
+                        # Get or create Django model instance
+                        stock, created = Stock.objects.get_or_create(symbol=symbol)
+                        
+                        # Extract info from MongoDB document
+                        info = mongo_data.get('info', {})
+                        historical_data = mongo_data.get('historical_data', [])
+                        
+                        # Update fields
+                        stock.name = info.get('longName', info.get('shortName', symbol))
+                        stock.sector = info.get('sector')
+                        stock.industry = info.get('industry')
+                        
+                        # Get current price and previous close
+                        if historical_data and len(historical_data) > 0:
+                            latest = historical_data[-1]
+                            if len(historical_data) > 1:
+                                prev = historical_data[-2]
+                                stock.previous_close = prev.get('Close')
+                            
+                            stock.current_price = latest.get('Close')
+                            stock.open_price = latest.get('Open')
+                            stock.day_high = latest.get('High')
+                            stock.day_low = latest.get('Low')
+                            stock.volume = latest.get('Volume')
+                        
+                        # Additional financial info
+                        stock.market_cap = info.get('marketCap')
+                        stock.pe_ratio = info.get('trailingPE')
+                        stock.dividend_yield = info.get('dividendYield')
+                        
+                        # Save changes
+                        stock.save()
+                        logger.info(f"Successfully updated Django model for {symbol}")
+                    except Exception as e:
+                        logger.error(f"Error updating Django model for {symbol}: {e}")
+                
+                results["success"] += 1
+                
+            else:
+                results["not_found"] += 1
+                results["errors"][symbol] = "No data returned from API"
+                logger.warning(f"No data returned for {symbol}")
+        
+        except Exception as e:
+            results["failed"] += 1
+            error_msg = str(e)
+            results["errors"][symbol] = error_msg
+            logger.error(f"Error updating {symbol}: {error_msg}")
+        
+        # Add delay between requests to avoid rate limiting
+        if delay > 0 and count < total:
+            time.sleep(delay)
+    
+    # Return summary
+    return results
 
 
 # Example usage (for testing purposes)

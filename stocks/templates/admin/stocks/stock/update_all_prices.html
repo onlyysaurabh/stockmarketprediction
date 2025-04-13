@@ -1,0 +1,26 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls %}
+
+{% block content %}
+<div id="content-main">
+    <div class="module">
+        <div class="jazzmin-card">
+            <div class="card-header">
+                <h3>{% trans "Update All Stock Prices" %}</h3>
+            </div>
+            <div class="card-body">
+                <p>Are you sure you want to update prices for <strong>{{ stock_count }}</strong> stocks?</p>
+                <p>This process may take some time depending on the number of stocks in the database.</p>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="submit-row">
+                        <input type="submit" class="default" value="{% trans 'Yes, update all prices' %}">
+                        <a href="{% url 'admin:stocks_stock_changelist' %}" class="button cancel-link">{% trans "No, take me back" %}</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

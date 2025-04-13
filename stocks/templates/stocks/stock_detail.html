@@ -3,14 +3,14 @@
 {% load humanize %} {# Load humanize filters for better number formatting #}
 {% load stock_tags %} {# Load our custom tags (including get_item) #}
 
-{% block title %}{{ stock.symbol }} - Stock Details{% endblock %}
+{% block title %}{{ stock_data.symbol }} - Stock Details{% endblock %}
 
 {% block content %}
-    <h1>{{ stock.name|default:stock.symbol }} ({{ stock.symbol }})</h1>
+    <h1>{{ stock_data.name|default:stock_data.symbol }} ({{ stock_data.symbol }})</h1>
 
     <div class="action-buttons">
         {# Update Button Form #}
-        <form method="POST" action="{% url 'update_stock_data' symbol=stock.symbol %}" class="update-form">
+        <form method="POST" action="{% url 'update_stock_data' symbol=stock_data.symbol %}" class="update-form">
             {% csrf_token %}
             <button type="submit" class="btn btn-update">
                 <i class="fas fa-sync-alt"></i> Update Data
@@ -18,17 +18,17 @@
         </form>
 
         {% if user.is_authenticated %}
-            <a href="{% url 'add_to_watchlist_with_symbol' symbol=stock.symbol %}" class="btn btn-watchlist">
+            <a href="{% url 'add_to_watchlist_with_symbol' symbol=stock_data.symbol %}" class="btn btn-watchlist">
                 <i class="fas fa-star"></i> Add to Watchlist
             </a>
         {% endif %}
     </div>
     
-    {% if stock.last_updated %}
+    {% if stock_data.last_updated %}
         <div class="last-updated-info">
             <i class="fas fa-clock"></i> Last Updated:
             {% timezone "Asia/Calcutta" %}
-            {{ stock.last_updated|date:"Y-m-d H:i:s T" }}
+            {{ stock_data.last_updated|date:"Y-m-d H:i:s T" }}
             {% endtimezone %}
         </div>
     {% endif %}
@@ -68,7 +68,7 @@
     <dl class="stock-info-list">
         {% for key in important_keys %}
             {% if key not in excluded_keys %} {# Double check against excluded keys #}
-                {% with value=stock.info|get_item:key %}
+                {% with value=stock_info|get_item:key %}
                     {% if value is not None and value != '' %}
                         <dt>{{ key|format_label }}</dt> {# Use format_label filter #}
                         {# Apply specific formatting based on key #}
@@ -96,7 +96,7 @@
     <hr style="margin: 30px 0;">
 
     {# Display Company Officers Separately #}
-    {% with officers=stock.info|get_item:'companyOfficers'|parse_officers %}
+    {% with officers=stock_info|get_item:'companyOfficers'|parse_officers %}
         {% if officers %}
             <h2>Company Officers</h2>
             <div class="stock-info-list"> {# Reuse styling #}
@@ -120,7 +120,7 @@
     {% endwith %}
 
     {# Display Business Summary Separately #}
-     {% with summary=stock.info|get_item:'longBusinessSummary' %}
+     {% with summary=stock_info|get_item:'longBusinessSummary' %}
         {% if summary %}
             <h2>Business Summary</h2>
             <div style="padding: 15px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #fdfdfd; margin-top: 15px; line-height: 1.6;">
@@ -171,7 +171,7 @@
         <div id="other-info-content" style="display: none;"> {# Hidden by default #}
             <h2>Other Information</h2>
             <dl class="stock-info-list">
-                {% for key, value in stock.info.items %}
+                {% for key, value in stock_info.items %}
                     {% if key not in important_keys and key not in excluded_keys and key != 'longBusinessSummary' and key != 'companyOfficers' %} {# Exclude already handled keys #}
                  {% if value is not None and value != '' %}
                     <dt>{{ key|format_label }}</dt> {# Use format_label filter #}
@@ -252,6 +252,35 @@
     
     .last-updated-info i {
         margin-right: 5px;
+    }
+    /* Styles for the definition list */
+    .stock-info-list dt {
+        font-weight: bold;
+        float: left;
+        width: 200px; /* Adjust width as needed */
+        clear: left;
+        margin-bottom: 8px;
+        padding-right: 10px; /* Space between term and definition */
+    }
+
+    .stock-info-list dd {
+        margin-left: 210px; /* Should be slightly larger than dt width */
+        margin-bottom: 8px;
+    }
+
+    /* Style for the officers table */
+    .stock-info-list table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+    .stock-info-list th, .stock-info-list td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+    .stock-info-list th {
+        background-color: #f2f2f2;
     }
     </style>
 

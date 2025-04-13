@@ -120,6 +120,34 @@ def subtract(value, arg):
         logger.warning(f"Could not subtract values: {value} and {arg}")
         return 0
 
+@register.filter(name='divide')
+def divide(value, arg):
+    """
+    Divides the value by the argument.
+    Usage: {{ value|divide:arg }}
+    """
+    try:
+        value = float(value)
+        arg = float(arg)
+        if arg == 0:  # Avoid division by zero
+            return 0
+        return value / arg
+    except (ValueError, TypeError):
+        logger.warning(f"Could not divide values: {value} and {arg}")
+        return 0
+
+@register.filter(name='multiply')
+def multiply(value, arg):
+    """
+    Multiplies the value by the argument.
+    Usage: {{ value|multiply:arg }}
+    """
+    try:
+        return float(value) * float(arg)
+    except (ValueError, TypeError):
+        logger.warning(f"Could not multiply values: {value} and {arg}")
+        return 0
+
 @register.filter(name='percent_change')
 def percent_change(value, arg):
     """

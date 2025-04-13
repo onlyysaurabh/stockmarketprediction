@@ -2,17 +2,17 @@ import csv
 import os
 from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
-from django.views.decorators.http import require_POST, require_GET
+from django.http import JsonResponse, HttpRequest # Keep HttpRequest for type hinting
+from django.views.decorators.http import require_GET # require_POST removed as unused
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.utils import timezone
+# from django.utils import timezone # Removed as unused
 from django.db import IntegrityError
-from . import services # Keep this if other services are used directly
-from .models import Watchlist, WatchlistItem, Stock
+# from . import services # Removed as unused
+from .models import Watchlist, WatchlistItem # Stock removed as unused here
 from .forms import WatchlistItemForm
 # Import specific functions needed from services
-from .services import get_stock_data, get_stock_historical_data, get_commodity_historical_data 
+from .services import get_stock_data, get_stock_historical_data, get_commodity_historical_data
 import logging
 import json
 import yfinance as yf
@@ -20,13 +20,13 @@ from decimal import Decimal
 from datetime import datetime, timedelta
 from django.contrib.auth.forms import UserCreationForm, PasswordChangeForm # Added PasswordChangeForm
 from django.contrib.auth import login, update_session_auth_hash, logout # Added logout
-from django.contrib.auth.models import User # Needed for UserUpdateForm
+# from django.contrib.auth.models import User # Removed as unused here
 # authenticate is not used in the planned register_view, removed for now
 from .forms import WatchlistItemForm, UserUpdateForm # Import UserUpdateForm
 
 logger = logging.getLogger(__name__)
 
-def home(request):
+def home(request: HttpRequest):
     """Home view with search functionality."""
     # Check if search query exists
     query = request.GET.get('query')
@@ -37,7 +37,7 @@ def home(request):
     return render(request, 'stocks/home.html')
 
 @require_GET
-def search_suggestions_view(request):
+def search_suggestions_view(request: HttpRequest):
     """Return JSON list of stock symbols matching the search term for autocomplete."""
     search_term = request.GET.get('term', '').upper()
     if not search_term:
@@ -70,7 +70,7 @@ def search_suggestions_view(request):
         
     return JsonResponse(suggestions, safe=False)
 
-def register_view(request):
+def register_view(request: HttpRequest):
     """Handle user registration."""
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
@@ -89,24 +89,25 @@ def register_view(request):
     # Ensure the template path matches your project structure
     return render(request, 'registration/register.html', {'form': form})
 
-def stock_detail(request, symbol):
+def stock_detail(request: HttpRequest, symbol: str):
     """Display detailed information about a specific stock."""
-    
+
     # Uppercase the symbol for consistency
     symbol = symbol.upper()
     
-    # Try to get from database first
-    stock = Stock.objects.filter(symbol=symbol).first()
+    # Always fetch the comprehensive data from the service (MongoDB)
+    stock_data = get_stock_data(symbol)
     
-    if not stock:
-        # If not in database, create a new one
-        stock = get_stock_data(symbol)
-        if not stock:
-            messages.error(request, f"Stock with symbol {symbol} not found.")
-            return redirect('home')
+    if not stock_data:
+        messages.error(request, f"Could not retrieve data for stock symbol {symbol}.")
+        return redirect('home')
+        
+    # The 'info' dictionary is inside stock_data
+    stock_info = stock_data.get('info', {}) # Get the info dict, default to empty if missing
     
     # Get stock historical data for charting - use 'max' to get all available data
-    stock_historical_data = get_stock_historical_data(symbol, period='max')
+    # Note: get_stock_historical_data also fetches from MongoDB if needed
+    stock_historical_data = get_stock_historical_data(symbol, period='max') 
     
     # Prepare stock data for Chart.js
     chart_dates = []
@@ -192,10 +193,12 @@ def stock_detail(request, symbol):
                     'regularMarketPreviousClose', 'ask', 'bid', 'dividendRate', 'fiftyTwoWeekHigh', 'fiftyTwoWeekLow',
                     'fiftyDayAverage', 'twoHundredDayAverage', 'trailingPE', 'forwardPE', 'priceToBook',
                     'bookValue', 'enterpriseToRevenue', 'enterpriseToEbitda']
-    
+
     context = {
-        'stock': stock,
-        'stock_historical_data': stock_historical_data, # Renamed for clarity
+        # 'stock': stock, # REMOVED - This was causing the error
+        'stock_data': stock_data, # Pass the whole dictionary from MongoDB
+        'stock_info': stock_info, # Pass the extracted info dictionary for convenience (optional)
+        'stock_historical_data': stock_historical_data, # Use the fetched historical data
         'chart_labels': json.dumps(chart_dates),
         'chart_close': json.dumps(chart_close),
         'chart_open': json.dumps(chart_open),
@@ -208,12 +211,14 @@ def stock_detail(request, symbol):
         'epoch_keys': epoch_keys,
         'large_number_keys': large_number_keys,
         'percentage_keys': percentage_keys,
+        # Removed duplicated context lines that were here
         'currency_keys': currency_keys,
     }
     
     return render(request, 'stocks/stock_detail.html', context)
 
-def update_stock_data(request, symbol):
+# Note: This view implicitly uses POST, consider adding @require_POST decorator
+def update_stock_data(request: HttpRequest, symbol: str):
     """Update stock data from API."""
     # Ensure it's a POST request for security (avoid CSRF issues)
     if request.method == 'POST':
@@ -232,11 +237,11 @@ def update_stock_data(request, symbol):
     return redirect('home')
 
 @login_required
-def watchlist(request):
+def watchlist(request: HttpRequest):
     """Display the user's watchlist."""
     # Get or create the user's watchlist
-    watchlist, created = Watchlist.objects.get_or_create(user=request.user)
-    
+    watchlist, _created = Watchlist.objects.get_or_create(user=request.user) # Prefix unused 'created'
+
     # Get all watchlist items
     items = watchlist.items.all()
     
@@ -324,11 +329,11 @@ def watchlist(request):
     return render(request, 'stocks/watchlist.html', context)
 
 @login_required
-def add_to_watchlist(request, symbol=None):
+def add_to_watchlist(request: HttpRequest, symbol: str = None):
     """Add a stock to the watchlist."""
     # Get or create the user's watchlist
-    watchlist, created = Watchlist.objects.get_or_create(user=request.user)
-    
+    watchlist, _created = Watchlist.objects.get_or_create(user=request.user) # Prefix unused 'created'
+
     # If a symbol is provided in the URL, pre-fill the form with it
     initial_data = {}
     if symbol:
@@ -376,7 +381,7 @@ def add_to_watchlist(request, symbol=None):
     return render(request, 'stocks/add_to_watchlist.html', context)
 
 @login_required
-def add_to_watchlist_with_symbol(request, symbol):
+def add_to_watchlist_with_symbol(request: HttpRequest, symbol: str):
     """
     View that pre-fills the symbol when adding a stock to watchlist.
     It's a convenience wrapper around add_to_watchlist.
@@ -384,7 +389,7 @@ def add_to_watchlist_with_symbol(request, symbol):
     return add_to_watchlist(request, symbol)
 
 @login_required
-def edit_watchlist_item(request, item_id):
+def edit_watchlist_item(request: HttpRequest, item_id: int):
     """Edit a watchlist item."""
     # Get the watchlist item
     watchlist_item = get_object_or_404(WatchlistItem, id=item_id, watchlist__user=request.user)
@@ -407,8 +412,9 @@ def edit_watchlist_item(request, item_id):
     
     return render(request, 'stocks/edit_watchlist_item.html', context)
 
+# Note: This view implicitly uses POST, consider adding @require_POST decorator
 @login_required
-def remove_from_watchlist(request, item_id):
+def remove_from_watchlist(request: HttpRequest, item_id: int):
     """Remove a stock from the watchlist."""
     # Ensure it's a POST request for security
     if request.method == 'POST':
@@ -422,7 +428,7 @@ def remove_from_watchlist(request, item_id):
 
 
 @login_required
-def account_view(request):
+def account_view(request: HttpRequest):
     """Display and handle updates for user account information and password."""
     if request.method == 'POST':
         # Check which form was submitted based on button name or hidden field
@@ -462,7 +468,7 @@ def account_view(request):
     }
     return render(request, 'stocks/account.html', context)
 
-def logout_view(request):
+def logout_view(request: HttpRequest):
     """
     Custom logout view that ensures proper session cleanup.
     """
