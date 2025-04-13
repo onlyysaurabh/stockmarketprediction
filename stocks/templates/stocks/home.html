@@ -1,0 +1,247 @@
+{% extends 'stocks/base.html' %}
+
+{% block title %}Stock Search{% endblock %}
+
+{% block content %}
+    <h1>Search for Stock</h1>
+    <p>Enter a stock symbol (e.g., AAPL, GOOGL, MSFT) to view its historical data.</p>
+
+    <form method="GET" action="{% url 'home' %}" class="search-form" id="search-form" autocomplete="off">
+        <div class="search-container">
+            <div class="input-container">
+                <input type="text" name="query" id="search-input" placeholder="Enter stock symbol or name..." required>
+                <div id="suggestions-box" class="suggestions-list"></div>
+            </div>
+            <button type="submit" class="search-button">Search</button>
+        </div>
+    </form>
+
+    <style>
+        /* Styles specific to home.html moved here to avoid affecting base.html directly */
+        .search-container {
+            display: flex;
+            align-items: flex-start;
+            max-width: 600px;
+            margin: 0 auto; /* Center the container horizontally */
+        }
+        .input-container {
+            position: relative;
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+        .search-button {
+            height: 38px;
+            align-self: flex-start;
+        }
+        #search-input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        .suggestions-list {
+            position: absolute;
+            border: 1px solid #ccc;
+            border-top: none;
+            max-height: 150px;
+            overflow-y: auto;
+            background-color: white;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: none; /* Hidden by default */
+            width: 100%;
+            top: 100%; /* Position right below the input */
+            left: 0;   /* Align with the left edge of the input */
+        }
+        .suggestions-list div {
+            padding: 8px 10px;
+            cursor: pointer;
+        }
+        .suggestions-list div:hover, .suggestions-list div.selected {
+            background-color: #f0f0f0;
+        }
+        /* Style for the available stocks list */
+        .stock-list {
+            margin-top: 30px;
+            padding: 0;
+            list-style: none;
+            column-count: 3; /* Display in columns */
+            column-gap: 20px;
+            text-align: left; /* Align list items left */
+        }
+        .stock-list li {
+            margin-bottom: 8px;
+        }
+        .stock-list a {
+            text-decoration: none;
+            color: #007bff;
+        }
+        .stock-list a:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 768px) {
+            .stock-list { column-count: 2; }
+        }
+         @media (max-width: 480px) {
+            .stock-list { column-count: 1; }
+        }
+    </style>
+
+    {# Display Available Stocks #}
+    {% if available_stocks %}
+        <hr style="margin: 40px 0;">
+        <h2>Available Stocks</h2>
+        <ul class="stock-list">
+            {% for stock in available_stocks %}
+                <li>
+                    <a href="{% url 'stock_detail' symbol=stock.Symbol %}">
+                        {{ stock.Symbol }} - {{ stock.Name }}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <script>
+        const searchInput = document.getElementById('search-input');
+        const suggestionsBox = document.getElementById('suggestions-box');
+        const searchForm = document.getElementById('search-form');
+        let debounceTimer;
+        let selectedIndex = -1;
+        let suggestions = [];
+
+        // Handle keyboard navigation
+        searchInput.addEventListener('keydown', function(e) {
+            // Only handle arrow keys if suggestions are visible
+            if (suggestionsBox.style.display !== 'block') return;
+            
+            // Down arrow
+            if (e.key === 'ArrowDown') {
+                e.preventDefault(); // Prevent cursor movement in input
+                if (selectedIndex < suggestions.length - 1) {
+                    selectedIndex++;
+                    highlightSuggestion();
+                }
+            }
+            // Up arrow
+            else if (e.key === 'ArrowUp') {
+                e.preventDefault(); // Prevent cursor movement in input
+                if (selectedIndex > 0) {
+                    selectedIndex--;
+                    highlightSuggestion();
+                }
+            }
+            // Enter key
+            else if (e.key === 'Enter' && selectedIndex >= 0) {
+                e.preventDefault(); // Prevent form submission
+                if (suggestions[selectedIndex]) {
+                    // Use 'value' which contains the symbol
+                    searchInput.value = suggestions[selectedIndex].value; 
+                    suggestionsBox.style.display = 'none';
+                    searchForm.submit();
+                }
+            }
+            // Escape key
+            else if (e.key === 'Escape') {
+                suggestionsBox.style.display = 'none';
+                selectedIndex = -1;
+            }
+        });
+
+        function highlightSuggestion() {
+            // Remove highlight from all suggestions
+            const suggestionDivs = suggestionsBox.querySelectorAll('div');
+            suggestionDivs.forEach(div => div.classList.remove('selected'));
+            
+            // Add highlight to selected suggestion
+            if (selectedIndex >= 0 && selectedIndex < suggestionDivs.length) {
+                suggestionDivs[selectedIndex].classList.add('selected');
+                // Ensure the selected item is visible in the scrollable container
+                suggestionDivs[selectedIndex].scrollIntoView({ block: 'nearest' });
+            }
+        }
+
+        searchInput.addEventListener('input', function() {
+            const term = this.value.trim();
+            suggestionsBox.innerHTML = ''; // Clear previous suggestions
+            suggestionsBox.style.display = 'none';
+            selectedIndex = -1; // Reset selection
+            suggestions = []; // Reset suggestions array
+
+            if (term.length < 1) { // Minimum length to trigger suggestions
+                return;
+            }
+
+            // Debounce the fetch request
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                // Build the full URL with base path to ensure correct routing
+                const baseUrl = window.location.origin;
+                const suggestionsUrl = baseUrl + "{% url 'search_suggestions' %}";
+                const fullUrl = `${suggestionsUrl}?term=${encodeURIComponent(term)}`;
+                
+                // Log the fetch URL to help debugging
+                console.log(`Fetching suggestions from: ${fullUrl}`);
+                
+                // Use absolute URL for fetch request
+                fetch(fullUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Received suggestions data:', data);
+                    
+                    // Check if data is an array and has items
+                    if (Array.isArray(data) && data.length > 0) { 
+                        suggestions = data; // Store suggestions directly from the array
+                        suggestionsBox.innerHTML = ''; // Clear again just to be safe
+                        suggestionsBox.style.display = 'block';
+                        
+                        // Iterate directly over the data array
+                        data.forEach((item, index) => { 
+                            const div = document.createElement('div');
+                            // Use item.label which contains the formatted string
+                            div.textContent = item.label; 
+                            div.addEventListener('click', function() {
+                                // Use item.value which contains the symbol
+                                searchInput.value = item.value; 
+                                suggestionsBox.innerHTML = '';
+                                suggestionsBox.style.display = 'none';
+                                searchForm.submit(); // Submit form directly
+                            });
+                            // Add mouseover event to update selectedIndex
+                            div.addEventListener('mouseover', function() {
+                                selectedIndex = index;
+                                highlightSuggestion();
+                            });
+                            suggestionsBox.appendChild(div);
+                        });
+                    } else {
+                        suggestionsBox.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching suggestions:', error);
+                    suggestionsBox.style.display = 'none';
+                });
+            }, 300); // 300ms debounce time
+        });
+
+        // Hide suggestions when clicking outside
+        document.addEventListener('click', function(event) {
+            // Check if the click is outside the input AND outside the suggestions box
+            if (suggestionsBox.style.display === 'block' && !searchInput.contains(event.target) && !suggestionsBox.contains(event.target)) {
+                 suggestionsBox.style.display = 'none';
+                 selectedIndex = -1;
+            }
+        });
+    </script>
+{% endblock %}

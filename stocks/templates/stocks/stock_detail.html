@@ -1,0 +1,541 @@
+{% extends 'stocks/base.html' %}
+{% load tz %} {# Load timezone filters/tags #}
+{% load humanize %} {# Load humanize filters for better number formatting #}
+{% load stock_tags %} {# Load our custom tags (including get_item) #}
+
+{% block title %}{{ stock.symbol }} - Stock Details{% endblock %}
+
+{% block content %}
+    <h1>{{ stock.name|default:stock.symbol }} ({{ stock.symbol }})</h1>
+
+    <div class="action-buttons">
+        {# Update Button Form #}
+        <form method="POST" action="{% url 'update_stock_data' symbol=stock.symbol %}" class="update-form">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-update">
+                <i class="fas fa-sync-alt"></i> Update Data
+            </button>
+        </form>
+
+        {% if user.is_authenticated %}
+            <a href="{% url 'add_to_watchlist_with_symbol' symbol=stock.symbol %}" class="btn btn-watchlist">
+                <i class="fas fa-star"></i> Add to Watchlist
+            </a>
+        {% endif %}
+    </div>
+    
+    {% if stock.last_updated %}
+        <div class="last-updated-info">
+            <i class="fas fa-clock"></i> Last Updated:
+            {% timezone "Asia/Calcutta" %}
+            {{ stock.last_updated|date:"Y-m-d H:i:s T" }}
+            {% endtimezone %}
+        </div>
+    {% endif %}
+
+    {# Chart Section - Moved to the top #}
+    <h2>Historical Price Chart</h2>
+
+    {# Duration Selection Buttons #}
+    <div style="margin-bottom: 10px;" class="duration-selector">
+        <button data-period="1m" class="active">1M</button> {# Default active #}
+        <button data-period="6m">6M</button>
+        <button data-period="1y">1Y</button> 
+        <button data-period="5y">5Y</button>
+        <button data-period="max">Max</button>
+    </div>
+
+    {# Data Series Toggles #}
+    <div style="margin-bottom: 15px;" class="series-toggles">
+        <label><input type="checkbox" class="chart-toggle" data-dataset-index="0" checked> Close</label>
+        <label><input type="checkbox" class="chart-toggle" data-dataset-index="1"> Open</label>
+        <label><input type="checkbox" class="chart-toggle" data-dataset-index="2"> High</label>
+        <label><input type="checkbox" class="chart-toggle" data-dataset-index="3"> Low</label>
+        <label><input type="checkbox" class="chart-toggle" data-dataset-index="4"> Volume</label>
+        {# Add Commodity Toggles #}
+        <label style="margin-left: 20px; border-left: 1px solid #ccc; padding-left: 15px;"><input type="checkbox" class="commodity-toggle" data-commodity="Gold"> Gold</label>
+        <label><input type="checkbox" class="commodity-toggle" data-commodity="Crude Oil"> Oil</label>
+        <label><input type="checkbox" class="commodity-toggle" data-commodity="Bitcoin"> Bitcoin</label>
+    </div>
+    <div style="max-width: 100%; height: 500px;"> {# Increased height for better visibility #}
+        <canvas id="stockChart"></canvas>
+    </div>
+
+    <hr style="margin: 30px 0;">
+
+    {# Display Prioritized Stock Info #}
+    <h2>Key Information</h2>
+    <dl class="stock-info-list">
+        {% for key in important_keys %}
+            {% if key not in excluded_keys %} {# Double check against excluded keys #}
+                {% with value=stock.info|get_item:key %}
+                    {% if value is not None and value != '' %}
+                        <dt>{{ key|format_label }}</dt> {# Use format_label filter #}
+                        {# Apply specific formatting based on key #}
+                        {% if key == 'longBusinessSummary' %}
+                            <dd>{{ value|format_summary|safe }}</dd>
+                        {% elif key == 'companyOfficers' %}
+                            {# Handled separately below #}
+                        {% elif key in epoch_keys %}
+                            <dd>{{ value|format_epoch }}</dd>
+                        {% elif key in large_number_keys %}
+                            <dd>{{ value|intcomma|default:"N/A" }}</dd> {# Use intcomma for large numbers #}
+                        {% elif key in percentage_keys %}
+                             <dd>{{ value|format_percentage|default:"N/A" }}</dd>
+                        {% elif key in currency_keys %}
+                             <dd>{{ value|format_currency|default:"N/A" }}</dd>
+                        {% else %}
+                            <dd>{{ value|default:"N/A" }}</dd> {# Default for others #}
+                             {% endif %} {# End of inner formatting if/elif/else #}
+                    {% endif %} {# End of outer if value is not None #}
+                {% endwith %}
+            {% endif %}
+        {% endfor %}
+    </dl>
+
+    <hr style="margin: 30px 0;">
+
+    {# Display Company Officers Separately #}
+    {% with officers=stock.info|get_item:'companyOfficers'|parse_officers %}
+        {% if officers %}
+            <h2>Company Officers</h2>
+            <div class="stock-info-list"> {# Reuse styling #}
+                <table>
+                    <thead>
+                        <tr><th>Name</th><th>Title</th><th>Age</th></tr>
+                    </thead>
+                    <tbody>
+                    {% for officer in officers %}
+                        <tr>
+                            <td>{{ officer.name }}</td>
+                            <td>{{ officer.title }}</td>
+                            <td>{{ officer.age }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <hr style="margin: 30px 0;">
+        {% endif %}
+    {% endwith %}
+
+    {# Display Business Summary Separately #}
+     {% with summary=stock.info|get_item:'longBusinessSummary' %}
+        {% if summary %}
+            <h2>Business Summary</h2>
+            <div style="padding: 15px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #fdfdfd; margin-top: 15px; line-height: 1.6;">
+                 <p>{{ summary|format_summary|safe }}</p>
+            </div>
+            <hr style="margin: 30px 0;">
+        {% endif %}
+    {% endwith %}
+
+    {# Historical Data Table - Moved below the chart #}
+    <h2>Historical Data Table</h2>
+    {% if stock_historical_data %} {# Use the correct context variable name #}
+        <div class="data-table-container" style="max-height: 500px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+            <table style="width: 100%; border-collapse: collapse; text-align: center;">
+                <thead style="position: sticky; top: 0; background-color: #f8f9fa; z-index: 1;">
+                    <tr>
+                        <th style="padding: 12px; border-bottom: 2px solid #dee2e6; font-weight: bold;">Date</th>
+                        <th style="padding: 12px; border-bottom: 2px solid #dee2e6; font-weight: bold;">Open</th>
+                        <th style="padding: 12px; border-bottom: 2px solid #dee2e6; font-weight: bold;">High</th>
+                        <th style="padding: 12px; border-bottom: 2px solid #dee2e6; font-weight: bold;">Low</th>
+                        <th style="padding: 12px; border-bottom: 2px solid #dee2e6; font-weight: bold;">Close</th>
+                        <th style="padding: 12px; border-bottom: 2px solid #dee2e6; font-weight: bold;">Volume</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for data_point in stock_historical_data %} {# Use the correct context variable name #}
+                    <tr style="{% cycle 'background-color: #ffffff;' 'background-color: #f8f9fa;' %}">
+                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">{% if data_point.Date %}{{ data_point.Date }}{% else %}N/A{% endif %}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">{{ data_point.Open|floatformat:2|default:"N/A" }}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">{{ data_point.High|floatformat:2|default:"N/A" }}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">{{ data_point.Low|floatformat:2|default:"N/A" }}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">{{ data_point.Close|floatformat:2|default:"N/A" }}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">{{ data_point.Volume|intcomma|default:"N/A" }}</td> {# Format volume #}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p>No historical data available for this stock.</p>
+    {% endif %}
+
+    <hr style="margin: 30px 0;">
+
+    {# Collapsible Other Information Section #}
+    <div id="other-info-container">
+        <button type="button" id="toggle-other-info" class="btn btn-info" style="margin-bottom: 10px;">Show Other Information</button>
+        <div id="other-info-content" style="display: none;"> {# Hidden by default #}
+            <h2>Other Information</h2>
+            <dl class="stock-info-list">
+                {% for key, value in stock.info.items %}
+                    {% if key not in important_keys and key not in excluded_keys and key != 'longBusinessSummary' and key != 'companyOfficers' %} {# Exclude already handled keys #}
+                 {% if value is not None and value != '' %}
+                    <dt>{{ key|format_label }}</dt> {# Use format_label filter #}
+                     {# Apply specific formatting based on key - REPEAT FORMATTING LOGIC using context lists #}
+                    {% if key in epoch_keys %}
+                        <dd>{{ value|format_epoch }}</dd>
+                    {% elif key in large_number_keys %}
+                        <dd>{{ value|intcomma|default:"N/A" }}</dd>
+                    {% elif key in percentage_keys %}
+                         <dd>{{ value|format_percentage|default:"N/A" }}</dd>
+                    {% elif key in currency_keys %}
+                         <dd>{{ value|format_currency|default:"N/A" }}</dd>
+                    {% else %}
+                        <dd>{{ value|default:"N/A" }}</dd>
+                         {% endif %} {# End of inner formatting if/elif/else #}
+                 {% endif %} {# End of outer if value is not None #}
+            {% endif %} {# End of outer if key not in ... #}
+        {% endfor %}
+            </dl>
+        </div> {# End #other-info-content #}
+    </div> {# End #other-info-container #}
+
+
+    <p style="margin-top: 30px;"><a href="{% url 'home' %}" class="btn btn-secondary">Back to Search</a></p> {# Added button classes #}
+
+    <style>
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+        align-items: center;
+    }
+    
+    .btn-update, .btn-watchlist {
+        padding: 8px 15px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        transition: all 0.2s;
+    }
+    
+    .btn-update {
+        background-color: rgba(52, 152, 219, 0.1);
+        color: #3498db;
+    }
+    
+    .btn-update:hover {
+        background-color: rgba(52, 152, 219, 0.2);
+        transform: translateY(-2px);
+    }
+    
+    .btn-watchlist {
+        background-color: rgba(255, 159, 67, 0.1);
+        color: #ff9f43;
+    }
+    
+    .btn-watchlist:hover {
+        background-color: rgba(255, 159, 67, 0.2);
+        transform: translateY(-2px);
+    }
+    
+    .btn i {
+        margin-right: 6px;
+    }
+    
+    .last-updated-info {
+        color: #777;
+        font-size: 13px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .last-updated-info i {
+        margin-right: 5px;
+    }
+    </style>
+
+    {# Chart.js Script & Other Scripts #}
+    <script>
+        // --- Chart Data (Full Dataset) ---
+        const fullLabels = JSON.parse('{{ chart_labels|escapejs }}');
+        const fullOpen = JSON.parse('{{ chart_open|escapejs }}');
+        const fullHigh = JSON.parse('{{ chart_high|escapejs }}');
+        const fullLow = JSON.parse('{{ chart_low|escapejs }}');
+        const fullClose = JSON.parse('{{ chart_close|escapejs }}');
+        const fullVolume = JSON.parse('{{ chart_volume|escapejs }}');
+
+        // --- Commodity Data (Full Datasets) ---
+        const commodityData = {};
+        {% for name, data in commodity_chart_data.items %}
+            commodityData['{{ name|escapejs }}'] = {
+                labels: JSON.parse('{{ data.dates|escapejs }}'),
+                close: JSON.parse('{{ data.close|escapejs }}')
+            };
+        {% endfor %}
+
+        // Define colors for commodities
+        const commodityColors = {
+            'Gold': 'rgb(255, 215, 0)',    // Gold
+            'Crude Oil': 'rgb(139, 69, 19)', // Brown
+            'Bitcoin': 'rgb(247, 147, 26)'  // Orange
+        };
+
+        // --- Chart Initialization ---
+        const ctx = document.getElementById('stockChart').getContext('2d');
+        const stockChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [], // Initially empty, populated by filter function
+                datasets: [
+                    {
+                        label: 'Close',
+                        data: [],
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        yAxisID: 'y',
+                        hidden: false
+                    },
+                    {
+                        label: 'Open',
+                        data: [],
+                        borderColor: 'rgb(255, 159, 64)',
+                        backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                        yAxisID: 'y',
+                        hidden: true
+                    },
+                    {
+                        label: 'High',
+                        data: [],
+                        borderColor: 'rgb(54, 162, 235)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        yAxisID: 'y',
+                        hidden: true
+                    },
+                    {
+                        label: 'Low',
+                        data: [],
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        yAxisID: 'y',
+                        hidden: true
+                    },
+                    {
+                        label: 'Volume',
+                        data: [],
+                        borderColor: 'rgb(153, 102, 255)',
+                        backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                        type: 'bar',
+                        yAxisID: 'y1',
+                        hidden: true
+                    }
+                    // Commodity datasets will be added dynamically
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                scales: {
+                    x: { title: { display: true, text: 'Date' } },
+                    y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Price' } },
+                    y1: { type: 'linear', display: false, position: 'right', title: { display: true, text: 'Volume' }, grid: { drawOnChartArea: false } } // Initially hidden
+                },
+                plugins: {
+                    tooltip: { mode: 'index', intersect: false },
+                    legend: { display: false }
+                }
+            }
+        });
+
+        // --- Data Filtering Function ---
+        function filterChartData(period) {
+            const endDate = new Date(); // Today
+            let startDate;
+
+            switch (period) {
+                case '1m':
+                    startDate = new Date(endDate);
+                    startDate.setMonth(endDate.getMonth() - 1);
+                    break;
+                case '6m':
+                    startDate = new Date(endDate);
+                    startDate.setMonth(endDate.getMonth() - 6);
+                    break;
+                case '1y':
+                    startDate = new Date(endDate);
+                    startDate.setFullYear(endDate.getFullYear() - 1);
+                    break;
+                case '5y':
+                    startDate = new Date(endDate);
+                    startDate.setFullYear(endDate.getFullYear() - 5);
+                    break;
+                case 'max':
+                default:
+                    startDate = new Date(fullLabels[0]); // Start from the earliest date available
+                    break;
+            }
+
+            const filteredLabels = [];
+            const filteredOpen = [];
+            const filteredHigh = [];
+            const filteredLow = [];
+            const filteredClose = [];
+            const filteredVolume = [];
+
+            for (let i = 0; i < fullLabels.length; i++) {
+                const currentDate = new Date(fullLabels[i]);
+                if (currentDate >= startDate) {
+                    filteredLabels.push(fullLabels[i]);
+                    filteredOpen.push(fullOpen[i]);
+                    filteredHigh.push(fullHigh[i]);
+                    filteredLow.push(fullLow[i]);
+                    filteredClose.push(fullClose[i]);
+                    filteredVolume.push(fullVolume[i]);
+                }
+            }
+
+            // Update chart data
+            stockChart.data.labels = filteredLabels;
+            stockChart.data.datasets[0].data = filteredClose;
+            stockChart.data.datasets[1].data = filteredOpen;
+            stockChart.data.datasets[2].data = filteredHigh;
+            stockChart.data.datasets[3].data = filteredLow;
+            stockChart.data.datasets[4].data = filteredVolume;
+
+            stockChart.update();
+
+            // Also update commodity datasets based on the new labels
+            updateCommodityDatasets(filteredLabels);
+        }
+
+        // --- Function to Update Commodity Datasets based on Stock Labels ---
+        function updateCommodityDatasets(stockLabels) {
+            Object.keys(commodityData).forEach(name => {
+                const datasetIndex = stockChart.data.datasets.findIndex(ds => ds.label === name);
+                if (datasetIndex !== -1) { // Only update if dataset exists (i.e., checkbox is checked)
+                    const commData = commodityData[name];
+                    const alignedClose = [];
+                    
+                    // Create a map for quick lookup of commodity prices by date
+                    const commPriceMap = new Map();
+                    for (let i = 0; i < commData.labels.length; i++) {
+                        commPriceMap.set(commData.labels[i], commData.close[i]);
+                    }
+
+            // Align commodity data with stock labels
+            stockLabels.forEach(label => {
+                // Replace ?? with ternary operator for broader compatibility
+                alignedClose.push(commPriceMap.has(label) ? commPriceMap.get(label) : null); 
+            });
+
+            stockChart.data.datasets[datasetIndex].data = alignedClose;
+                }
+            });
+            // Don't call stockChart.update() here, it's called in filterChartData
+        }
+
+
+        // --- Event Listeners ---
+
+        // Duration buttons
+        document.querySelectorAll('.duration-selector button').forEach(button => {
+            button.addEventListener('click', function() {
+                // Update active class
+                document.querySelectorAll('.duration-selector button').forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                // Filter data
+                filterChartData(this.getAttribute('data-period'));
+            });
+        });
+
+        // Series toggle checkboxes
+        document.querySelectorAll('.chart-toggle').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const datasetIndex = parseInt(this.getAttribute('data-dataset-index'));
+                const isVisible = this.checked;
+                stockChart.setDatasetVisibility(datasetIndex, isVisible);
+
+                // Special handling for volume axis visibility
+                if (datasetIndex === 4) { // Index of Volume dataset
+                    stockChart.options.scales.y1.display = isVisible;
+                }
+                stockChart.update();
+            });
+            // Initial sync for volume axis
+            if (parseInt(checkbox.getAttribute('data-dataset-index')) === 4) {
+                stockChart.options.scales.y1.display = checkbox.checked;
+            }
+        });
+
+        // Commodity toggle checkboxes
+        document.querySelectorAll('.commodity-toggle').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const commodityName = this.getAttribute('data-commodity');
+                const isVisible = this.checked;
+                const existingDatasetIndex = stockChart.data.datasets.findIndex(ds => ds.label === commodityName);
+
+                if (isVisible && existingDatasetIndex === -1) {
+                    // Add dataset if it doesn't exist
+                    if (commodityData[commodityName]) {
+                        const commData = commodityData[commodityName];
+                        const alignedClose = [];
+                        const currentLabels = stockChart.data.labels; // Use currently displayed labels
+
+                        // Align data
+                        const commPriceMap = new Map();
+                         for (let i = 0; i < commData.labels.length; i++) {
+                            commPriceMap.set(commData.labels[i], commData.close[i]);
+                        }
+                        currentLabels.forEach(label => {
+                             // Replace ?? with ternary operator for broader compatibility
+                            alignedClose.push(commPriceMap.has(label) ? commPriceMap.get(label) : null);
+                        });
+
+                        const newDataset = {
+                            label: commodityName,
+                            data: alignedClose,
+                            borderColor: commodityColors[commodityName] || 'rgb(100, 100, 100)', // Default color
+                            backgroundColor: (commodityColors[commodityName] || 'rgb(100, 100, 100)').replace('rgb', 'rgba').replace(')', ', 0.1)'), // Lighter fill
+                            yAxisID: 'y', // Plot on the main price axis
+                            hidden: false,
+                            borderDash: [5, 5], // Dashed line for commodities
+                            pointRadius: 1, // Smaller points
+                            tension: 0.1
+                        };
+                        stockChart.data.datasets.push(newDataset);
+                    }
+                } else if (!isVisible && existingDatasetIndex !== -1) {
+                    // Remove dataset if it exists
+                    stockChart.data.datasets.splice(existingDatasetIndex, 1);
+                }
+                stockChart.update();
+            });
+        });
+
+        // --- Initial Chart Load ---
+        filterChartData('1m'); // Load 1 Month data by default
+        // Ensure initial visibility matches checkboxes
+        document.querySelectorAll('.chart-toggle').forEach(checkbox => {
+             const datasetIndex = parseInt(checkbox.getAttribute('data-dataset-index'));
+             stockChart.setDatasetVisibility(datasetIndex, checkbox.checked);
+             if (datasetIndex === 4) {
+                 stockChart.options.scales.y1.display = checkbox.checked;
+             }
+        });
+         stockChart.update(); // Final update on load
+
+
+        // --- Collapsible Section Script ---
+        const toggleBtn = document.getElementById('toggle-other-info');
+        const otherInfoContent = document.getElementById('other-info-content');
+
+        if (toggleBtn && otherInfoContent) {
+            toggleBtn.addEventListener('click', function() {
+                const isHidden = otherInfoContent.style.display === 'none';
+                otherInfoContent.style.display = isHidden ? 'block' : 'none';
+                this.textContent = isHidden ? 'Hide Other Information' : 'Show Other Information';
+            });
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,437 @@
+{% extends 'stocks/base.html' %}
+
+{% block title %}Add to Watchlist{% endblock %}
+
+{# Autocomplete Script for Symbol Input on this page #}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const symbolInput_Add = document.getElementById('{{ form.symbol.id_for_label }}'); // Targets the symbol input field (usually id_symbol)
+        const addSuggestionsBox_Add = document.getElementById('add-suggestions-box');
+        
+        if (symbolInput_Add && addSuggestionsBox_Add) {
+            let addDebounceTimer;
+            let addSelectedIndex = -1;
+            let addSuggestions = [];
+
+            // Keyboard navigation for add page suggestions
+            symbolInput_Add.addEventListener('keydown', function(e) {
+                if (addSuggestionsBox_Add.style.display !== 'block') return;
+                
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault(); 
+                    if (addSelectedIndex < addSuggestions.length - 1) {
+                        addSelectedIndex++;
+                        highlightAddSuggestion();
+                    }
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault(); 
+                    if (addSelectedIndex > 0) {
+                        addSelectedIndex--;
+                        highlightAddSuggestion();
+                    }
+                } else if (e.key === 'Enter') { 
+                    if (addSelectedIndex >= 0 && addSuggestions[addSelectedIndex]) {
+                         e.preventDefault(); // Prevent form submission
+                         symbolInput_Add.value = addSuggestions[addSelectedIndex].value; // Populate input only
+                         addSuggestionsBox_Add.style.display = 'none'; // Hide suggestions
+                         addSelectedIndex = -1;
+                    }
+                    // Allow Enter to submit form if no suggestion is selected
+                } else if (e.key === 'Escape') {
+                    addSuggestionsBox_Add.style.display = 'none';
+                    addSelectedIndex = -1;
+                }
+            });
+
+            function highlightAddSuggestion() {
+                const suggestionDivs = addSuggestionsBox_Add.querySelectorAll('div');
+                suggestionDivs.forEach(div => div.classList.remove('selected'));
+                if (addSelectedIndex >= 0 && addSelectedIndex < suggestionDivs.length) {
+                    suggestionDivs[addSelectedIndex].classList.add('selected');
+                    // Ensure the selected item is visible in the scrollable container
+                    suggestionDivs[addSelectedIndex].scrollIntoView({ block: 'nearest' });
+                }
+            }
+
+            symbolInput_Add.addEventListener('input', function() {
+                const term = this.value.trim();
+                addSuggestionsBox_Add.innerHTML = ''; 
+                addSuggestionsBox_Add.style.display = 'none';
+                addSelectedIndex = -1; 
+                addSuggestions = []; 
+
+                if (term.length < 1) return; // Minimum length to trigger suggestions
+
+                clearTimeout(addDebounceTimer);
+                addDebounceTimer = setTimeout(() => {
+                    const suggestionsUrl = "{% url 'search_suggestions' %}"; // Use Django URL tag
+                    const fullUrl = `${suggestionsUrl}?term=${encodeURIComponent(term)}`;
+                    
+                    fetch(fullUrl, {
+                        method: 'GET',
+                        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                    })
+                    .then(response => response.ok ? response.json() : Promise.reject(`HTTP error! Status: ${response.status}`))
+                    .then(data => {
+                        if (Array.isArray(data) && data.length > 0) { 
+                            addSuggestions = data; 
+                            addSuggestionsBox_Add.innerHTML = ''; 
+                            addSuggestionsBox_Add.style.display = 'block';
+                            
+                            data.forEach((item, index) => { 
+                                const div = document.createElement('div');
+                                div.textContent = item.label; 
+                                div.addEventListener('click', function() {
+                                    symbolInput_Add.value = item.value; // Populate input only
+                                    addSuggestionsBox_Add.innerHTML = '';
+                                    addSuggestionsBox_Add.style.display = 'none';
+                                    addSelectedIndex = -1;
+                                });
+                                div.addEventListener('mouseover', function() {
+                                    addSelectedIndex = index;
+                                    highlightAddSuggestion();
+                                });
+                                addSuggestionsBox_Add.appendChild(div);
+                            });
+                        } else {
+                            addSuggestionsBox_Add.style.display = 'none';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching add page suggestions:', error);
+                        addSuggestionsBox_Add.style.display = 'none';
+                    });
+                }, 300); // Debounce time
+            });
+
+            // Hide suggestions when clicking outside add page input/suggestions
+            document.addEventListener('click', function(event) {
+                if (addSuggestionsBox_Add.style.display === 'block' && !symbolInput_Add.contains(event.target) && !addSuggestionsBox_Add.contains(event.target)) {
+                     addSuggestionsBox_Add.style.display = 'none';
+                     addSelectedIndex = -1;
+                }
+            });
+        } // end if elements exist check
+    }); // end DOMContentLoaded
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h1>Add to Watchlist</h1>
+    
+    <form method="post" action="{% if symbol %}{% url 'add_to_watchlist_with_symbol' symbol=symbol %}{% else %}{% url 'add_to_watchlist' %}{% endif %}" class="watchlist-form">
+        {% csrf_token %}
+        
+        {% if form.non_field_errors %}
+            <div class="error-summary">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+        
+        <div class="form-group" style="position: relative;"> {# Added relative positioning for suggestions box #}
+            <label for="{{ form.symbol.id_for_label }}">Stock Symbol:</label>
+            {{ form.symbol }}
+            {# Suggestions box for this specific input #}
+            <div id="add-suggestions-box" class="suggestions-list" style="position: absolute; top: 100%; left: 0; width: 100%; z-index: 999; display: none;"></div>
+            {% if form.symbol.errors %}
+                <div class="field-error">{{ form.symbol.errors }}</div>
+            {% endif %}
+            <div class="field-help">Enter a valid stock symbol (e.g., AAPL, MSFT, GOOG)</div>
+        </div> {# Corrected closing div tag #}
+        
+        <div class="form-group">
+            <label for="{{ form.tracking_type.id_for_label }}">Tracking Type:</label>
+            {{ form.tracking_type }}
+            {% if form.tracking_type.errors %}
+                <div class="field-error">{{ form.tracking_type.errors }}</div>
+            {% endif %}
+            <div class="field-help">Select if you're tracking or have purchased this stock</div>
+        </div>
+        
+        <div id="purchase-details" class="purchase-fields">
+            <div class="form-group">
+                <label for="{{ form.purchase_price.id_for_label }}">Purchase Price:</label>
+                {{ form.purchase_price }}
+                {% if form.purchase_price.errors %}
+                    <div class="field-error">{{ form.purchase_price.errors }}</div>
+                {% endif %}
+                <div class="field-help">Price per share you paid</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.purchase_quantity.id_for_label }}">Quantity:</label>
+                {{ form.purchase_quantity }}
+                {% if form.purchase_quantity.errors %}
+                    <div class="field-error">{{ form.purchase_quantity.errors }}</div>
+                {% endif %}
+                <div class="field-help">Number of shares purchased</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.purchase_date.id_for_label }}">Purchase Date:</label>
+                {{ form.purchase_date }}
+                {% if form.purchase_date.errors %}
+                    <div class="field-error">{{ form.purchase_date.errors }}</div>
+                {% endif %}
+                <div class="field-help">Date of purchase (YYYY-MM-DD)</div>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ form.notes.id_for_label }}">Notes:</label>
+            {{ form.notes }}
+            {% if form.notes.errors %}
+                <div class="field-error">{{ form.notes.errors }}</div>
+            {% endif %}
+            <div class="field-help">Optional notes about this stock</div>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Add to Watchlist</button>
+            <a href="{% url 'watchlist' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<style>
+    .form-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .watchlist-form {
+        background-color: white;
+        padding: 25px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 500;
+        color: #2c3e50;
+    }
+    
+    .form-group input[type="text"],
+    .form-group input[type="number"],
+    .form-group input[type="date"],
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #dcdfe6;
+        border-radius: 4px;
+        background-color: #f8f9fa;
+        font-size: 16px;
+        transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        border-color: #3498db;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+    }
+    
+    .field-help {
+        margin-top: 5px;
+        font-size: 12px;
+        color: #7f8c8d;
+    }
+    
+    .field-error {
+        margin-top: 5px;
+        font-size: 14px;
+        color: #e74c3c;
+    }
+    
+    .error-summary {
+        background-color: rgba(231, 76, 60, 0.1);
+        color: #e74c3c;
+        padding: 15px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+    }
+    
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 30px;
+    }
+    
+    .btn {
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s;
+        font-size: 16px;
+        text-decoration: none;
+    }
+    
+    .btn-primary {
+        background-color: #2ecc71;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background-color: #27ae60;
+        transform: translateY(-2px);
+    }
+    
+    .btn-secondary {
+        background-color: #ecf0f1;
+        color: #2c3e50;
+        border: 1px solid #d5dbdb;
+    }
+    
+    .btn-secondary:hover {
+        background-color: #d5dbdb;
+    }
+    
+    .purchase-fields {
+        border-top: 1px solid #ecf0f1;
+        margin-top: 15px;
+        padding-top: 15px;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const trackingTypeSelect = document.getElementById('{{ form.tracking_type.id_for_label }}');
+        const purchaseDetails = document.getElementById('purchase-details');
+        
+        // Function to toggle visibility of purchase fields
+        function togglePurchaseFields() {
+            if (trackingTypeSelect.value === 'PURCHASED') {
+                purchaseDetails.style.display = 'block';
+            } else {
+                purchaseDetails.style.display = 'none';
+            }
+        }
+        
+        // Initial state
+        togglePurchaseFields();
+        
+        // Listen for changes
+        trackingTypeSelect.addEventListener('change', togglePurchaseFields);
+    });
+
+    // --- Autocomplete for Symbol Input ---
+    const symbolInput = document.getElementById('{{ form.symbol.id_for_label }}'); // Targets the symbol input field
+    const addSuggestionsBox = document.getElementById('add-suggestions-box');
+    
+    if (symbolInput && addSuggestionsBox) {
+        let addDebounceTimer;
+        let addSelectedIndex = -1;
+        let addSuggestions = [];
+
+        // Keyboard navigation for add page suggestions
+        symbolInput.addEventListener('keydown', function(e) {
+            if (addSuggestionsBox.style.display !== 'block') return;
+            
+            if (e.key === 'ArrowDown') {
+                e.preventDefault(); 
+                if (addSelectedIndex < addSuggestions.length - 1) {
+                    addSelectedIndex++;
+                    highlightAddSuggestion();
+                }
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault(); 
+                if (addSelectedIndex > 0) {
+                    addSelectedIndex--;
+                    highlightAddSuggestion();
+                }
+            } else if (e.key === 'Enter') { 
+                if (addSelectedIndex >= 0 && addSuggestions[addSelectedIndex]) {
+                     e.preventDefault(); // Prevent form submission
+                     symbolInput.value = addSuggestions[addSelectedIndex].value; // Populate input only
+                     addSuggestionsBox.style.display = 'none'; // Hide suggestions
+                     addSelectedIndex = -1;
+                }
+                // Allow Enter to submit form if no suggestion is selected
+            } else if (e.key === 'Escape') {
+                addSuggestionsBox.style.display = 'none';
+                addSelectedIndex = -1;
+            }
+        });
+
+        function highlightAddSuggestion() {
+            const suggestionDivs = addSuggestionsBox.querySelectorAll('div');
+            suggestionDivs.forEach(div => div.classList.remove('selected'));
+            if (addSelectedIndex >= 0 && addSelectedIndex < suggestionDivs.length) {
+                suggestionDivs[addSelectedIndex].classList.add('selected');
+                suggestionDivs[addSelectedIndex].scrollIntoView({ block: 'nearest' });
+            }
+        }
+
+        symbolInput.addEventListener('input', function() {
+            const term = this.value.trim();
+            addSuggestionsBox.innerHTML = ''; 
+            addSuggestionsBox.style.display = 'none';
+            addSelectedIndex = -1; 
+            addSuggestions = []; 
+
+            if (term.length < 1) return;
+
+            clearTimeout(addDebounceTimer);
+            addDebounceTimer = setTimeout(() => {
+                const suggestionsUrl = "{% url 'search_suggestions' %}"; 
+                const fullUrl = `${suggestionsUrl}?term=${encodeURIComponent(term)}`;
+                
+                fetch(fullUrl, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(response => response.ok ? response.json() : Promise.reject(`HTTP error! Status: ${response.status}`))
+                .then(data => {
+                    if (Array.isArray(data) && data.length > 0) { 
+                        addSuggestions = data; 
+                        addSuggestionsBox.innerHTML = ''; 
+                        addSuggestionsBox.style.display = 'block';
+                        
+                        data.forEach((item, index) => { 
+                            const div = document.createElement('div');
+                            div.textContent = item.label; 
+                            div.addEventListener('click', function() {
+                                symbolInput.value = item.value; // Populate input only
+                                addSuggestionsBox.innerHTML = '';
+                                addSuggestionsBox.style.display = 'none';
+                                addSelectedIndex = -1;
+                            });
+                            div.addEventListener('mouseover', function() {
+                                addSelectedIndex = index;
+                                highlightAddSuggestion();
+                            });
+                            addSuggestionsBox.appendChild(div);
+                        });
+                    } else {
+                        addSuggestionsBox.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching add page suggestions:', error);
+                    addSuggestionsBox.style.display = 'none';
+                });
+            }, 300); 
+        });
+
+        // Hide suggestions when clicking outside add page input/suggestions
+        document.addEventListener('click', function(event) {
+            if (addSuggestionsBox.style.display === 'block' && !symbolInput.contains(event.target) && !addSuggestionsBox.contains(event.target)) {
+                 addSuggestionsBox.style.display = 'none';
+                 addSelectedIndex = -1;
+            }
+        });
+    } // end if elements exist check
+</script>
+{% endblock %}

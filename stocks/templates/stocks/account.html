@@ -1,0 +1,87 @@
+{% extends 'stocks/base.html' %}
+
+{% block title %}My Account{% endblock %}
+
+{% block content %}
+<h1>Manage Your Account</h1>
+
+{# Display messages #}
+{% if messages %}
+    <div class="messages" style="margin-bottom: 20px;">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}" role="alert" style="padding: 10px; border-radius: 4px; border: 1px solid transparent; margin-bottom: 10px;
+                {% if message.tags == 'success' %} background-color: #d4edda; border-color: #c3e6cb; color: #155724;
+                {% elif message.tags == 'error' %} background-color: #f8d7da; border-color: #f5c6cb; color: #721c24;
+                {% elif message.tags == 'warning' %} background-color: #fff3cd; border-color: #ffeeba; color: #856404;
+                {% else %} background-color: #d1ecf1; border-color: #bee5eb; color: #0c5460; {% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+
+    {# Update Profile Section #}
+    <div class="form-section" style="padding: 20px; border: 1px solid #eee; border-radius: 8px; background-color: #fdfdfd;">
+        <h2>Update Profile Information</h2>
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {{ user_form.non_field_errors }}
+            {% for field in user_form %}
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label for="{{ field.id_for_label }}" style="display: block; margin-bottom: 5px; font-weight: bold;">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <small style="color: #6c757d; display: block; margin-top: 3px;">{{ field.help_text|safe }}</small>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <div class="error" style="color: #dc3545; font-size: 0.9em; margin-top: 3px;">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+            <button type="submit" name="update_profile" class="btn btn-primary" style="background-color: var(--primary-color); border-color: var(--primary-color); color: white;">Update Profile</button>
+        </form>
+    </div>
+
+    {# Change Password Section #}
+    <div class="form-section" style="padding: 20px; border: 1px solid #eee; border-radius: 8px; background-color: #fdfdfd;">
+        <h2>Change Password</h2>
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {{ password_form.non_field_errors }}
+            {% for field in password_form %}
+                 <div class="form-group" style="margin-bottom: 15px;">
+                    <label for="{{ field.id_for_label }}" style="display: block; margin-bottom: 5px; font-weight: bold;">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <small style="color: #6c757d; display: block; margin-top: 3px;">{{ field.help_text|safe }}</small>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <div class="error" style="color: #dc3545; font-size: 0.9em; margin-top: 3px;">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+            <button type="submit" name="change_password" class="btn btn-primary" style="background-color: var(--primary-color); border-color: var(--primary-color); color: white;">Change Password</button>
+        </form>
+    </div>
+
+</div>
+
+{# Add some basic styling for form fields #}
+<style>
+    .form-group input[type="text"],
+    .form-group input[type="email"],
+    .form-group input[type="password"] {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box; /* Include padding and border in element's total width and height */
+    }
+    .form-group .error {
+        margin-top: 5px;
+    }
+</style>
+
+{% endblock %}
