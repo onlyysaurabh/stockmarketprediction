@@ -12,10 +12,12 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 import os
 from dotenv import load_dotenv
 from pathlib import Path
+import django_heroku
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # Load environment variables from .env file in the base directory
 dotenv_path = BASE_DIR / '.env'
 load_dotenv(dotenv_path=dotenv_path)
@@ -30,7 +32,7 @@ SECRET_KEY = '7for9)js*2g@04iyh3&#lpa8#_kyrfj58px)07fg1o558z$a^-'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -127,6 +129,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)  # Add this line to include the static directory
+django_heroku.settings(locals())
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
