@@ -142,3 +142,5 @@ Thumbs.db
 
 # Media files uploaded by users (if configured)
 # media/
+_pycache_
+db.sqlite3

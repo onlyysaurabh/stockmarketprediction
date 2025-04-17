@@ -76,6 +76,15 @@
                             <dd>{{ value|format_summary|safe }}</dd>
                         {% elif key == 'companyOfficers' %}
                             {# Handled separately below #}
+                        {% elif key == 'website' or key == 'Website' or key == 'url' or key == 'URL' or key == 'websiteUrl' %}
+                            <dd>
+                                {{ value|default:"N/A" }}
+                                {% if value %}
+                                    <a href="{{ value }}" target="_blank" class="btn btn-visit-website" title="Open website in new tab">
+                                        <i class="fas fa-external-link-alt"></i> Visit
+                                    </a>
+                                {% endif %}
+                            </dd>
                         {% elif key in epoch_keys %}
                             <dd>{{ value|format_epoch }}</dd>
                         {% elif key in large_number_keys %}
@@ -205,7 +214,7 @@
         align-items: center;
     }
     
-    .btn-update, .btn-watchlist {
+    .btn-update, .btn-watchlist, .btn-visit-website {
         padding: 8px 15px;
         border-radius: 6px;
         border: none;
@@ -238,6 +247,19 @@
         transform: translateY(-2px);
     }
     
+    .btn-visit-website {
+        background-color: rgba(46, 204, 113, 0.1);
+        color: #2ecc71;
+        margin-left: 10px;
+        font-size: 13px;
+        padding: 5px 10px;
+    }
+    
+    .btn-visit-website:hover {
+        background-color: rgba(46, 204, 113, 0.2);
+        transform: translateY(-2px);
+    }
+    
     .btn i {
         margin-right: 6px;
     }
@@ -266,6 +288,8 @@
     .stock-info-list dd {
         margin-left: 210px; /* Should be slightly larger than dt width */
         margin-bottom: 8px;
+        display: flex;
+        align-items: center;
     }
 
     /* Style for the officers table */
