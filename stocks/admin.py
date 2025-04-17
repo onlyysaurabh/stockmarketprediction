@@ -6,7 +6,7 @@ from .services import update_stock_prices
 import yfinance as yf
 from datetime import datetime
 from django.http import HttpResponseRedirect
-from django.urls import path
+from django.urls import path, reverse # Added reverse
 from django.template.response import TemplateResponse
 from django.contrib.admin import SimpleListFilter
 
@@ -64,7 +64,7 @@ class StockAdmin(admin.ModelAdmin):
     list_filter = (SectorListFilter, IndustryListFilter)  # Use custom filter classes
     search_fields = ('symbol', 'name', 'sector', 'industry')
     readonly_fields = ('data_updated',)
-    actions = ['update_selected_stock_prices']
+    actions = ['update_selected_stock_prices', 'fetch_news_for_selected'] # Added fetch_news_for_selected
     list_per_page = 50  # Show more stocks per page
     list_max_show_all = 1000  # Allow showing up to 1000 stocks when clicking "Show All"
     show_full_result_count = True  # Show the total count of stocks
@@ -117,9 +117,22 @@ class StockAdmin(admin.ModelAdmin):
                 f"Failed to update {results['failed']} stock(s) due to errors.",
                 level=messages.ERROR
             )
-            
-    update_selected_stock_prices.short_description = "Update prices for selected stocks"
-    
+
+    def fetch_news_for_selected(self, request, queryset):
+        """Admin action to redirect to the custom news fetching form."""
+        selected_ids = queryset.values_list('pk', flat=True)
+        if not selected_ids:
+            self.message_user(request, "No stocks selected.", level=messages.WARNING)
+            return None
+
+        # Construct the URL for the custom view, passing selected IDs
+        redirect_url = reverse('admin_fetch_stock_news')
+        ids_param = ','.join(str(pk) for pk in selected_ids)
+        
+        return HttpResponseRedirect(f"{redirect_url}?ids={ids_param}")
+
+    fetch_news_for_selected.short_description = "Fetch news for selected stocks"
+
     def get_actions(self, request):
         actions = super().get_actions(request)
         return actions

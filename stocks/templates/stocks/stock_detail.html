@@ -174,6 +174,58 @@
 
     <hr style="margin: 30px 0;">
 
+    {# News Section #}
+    <h2>Recent News (Last 7 Days)</h2>
+    {% if news_items %}
+        <div class="news-list" style="margin-bottom: 30px;">
+            {% for news in news_items %}
+                <div class="news-item" style="border: 1px solid #eee; padding: 15px; margin-bottom: 15px; border-radius: 5px; background-color: #fff;">
+                    <h4 style="margin-top: 0; margin-bottom: 5px;">
+                        <a href="{{ news.url }}" target="_blank" title="Read full article">{{ news.headline }}</a>
+                    </h4>
+                    <p style="font-size: 0.9em; color: #666; margin-bottom: 10px;">
+                        <strong>Source:</strong> {{ news.source }} |
+                        <strong>Published:</strong>
+                        {% timezone "Asia/Calcutta" %}
+                            {{ news.published_at|date:"Y-m-d H:i" }}
+                        {% endtimezone %}
+                        {% if news.sentiment_positive is not None %}
+                            | <strong>Sentiment:</strong>
+                            {% if news.sentiment_positive > news.sentiment_negative and news.sentiment_positive > news.sentiment_neutral %}
+                                <span style="color: green;">Positive</span> ({{ news.sentiment_positive|floatformat:2 }})
+                            {% elif news.sentiment_negative > news.sentiment_positive and news.sentiment_negative > news.sentiment_neutral %}
+                                <span style="color: red;">Negative</span> ({{ news.sentiment_negative|floatformat:2 }})
+                            {% else %}
+                                <span style="color: orange;">Neutral</span> ({{ news.sentiment_neutral|floatformat:2 }})
+                            {% endif %}
+                        {% endif %}
+                    </p>
+                    {% if news.summary %}
+                        <p style="font-size: 0.95em; margin-bottom: 0;">{{ news.summary|truncatewords:50 }}</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No recent news found for this stock.</p>
+    {% endif %}
+
+    <hr style="margin: 30px 0;">
+
+     {# Sentiment Pie Chart Section #}
+    <h2>News Sentiment Distribution (Last 7 Days)</h2>
+    {% if total_analyzed_news > 0 %}
+        <div style="max-width: 400px; margin: 20px auto;"> {# Center the chart #}
+            <canvas id="sentimentPieChart"></canvas>
+        </div>
+        <p style="text-align: center; font-size: 0.9em; color: #777;">Based on {{ total_analyzed_news }} analyzed news articles.</p>
+    {% else %}
+        <p>No news articles with sentiment analysis found in the last 7 days.</p>
+    {% endif %}
+
+    <hr style="margin: 30px 0;">
+
+
     {# Collapsible Other Information Section #}
     <div id="other-info-container">
         <button type="button" id="toggle-other-info" class="btn btn-info" style="margin-bottom: 10px;">Show Other Information</button>
@@ -590,5 +642,76 @@
                 this.textContent = isHidden ? 'Hide Other Information' : 'Show Other Information';
             });
         }
+    </script>
+
+    {# Add Chart.js library (if not already in base template) #}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        // --- Sentiment Pie Chart ---
+        const sentimentData = JSON.parse('{{ sentiment_percentages|escapejs }}');
+        const sentimentLabels = ['Positive', 'Neutral', 'Negative']; // Order matters for colors
+        const sentimentValues = [
+            sentimentData.positive || 0,
+            sentimentData.neutral || 0,
+            sentimentData.negative || 0
+        ];
+
+        // Check if there's data to display
+        const hasSentimentData = sentimentValues.some(v => v > 0);
+
+        if (hasSentimentData && document.getElementById('sentimentPieChart')) {
+            const pieCtx = document.getElementById('sentimentPieChart').getContext('2d');
+            const sentimentPieChart = new Chart(pieCtx, {
+                type: 'pie',
+                data: {
+                    labels: sentimentLabels,
+                    datasets: [{
+                        label: 'Sentiment Distribution (%)',
+                        data: sentimentValues,
+                        backgroundColor: [
+                            'rgba(75, 192, 192, 0.7)', // Positive (Greenish)
+                            'rgba(255, 206, 86, 0.7)', // Neutral (Yellowish)
+                            'rgba(255, 99, 132, 0.7)'  // Negative (Reddish)
+                        ],
+                        borderColor: [
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(255, 99, 132, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed !== null) {
+                                        label += context.parsed.toFixed(1) + '%'; // Show percentage
+                                    }
+                                    return label;
+                                }
+                            }
+                        },
+                        title: {
+                            display: false, // Title is already above the chart
+                            text: 'News Sentiment Distribution (%)'
+                        }
+                    }
+                }
+            });
+        } else {
+             console.log("No sentiment data to display or canvas not found.");
+        }
+
     </script>
 {% endblock %}

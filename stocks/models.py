@@ -1,8 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.utils import timezone
-from datetime import datetime
-from decimal import Decimal
+# Removed unused: from django.utils import timezone
+# Removed unused: from datetime import datetime
+# Removed unused: from decimal import Decimal
 
 class Stock(models.Model):
     """
@@ -115,5 +115,28 @@ class WatchlistItem(models.Model):
             self.purchase_price = None
             self.purchase_quantity = None
             self.purchase_date = None
-            
+
         super().save(*args, **kwargs)
+
+
+class StockNews(models.Model):
+    """
+    Stores news articles related to a specific stock, including sentiment analysis scores.
+    """
+    stock = models.ForeignKey(Stock, on_delete=models.CASCADE, related_name='news')
+    source = models.CharField(max_length=50, default='Finnhub') # Source of the news, e.g., Finnhub
+    headline = models.TextField()
+    summary = models.TextField(blank=True, null=True) # Summary might not always be available
+    url = models.URLField(max_length=1024, unique=True) # Use URL as a unique identifier
+    published_at = models.DateTimeField() # Timestamp from the source
+    sentiment_positive = models.FloatField(null=True, blank=True)
+    sentiment_negative = models.FloatField(null=True, blank=True)
+    sentiment_neutral = models.FloatField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True) # When the record was created in our DB
+
+    def __str__(self):
+        return f"{self.stock.symbol} News: {self.headline[:50]}..."
+
+    class Meta:
+        ordering = ['-published_at'] # Show newest news first
+        verbose_name_plural = "Stock News"

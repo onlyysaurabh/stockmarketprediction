@@ -19,10 +19,10 @@ import yfinance as yf
 from decimal import Decimal
 from datetime import datetime, timedelta
 from django.contrib.auth.forms import UserCreationForm, PasswordChangeForm # Added PasswordChangeForm
-from django.contrib.auth import login, update_session_auth_hash, logout # Added logout
-# from django.contrib.auth.models import User # Removed as unused here
-# authenticate is not used in the planned register_view, removed for now
-from .forms import WatchlistItemForm, UserUpdateForm # Import UserUpdateForm
+from django.contrib.auth import login, update_session_auth_hash, logout
+from django.utils import timezone # Import timezone for date calculations
+from .forms import WatchlistItemForm, UserUpdateForm
+from .models import Stock, StockNews # Import Stock and StockNews
 
 logger = logging.getLogger(__name__)
 
@@ -94,16 +94,27 @@ def stock_detail(request: HttpRequest, symbol: str):
 
     # Uppercase the symbol for consistency
     symbol = symbol.upper()
-    
-    # Always fetch the comprehensive data from the service (MongoDB)
-    stock_data = get_stock_data(symbol)
-    
-    if not stock_data:
-        messages.error(request, f"Could not retrieve data for stock symbol {symbol}.")
+
+    # Get the Stock object from Django DB first
+    try:
+        stock_obj = Stock.objects.get(symbol=symbol)
+    except Stock.DoesNotExist:
+        # Optionally try fetching from MongoDB/yfinance if not in Django DB yet
+        # For now, assume if it's not in Stock model, we can't show details
+        messages.error(request, f"Stock symbol {symbol} not found in our database.")
         return redirect('home')
-        
-    # The 'info' dictionary is inside stock_data
-    stock_info = stock_data.get('info', {}) # Get the info dict, default to empty if missing
+
+    # Fetch the comprehensive data from the service (MongoDB)
+    # This might be redundant if Stock model is kept up-to-date, but good for extra info
+    stock_data = get_stock_data(symbol)
+
+    if not stock_data:
+        # We have the stock_obj, but maybe MongoDB data is missing? Log warning.
+        logger.warning(f"Could not retrieve detailed data (MongoDB) for stock symbol {symbol}, but Stock object exists.")
+        stock_info = {} # Use empty dict if MongoDB data fails
+    else:
+        # The 'info' dictionary is inside stock_data
+        stock_info = stock_data.get('info', {}) # Get the info dict, default to empty if missing
     
     # Get stock historical data for charting - use 'max' to get all available data
     # Note: get_stock_historical_data also fetches from MongoDB if needed
@@ -160,9 +171,45 @@ def stock_detail(request: HttpRequest, symbol: str):
                 'dates': json.dumps(comm_dates),
                 'close': json.dumps(comm_close)
             }
-        else:
-             messages.warning(request, f"Could not retrieve historical data for {comm_name} ({comm_symbol}).")
+    else:
+         messages.warning(request, f"Could not retrieve historical data for {comm_name} ({comm_symbol}).")
 
+    # --- Fetch News Data and Calculate Sentiment ---
+    seven_days_ago = timezone.now() - timedelta(days=7)
+    news_items = StockNews.objects.filter(
+        stock=stock_obj,
+        published_at__gte=seven_days_ago
+    ).order_by('-published_at') # Get news for the last 7 days
+
+    sentiment_counts = {'positive': 0, 'negative': 0, 'neutral': 0}
+    total_analyzed = 0
+
+    for news in news_items:
+        # Check if sentiment scores exist
+        pos = news.sentiment_positive
+        neg = news.sentiment_negative
+        neu = news.sentiment_neutral
+
+        # Ensure scores are not None before comparison
+        if pos is not None and neg is not None and neu is not None:
+            total_analyzed += 1
+            if pos > neg and pos > neu:
+                sentiment_counts['positive'] += 1
+            elif neg > pos and neg > neu:
+                sentiment_counts['negative'] += 1
+            else: # Default to neutral if scores are equal or only neutral is highest
+                sentiment_counts['neutral'] += 1
+        # else: news item lacks sentiment scores, don't count it for the pie chart
+
+    sentiment_percentages = {}
+    if total_analyzed > 0:
+        sentiment_percentages['positive'] = round((sentiment_counts['positive'] / total_analyzed) * 100, 1)
+        sentiment_percentages['negative'] = round((sentiment_counts['negative'] / total_analyzed) * 100, 1)
+        sentiment_percentages['neutral'] = round((sentiment_counts['neutral'] / total_analyzed) * 100, 1)
+        # Adjust rounding to ensure total is 100% if needed (e.g., assign remainder to largest category)
+        # For simplicity, we'll leave it as is for now.
+    else:
+        sentiment_percentages = {'positive': 0, 'negative': 0, 'neutral': 100} # Default if no analyzed news
 
     # --- Prepare Context ---
     
@@ -211,10 +258,13 @@ def stock_detail(request: HttpRequest, symbol: str):
         'epoch_keys': epoch_keys,
         'large_number_keys': large_number_keys,
         'percentage_keys': percentage_keys,
-        # Removed duplicated context lines that were here
         'currency_keys': currency_keys,
+        'news_items': news_items, # Add news items to context
+        'sentiment_percentages': json.dumps(sentiment_percentages), # Add sentiment data for chart
+        'sentiment_counts': sentiment_counts, # Optional: pass counts too
+        'total_analyzed_news': total_analyzed, # Optional: pass total analyzed count
     }
-    
+
     return render(request, 'stocks/stock_detail.html', context)
 
 # Note: This view implicitly uses POST, consider adding @require_POST decorator

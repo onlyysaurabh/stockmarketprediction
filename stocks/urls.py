@@ -1,6 +1,7 @@
-from django.urls import path
+from django.urls import path, re_path
 from . import views
-from django.contrib.auth.views import LogoutView
+from . import admin_views # Import the new admin views
+# Removed unused: from django.contrib.auth.views import LogoutView
 
 # Define URL patterns for the stocks app
 # Use 'name' for easy URL reversing in templates and views
@@ -28,4 +29,11 @@ urlpatterns = [
 
     # Example: /AAPL/ (Stock detail page)
     path('<str:symbol>/', views.stock_detail, name='stock_detail'),
+
+    # --- Custom Admin Views ---
+    # Note: These might be better placed in a separate admin_urls.py
+    # but adding here for simplicity based on current structure.
+    # The URL needs to match what we'll use in the admin action.
+    # Using re_path for flexibility with query parameters if needed, though path might suffice.
+    re_path(r'^admin/stocks/stock/fetch-news/$', admin_views.fetch_stock_news_view, name='admin_fetch_stock_news'),
 ]

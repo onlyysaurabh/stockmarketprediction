@@ -1,0 +1,68 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block extrastyle %}{{ block.super }}
+    {# Include form media CSS if any #}
+    {{ media.css }}
+    <link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}">
+{% endblock %}
+
+{% block extrahead %}{{ block.super }}
+    {# Include form media JS if any (for date picker etc.) #}
+    {{ media.js }}
+    <script src="{% url 'admin:jsi18n' %}"></script> {# Required for admin date widget #}
+{% endblock %}
+
+{% block coltype %}colM{% endblock %}
+
+{% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }} change-form{% endblock %}
+
+{% if not is_popup %}
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+&rsaquo; <a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+&rsaquo; {% translate 'Fetch News' %}
+</div>
+{% endblock %}
+{% endif %}
+
+{% block content %}
+<div id="content-main">
+    <form method="post">
+        {% csrf_token %}
+        
+        <h1>{{ title }}</h1>
+
+        <p>Select the date range for which you want to fetch news articles for the following stocks:</p>
+        <ul>
+            {% for stock in selected_stocks %}
+                <li>{{ stock.symbol }} - {{ stock.name|default:"N/A" }}</li>
+            {% empty %}
+                <li>No stocks selected.</li>
+            {% endfor %}
+        </ul>
+
+        <fieldset class="module aligned">
+            <h2>Date Range</h2>
+            {% for field in form %}
+                <div class="form-row field-{{ field.name }}">
+                    {{ field.errors }}
+                    <div class="flex-container">
+                         <label class="required" for="{{ field.id_for_label }}">{{ field.label }}:</label>
+                         {{ field }}
+                    </div>
+                    {% if field.help_text %}
+                        <div class="help">{{ field.help_text|safe }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </fieldset>
+
+        <div class="submit-row">
+            <input type="submit" value="Fetch News" class="default">
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -144,3 +144,11 @@ Thumbs.db
 # media/
 _pycache_
 db.sqlite3
+__pycache__
+stocks/__pycache__/admin.cpython-311.pyc
+stocks/__pycache__/views.cpython-311.pyc
+stocks/__pycache__/urls.cpython-311.pyc
+stocks/__pycache__/services.cpython-311.pyc
+stocks/__pycache__/models.cpython-311.pyc
+stocks/__pycache__/admin.cpython-311.pyc
+stocks/__pycache__/forms.cpython-311.pyc

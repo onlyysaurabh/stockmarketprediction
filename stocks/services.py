@@ -4,8 +4,14 @@ from pymongo import MongoClient
 from datetime import datetime, timezone # Import timezone
 import pandas as pd
 import logging
-from django.db import models
+from django.db import transaction # Removed unused models import
+# Removed unused: from django.utils import timezone as django_timezone
 import time
+from .models import Stock, StockNews # Import Stock and new StockNews model
+from .news_service import FinnhubClient # Import the client
+from .sentiment_service import analyze_sentiment # Import sentiment analyzer
+from typing import Dict, Optional # Added Optional
+from datetime import date, timedelta # Added date, timedelta
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -432,8 +438,9 @@ def update_stock_prices(symbols=None, delay=1.0, update_django_model=True):
                 if update_django_model:
                     try:
                         # Get or create Django model instance
-                        stock, created = Stock.objects.get_or_create(symbol=symbol)
-                        
+                        # stock, created = Stock.objects.get_or_create(symbol=symbol) # 'created' is unused
+                        stock, _ = Stock.objects.get_or_create(symbol=symbol) # Use _ for unused variable
+
                         # Extract info from MongoDB document
                         info = mongo_data.get('info', {})
                         historical_data = mongo_data.get('historical_data', [])
@@ -486,6 +493,140 @@ def update_stock_prices(symbols=None, delay=1.0, update_django_model=True):
     
     # Return summary
     return results
+
+
+# --- News Fetching, Analysis, and Storing ---
+
+def process_news_for_stock(
+    stock_symbol: str,
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    days_back: int = 7
+) -> Dict[str, int]:
+    """
+    Fetches news for a stock symbol for a given date range or the last N days,
+    analyzes sentiment, and stores the results in the StockNews model.
+
+    Args:
+        stock_symbol (str): The stock symbol.
+        start_date (Optional[date]): The start date for the news fetch.
+        end_date (Optional[date]): The end date for the news fetch.
+        days_back (int): How many days back to fetch news for if start/end dates are not provided.
+
+    Returns:
+        Dict[str, int]: A summary dictionary {'processed': count, 'created': count, 'updated': count, 'failed': count}.
+    """
+    summary = {'processed': 0, 'created': 0, 'updated': 0, 'failed': 0}
+
+    try:
+        stock = Stock.objects.get(symbol=stock_symbol)
+    except Stock.DoesNotExist:
+        logger.error(f"Stock with symbol {stock_symbol} not found in the database. Cannot process news.")
+        summary['failed'] = -1 # Indicate stock not found
+        return summary
+
+    # Determine date range
+    if start_date is None or end_date is None:
+        # Calculate dates based on days_back if range not provided
+        today = date.today()
+        end_date_calc = today
+        start_date_calc = today - timedelta(days=days_back)
+        logger.info(f"Date range not provided, fetching news for {stock_symbol} for the last {days_back} days ({start_date_calc} to {end_date_calc}).")
+    else:
+        # Use provided dates
+        start_date_calc = start_date
+        end_date_calc = end_date
+        logger.info(f"Starting news processing for {stock_symbol} from {start_date_calc} to {end_date_calc}.")
+
+    # Format dates for API call
+    start_date_str = start_date_calc.strftime('%Y-%m-%d')
+    end_date_str = end_date_calc.strftime('%Y-%m-%d')
+
+    # Use FinnhubClient to fetch news
+    client = FinnhubClient()
+    news_items = client.get_company_news(stock_symbol, start_date_str, end_date_str)
+
+    if news_items is None:
+        logger.warning(f"No news items fetched from Finnhub for {stock_symbol} between {start_date_str} and {end_date_str}.")
+        return summary # Nothing to process
+
+    if not isinstance(news_items, list):
+        logger.error(f"Unexpected data type received from Finnhub news endpoint: {type(news_items)}")
+        return summary
+
+    logger.info(f"Fetched {len(news_items)} news items for {stock_symbol}.")
+
+    for item in news_items:
+        summary['processed'] += 1
+        if not isinstance(item, dict) or not all(k in item for k in ['url', 'headline', 'datetime']):
+            logger.warning(f"Skipping invalid news item format: {item}")
+            summary['failed'] += 1
+            continue
+
+        news_url = item.get('url')
+        headline = item.get('headline')
+        summary_text = item.get('summary', '') # Use summary if available
+        source = item.get('source', 'Finnhub') # Get source if provided
+        
+        # Combine headline and summary for better sentiment context
+        text_to_analyze = f"{headline}. {summary_text}".strip()
+
+        # Analyze sentiment
+        sentiment_scores = analyze_sentiment(text_to_analyze)
+        if sentiment_scores is None:
+            logger.warning(f"Sentiment analysis failed for news item URL: {news_url}")
+            # Decide whether to store without sentiment or skip
+            # For now, let's store it without sentiment
+            sentiment_scores = {'positive': None, 'negative': None, 'neutral': None}
+            # summary['failed'] += 1 # Optionally count as failed if sentiment is crucial
+            # continue
+
+        # Convert Finnhub timestamp (seconds since epoch) to timezone-aware datetime
+        try:
+            published_at_ts = item.get('datetime')
+            # Ensure published_at_ts is an integer or float before conversion
+            if isinstance(published_at_ts, (int, float)):
+                 # Assume UTC if no timezone info from Finnhub
+                published_at_dt = datetime.fromtimestamp(published_at_ts, tz=timezone.utc)
+            else:
+                 logger.warning(f"Invalid timestamp format for news item URL {news_url}: {published_at_ts}")
+                 summary['failed'] += 1
+                 continue # Skip if timestamp is invalid
+        except (ValueError, TypeError, OSError) as e: # OSError for large timestamps
+            logger.error(f"Error converting timestamp {published_at_ts} for news URL {news_url}: {e}")
+            summary['failed'] += 1
+            continue
+
+        # Use transaction.atomic for database operations
+        try:
+            with transaction.atomic():
+                # news_obj, created = StockNews.objects.update_or_create( # news_obj is unused
+                _, created = StockNews.objects.update_or_create( # Use _ for unused variable
+                    url=news_url, # Use URL as the unique identifier
+                    defaults={
+                        'stock': stock,
+                        'source': source,
+                        'headline': headline,
+                        'summary': summary_text if summary_text else None, # Store None if empty
+                        'published_at': published_at_dt,
+                        'sentiment_positive': sentiment_scores.get('positive'),
+                        'sentiment_negative': sentiment_scores.get('negative'),
+                        'sentiment_neutral': sentiment_scores.get('neutral'),
+                    }
+                )
+                if created:
+                    summary['created'] += 1
+                    logger.debug(f"Created StockNews entry for URL: {news_url}")
+                else:
+                    summary['updated'] += 1
+                    logger.debug(f"Updated StockNews entry for URL: {news_url}")
+
+        except Exception as e:
+            logger.error(f"Database error storing news for URL {news_url}: {e}", exc_info=True)
+            summary['failed'] += 1
+
+    logger.info(f"Finished news processing for {stock_symbol}. Summary: {summary}")
+    return summary
 
 
 # Example usage (for testing purposes)
