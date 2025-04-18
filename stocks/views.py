@@ -146,7 +146,6 @@ def stock_detail(request: HttpRequest, symbol: str):
     else:
         messages.warning(request, f"Could not retrieve historical data for {symbol}.")
 
-
     # --- Fetch Commodity Data ---
     commodities_to_fetch = {
         'GC=F': 'Gold',
@@ -172,8 +171,8 @@ def stock_detail(request: HttpRequest, symbol: str):
                 'dates': json.dumps(comm_dates),
                 'close': json.dumps(comm_close)
             }
-    else:
-         messages.warning(request, f"Could not retrieve historical data for {comm_name} ({comm_symbol}).")
+        else:
+            messages.warning(request, f"Could not retrieve historical data for {comm_name} ({comm_symbol}).")
 
     # --- Fetch News Data and Calculate Sentiment ---
     seven_days_ago = timezone.now() - timedelta(days=7)
@@ -236,6 +235,26 @@ def stock_detail(request: HttpRequest, symbol: str):
         # For simplicity, we'll leave it as is for now.
     else:
         sentiment_percentages = {'positive': 0, 'negative': 0, 'neutral': 100} # Default if no analyzed news
+        
+    # --- Fetch Price Predictions ---
+    from .prediction_service import get_prediction_for_stock, get_multiple_predictions
+    
+    # Get next-day predictions from all available models
+    predictions = {}
+    prediction_models = TrainedPredictionModel.objects.filter(stock=stock_obj).order_by('-trained_at')
+    
+    if prediction_models.exists():
+        # Get predictions from different model types
+        model_types = ['SVM', 'XGBOOST', 'SARIMA', 'LSTM']
+        for model_type in model_types:
+            pred = get_prediction_for_stock(symbol, model_type)
+            if pred:
+                predictions[model_type] = pred
+                
+        # Get multi-day predictions
+        multi_predictions = get_multiple_predictions(symbol)
+    else:
+        multi_predictions = None
 
     # --- Prepare Context ---
     
@@ -269,6 +288,7 @@ def stock_detail(request: HttpRequest, symbol: str):
 
     context = {
         # 'stock': stock, # REMOVED - This was causing the error
+        'stock_obj': stock_obj,  # Add the Django Stock model object
         'stock_data': stock_data, # Pass the whole dictionary from MongoDB
         'stock_info': stock_info, # Pass the extracted info dictionary for convenience (optional)
         'stock_historical_data': stock_historical_data, # Use the fetched historical data
@@ -289,6 +309,9 @@ def stock_detail(request: HttpRequest, symbol: str):
         'sentiment_percentages': json.dumps(sentiment_percentages), # Add sentiment data for chart
         'sentiment_counts': sentiment_counts, # Optional: pass counts too
         'total_analyzed_news': total_analyzed, # Optional: pass total analyzed count
+        'predictions': predictions,  # Add predictions
+        'multi_predictions': multi_predictions,  # Add multi-day predictions
+        'has_predictions': bool(predictions),  # For template to check if predictions exist
     }
 
     return render(request, 'stocks/stock_detail.html', context)

@@ -187,9 +187,12 @@ JAZZMIN_SETTINGS = {
 
     # Copyright on the footer
     "copyright": "StockWise Ltd",
-
+    
     # The model admin to search from the search bar, search bar omitted if excluded
     # "search_model": "auth.User",
+    
+    # Set to false to remove the Jazzmin version footer text
+    "show_footer": False,
 
     # Field name on user model that contains avatar ImageField/URLField/Charfield or a callable that receives the user
     # "user_avatar": None,
@@ -256,7 +259,7 @@ JAZZMIN_SETTINGS = {
     # UI Tweaks #
     #############
     # Relative paths to custom CSS/JS scripts (must be present in static files)
-    # "custom_css": None,
+    "custom_css": "css/admin-custom.css",
     # "custom_js": None,
     # Whether to show the UI customizer on the sidebar
     # "show_ui_builder": False,

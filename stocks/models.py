@@ -140,3 +140,32 @@ class StockNews(models.Model):
     class Meta:
         ordering = ['-published_at'] # Show newest news first
         verbose_name_plural = "Stock News"
+
+
+class TrainedPredictionModel(models.Model):
+    """
+    Stores metadata about trained prediction models.
+    """
+    MODEL_TYPES = (
+        ('SVM', 'Support Vector Machine'),
+        ('XGBOOST', 'XGBoost'),
+        ('SARIMA', 'SARIMA'),
+        ('LSTM', 'LSTM'),
+    )
+
+    stock = models.ForeignKey(Stock, on_delete=models.CASCADE, related_name='trained_models')
+    model_type = models.CharField(max_length=10, choices=MODEL_TYPES)
+    trained_at = models.DateTimeField(auto_now_add=True)
+    model_path = models.CharField(max_length=512) # Path where the model file is saved
+    feature_importance = models.JSONField(null=True, blank=True) # Store feature importance as JSON
+    # Optional: Add fields for performance metrics like RMSE, MAE etc.
+    # performance_metrics = models.JSONField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.stock.symbol} - {self.get_model_type_display()} trained on {self.trained_at.strftime('%Y-%m-%d %H:%M')}"
+
+    class Meta:
+        ordering = ['stock', '-trained_at']
+        # Ensure only one latest model of each type per stock? Or allow multiple versions?
+        # unique_together = ('stock', 'model_type') # Uncomment if only one active model per type is desired
+        verbose_name_plural = "Trained Prediction Models"

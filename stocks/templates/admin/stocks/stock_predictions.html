@@ -1,0 +1,297 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}">
+  <style>
+    .prediction-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    .prediction-card {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    .prediction-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    .prediction-detail {
+        display: flex;
+        margin-bottom: 10px;
+    }
+    .prediction-label {
+        font-weight: bold;
+        width: 150px;
+    }
+    .prediction-value {
+        flex: 1;
+    }
+    .prediction-big {
+        font-size: 24px;
+        font-weight: bold;
+    }
+    .prediction-up {
+        color: #28a745;
+    }
+    .prediction-down {
+        color: #dc3545;
+    }
+    .model-predictions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-top: 20px;
+    }
+    .model-card {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 15px;
+        width: calc(50% - 15px);
+        min-width: 300px;
+    }
+    .chart-container {
+        height: 400px;
+        margin-top: 30px;
+    }
+    .back-btn {
+        margin-top: 20px;
+    }
+    table.prediction-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+    .prediction-table th, .prediction-table td {
+        padding: 8px;
+        text-align: right;
+        border-bottom: 1px solid #ddd;
+    }
+    .prediction-table th:first-child, .prediction-table td:first-child {
+        text-align: left;
+    }
+    .prediction-table tr:hover {
+        background-color: #f5f5f5;
+    }
+  </style>
+{% endblock %}
+
+{% block extrahead %}
+  {{ block.super }}
+  <script type="text/javascript" src="{% static 'admin/js/vendor/jquery/jquery.min.js' %}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    $(document).ready(function() {
+        {% if multi_predictions %}
+        // Render prediction chart if data is available
+        var ctx = document.getElementById('predictionChart').getContext('2d');
+        
+        // Extract data from template context
+        var dates = {{ multi_predictions.dates|safe }};
+        
+        var datasets = [];
+        var colors = {
+            'SVM': 'rgba(54, 162, 235, 1)',
+            'XGBOOST': 'rgba(255, 99, 132, 1)',
+            'SARIMA': 'rgba(75, 192, 192, 1)',
+            'LSTM': 'rgba(153, 102, 255, 1)'
+        };
+
+        // Add history line using current price
+        datasets.push({
+            label: 'Current Price',
+            data: Array(dates.length).fill({{ multi_predictions.current_price }}),
+            borderColor: 'rgba(201, 203, 207, 1)',
+            borderDash: [5, 5],
+            borderWidth: 2,
+            fill: false,
+            pointRadius: 0
+        });
+
+        // Add prediction lines for each model
+        {% for model_type, model_data in multi_predictions.models.items %}
+        datasets.push({
+            label: '{{ model_type }}',
+            data: {{ model_data.predictions|safe }},
+            borderColor: colors['{{ model_type }}'],
+            backgroundColor: colors['{{ model_type }}'].replace('1)', '0.2)'),
+            borderWidth: 2,
+            fill: false
+        });
+        {% endfor %}
+
+        var chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Price ($)'
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Price Predictions for {{ stock.symbol }}'
+                    },
+                    legend: {
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': $' + context.raw.toFixed(2);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        {% endif %}
+    });
+  </script>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label='stocks' %}">Stocks</a>
+&rsaquo; <a href="{% url 'admin_prediction_dashboard' %}">Prediction Models</a>
+&rsaquo; {% trans 'Stock Predictions' %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main" class="prediction-container">
+    <h1>Price Predictions for {{ stock.symbol }}</h1>
+    
+    <div class="prediction-card">
+        <div class="prediction-header">
+            <h2>Stock Information</h2>
+            <div>
+                <a href="{% url 'admin:stocks_stock_change' stock.id %}" class="button">Edit Stock</a>
+            </div>
+        </div>
+        
+        <div class="prediction-detail">
+            <div class="prediction-label">Symbol:</div>
+            <div class="prediction-value">{{ stock.symbol }}</div>
+        </div>
+        
+        <div class="prediction-detail">
+            <div class="prediction-label">Name:</div>
+            <div class="prediction-value">{{ stock.name }}</div>
+        </div>
+        
+        <div class="prediction-detail">
+            <div class="prediction-label">Current Price:</div>
+            <div class="prediction-value prediction-big">${{ stock.current_price|floatformat:2 }}</div>
+        </div>
+        
+        <div class="prediction-detail">
+            <div class="prediction-label">Sector:</div>
+            <div class="prediction-value">{{ stock.sector }}</div>
+        </div>
+    </div>
+    
+    {% if predictions %}
+    <div class="prediction-card">
+        <h2>Next Day Predictions</h2>
+        
+        <table class="prediction-table">
+            <thead>
+                <tr>
+                    <th>Model</th>
+                    <th>Prediction</th>
+                    <th>Change</th>
+                    <th>Training Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for model_type, pred in predictions.items %}
+                <tr>
+                    <td>{{ model_type }}</td>
+                    <td>${{ pred.prediction|floatformat:2 }}</td>
+                    <td class="{% if pred.change_pct > 0 %}prediction-up{% elif pred.change_pct < 0 %}prediction-down{% endif %}">
+                        {{ pred.change_pct|floatformat:2 }}%
+                        {% if pred.change_pct > 0 %}↑{% elif pred.change_pct < 0 %}↓{% endif %}
+                    </td>
+                    <td>{{ pred.trained_at }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="prediction-card">
+        <p>No prediction models have been trained for this stock yet.</p>
+        <a href="{% url 'admin_prediction_dashboard' %}" class="button">Train a Model</a>
+    </div>
+    {% endif %}
+    
+    {% if multi_predictions %}
+    <div class="prediction-card">
+        <h2>7-Day Price Forecast</h2>
+        
+        <div class="chart-container">
+            <canvas id="predictionChart"></canvas>
+        </div>
+        
+        <div class="model-predictions">
+            {% for model_type, model_data in multi_predictions.models.items %}
+            <div class="model-card">
+                <h3>{{ model_type }} Model</h3>
+                <p>Trained: {{ model_data.trained_at }}</p>
+                
+                <table class="prediction-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Price</th>
+                            <th>Change</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for date, prediction in multi_predictions.dates|zip:model_data.predictions %}
+                        {% with current_price=multi_predictions.current_price %}
+                        <tr>
+                            <td>{{ date }}</td>
+                            <td>${{ prediction|floatformat:2 }}</td>
+                            <td class="{% if prediction > current_price %}prediction-up{% elif prediction < current_price %}prediction-down{% endif %}">
+                                {{ prediction|subtract:current_price|divide:current_price|multiply:100|floatformat:2 }}%
+                            </td>
+                        </tr>
+                        {% endwith %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="back-btn">
+        <a href="{% url 'admin_prediction_dashboard' %}" class="button">Back to Dashboard</a>
+    </div>
+</div>
+{% endblock %}

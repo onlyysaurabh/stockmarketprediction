@@ -3,6 +3,7 @@ from django.utils.safestring import mark_safe
 from datetime import datetime, timezone
 import logging
 import re
+import json
 
 register = template.Library()
 logger = logging.getLogger(__name__)
@@ -164,3 +165,17 @@ def percent_change(value, arg):
     except (ValueError, TypeError):
         logger.warning(f"Could not calculate percent change between values: {value} and {arg}")
         return 0
+
+@register.filter(name='json_script')
+def json_script(value):
+    """
+    Converts a value to JSON for use in JavaScript
+    """
+    return mark_safe(json.dumps(value))
+
+@register.filter(name='zip_lists')
+def zip_lists(a, b):
+    """
+    Zips two lists together for iteration in templates
+    """
+    return zip(a, b)

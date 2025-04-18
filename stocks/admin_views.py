@@ -251,3 +251,179 @@ def fetch_news_standalone_view(request: HttpRequest) -> TemplateResponse | HttpR
     
     # Use the fetch news template
     return TemplateResponse(request, "admin/stocks/stock/fetch_news_form.html", context)
+
+import logging
+import json
+from django.contrib.admin.views.decorators import staff_member_required
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse, HttpRequest
+from django.contrib import messages
+from django.urls import reverse
+from django.utils.html import format_html
+from django.views.decorators.http import require_POST
+from django.db import transaction
+
+from .models import Stock, TrainedPredictionModel
+from .prediction_service import train_model_for_stock, get_prediction_for_stock, get_multiple_predictions
+
+logger = logging.getLogger(__name__)
+
+@staff_member_required
+def admin_prediction_dashboard(request):
+    """
+    Admin dashboard for model training and predictions
+    """
+    stocks = Stock.objects.all().order_by('symbol')
+    trained_models = TrainedPredictionModel.objects.all().order_by('-trained_at')
+    
+    # Get count of models per type
+    model_counts = {}
+    for model_type, _ in TrainedPredictionModel.MODEL_TYPES:
+        model_counts[model_type] = TrainedPredictionModel.objects.filter(model_type=model_type).count()
+    
+    # Get the most recent model for each stock
+    recent_models = {}
+    for stock in stocks:
+        stock_models = TrainedPredictionModel.objects.filter(stock=stock).order_by('-trained_at')
+        if stock_models.exists():
+            recent_models[stock.symbol] = stock_models.first()
+    
+    context = {
+        'stocks': stocks,
+        'trained_models': trained_models[:20],  # limit to 20 for performance
+        'model_counts': model_counts,
+        'recent_models': recent_models,
+        'title': 'Prediction Model Management'
+    }
+    
+    return render(request, 'admin/stocks/prediction_dashboard.html', context)
+
+@staff_member_required
+@require_POST
+def admin_train_model(request):
+    """
+    Admin view to train a prediction model for a stock
+    """
+    stock_symbol = request.POST.get('stock_symbol')
+    model_type = request.POST.get('model_type')
+    days = request.POST.get('days', '365')
+    
+    if not stock_symbol or not model_type:
+        messages.error(request, 'Stock symbol and model type are required.')
+        return redirect(reverse('admin_prediction_dashboard'))
+    
+    try:
+        days = int(days)
+    except ValueError:
+        days = 365
+    
+    # Train the model asynchronously
+    # In a production environment, this should be a background task
+    # For now, we'll do it synchronously for simplicity
+    result = train_model_for_stock(stock_symbol, model_type, days)
+    
+    if result and result.get('success'):
+        messages.success(
+            request, 
+            f"Successfully trained {model_type} model for {stock_symbol} (ID: {result.get('model_id')})"
+        )
+    else:
+        error = result.get('error') if result else 'Unknown error'
+        messages.error(
+            request,
+            f"Failed to train {model_type} model for {stock_symbol}: {error}"
+        )
+    
+    return redirect(reverse('admin_prediction_dashboard'))
+
+@staff_member_required
+def admin_model_detail(request, model_id):
+    """
+    Admin view to see details of a trained model
+    """
+    model = get_object_or_404(TrainedPredictionModel, id=model_id)
+    
+    # Get prediction using this model
+    prediction = get_prediction_for_stock(model.stock.symbol, model.model_type)
+    
+    # Format feature importance as sorted list for display
+    feature_importance = []
+    if model.feature_importance:
+        # If feature_importance is a nested dict (like XGBoost's), flatten it
+        if isinstance(model.feature_importance, dict) and 'shap' in model.feature_importance:
+            importance_dict = model.feature_importance['shap']
+        else:
+            importance_dict = model.feature_importance
+            
+        # Sort by importance value (descending)
+        feature_importance = sorted(
+            [(k, v) for k, v in importance_dict.items()],
+            key=lambda x: x[1],
+            reverse=True
+        )
+    
+    context = {
+        'model': model,
+        'prediction': prediction,
+        'feature_importance': feature_importance,
+        'title': f'Model Detail: {model.stock.symbol} - {model.get_model_type_display()}'
+    }
+    
+    return render(request, 'admin/stocks/model_detail.html', context)
+
+@staff_member_required
+def admin_stock_predictions(request, stock_id):
+    """
+    Admin view to see predictions for a specific stock from all model types
+    """
+    stock = get_object_or_404(Stock, id=stock_id)
+    
+    # Get predictions from all available models
+    multi_predictions = get_multiple_predictions(stock.symbol, days=7)
+    
+    # Get single-day predictions from each model type for comparison
+    predictions = {}
+    for model_type, _ in TrainedPredictionModel.MODEL_TYPES:
+        pred = get_prediction_for_stock(stock.symbol, model_type)
+        if pred:
+            predictions[model_type] = pred
+    
+    context = {
+        'stock': stock,
+        'predictions': predictions,
+        'multi_predictions': multi_predictions,
+        'title': f'Predictions for {stock.symbol}'
+    }
+    
+    return render(request, 'admin/stocks/stock_predictions.html', context)
+
+@staff_member_required
+@require_POST
+def admin_delete_model(request, model_id):
+    """
+    Admin view to delete a trained model
+    """
+    model = get_object_or_404(TrainedPredictionModel, id=model_id)
+    stock_symbol = model.stock.symbol
+    model_type = model.model_type
+    
+    try:
+        # Delete the model file if possible
+        import os
+        if os.path.exists(model.model_path):
+            os.remove(model.model_path)
+        
+        # Delete the model database entry
+        model.delete()
+        
+        messages.success(
+            request,
+            f"Successfully deleted {model_type} model for {stock_symbol}"
+        )
+    except Exception as e:
+        messages.error(
+            request,
+            f"Error deleting model: {str(e)}"
+        )
+    
+    return redirect(reverse('admin_prediction_dashboard'))
