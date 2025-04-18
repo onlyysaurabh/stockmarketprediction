@@ -4,14 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Stock Data Viewer{% endblock %}</title>
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📈</text></svg>">
+    
     {# Add Chart.js CDN #}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Add Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Add Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <script>
+        // Set dynamic favicon using Font Awesome
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create a canvas element
+            const canvas = document.createElement('canvas');
+            canvas.width = 32;
+            canvas.height = 32;
+            const ctx = canvas.getContext('2d');
+            
+            // Set background color to match logo accent color
+            ctx.fillStyle = '#ff9f43'; // --accent-color
+            ctx.fillRect(0, 0, 32, 32);
+            
+            // Draw the chart line icon
+            ctx.fillStyle = 'white';
+            ctx.font = '24px "Font Awesome 6 Free"';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('\uf201', 16, 16); // fa-chart-line Unicode
+            
+            // Create favicon link
+            const favicon = document.querySelector('link[rel="icon"]') || document.createElement('link');
+            favicon.type = 'image/x-icon';
+            favicon.rel = 'icon';
+            favicon.href = canvas.toDataURL('image/png');
+            document.head.appendChild(favicon);
+        });
+    </script>
     <style>
         :root {
+            /* Main theme colors */
             --primary-color: #2e86de;
             --secondary-color: #0abde3;
             --accent-color: #ff9f43;
@@ -20,10 +52,16 @@
             --text-color: #333;
             --heading-font: 'Montserrat', sans-serif;
             --body-font: 'Open Sans', sans-serif;
+            
+            /* Bootstrap-compatible colors */
+            --bs-primary: #0d6efd;
+            --bs-secondary: #6c757d;
+            --bs-light: #f8f9fa;
+            --bs-dark: #212529;
         }
         
         body { 
-            font-family: var(--body-font);
+            font-family: var(--body-font), system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
             line-height: 1.6; 
             margin: 0; 
             padding: 0;

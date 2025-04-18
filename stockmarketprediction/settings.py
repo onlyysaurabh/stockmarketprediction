@@ -17,7 +17,11 @@ import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# Static files configuration - using only 'static' directory for both development and production
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# No STATICFILES_DIRS needed as we're using a single directory
+
 # Load environment variables from .env file in the base directory
 dotenv_path = BASE_DIR / '.env'
 load_dotenv(dotenv_path=dotenv_path)
@@ -82,14 +86,29 @@ WSGI_APPLICATION = 'stockmarketprediction.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
-# We need a database for Django auth, even if we're using MongoDB directly via pymongo
+# Use a hybrid approach - SQLite for auth, MongoDB for stock data
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+    },
+    'mongodb': {
+        'ENGINE': 'djongo',
+        'NAME': os.getenv('MONGO_DB_NAME', 'stock_data'),
+        'CLIENT': {
+            'host': os.getenv('MONGO_URI', 'mongodb://localhost:27017/'),
+            'port': 27017,
+        }
     }
 }
+
+# Database routers
+DATABASE_ROUTERS = ['stockmarketprediction.mongodb_router.MongoDBRouter']
+
+# MongoDB connection for direct pymongo access
+MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost:27017/')
+MONGO_DB_NAME = os.getenv('MONGO_DB_NAME', 'stock_data')
 
 
 # Password validation
@@ -129,8 +148,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)  # Add this line to include the static directory
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# No STATICFILES_DIRS needed as we're using a single directory
+
 django_heroku.settings(locals())
 
 # Default primary key field type
@@ -303,3 +323,6 @@ JAZZMIN_UI_TWEAKS = {
 # Authentication settings
 LOGIN_REDIRECT_URL = '/'  # Redirect to home page after login
 LOGOUT_REDIRECT_URL = '/'  # Redirect to home page after logout
+
+# Increase form field submission limit to handle large stock selections
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000  # Increased from 5000 to accommodate more stocks

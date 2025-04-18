@@ -3,7 +3,8 @@ import requests
 import logging
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
-from typing import List, Dict, Optional, Any # Removed Tuple, Added Any
+from typing import List, Dict, Optional, Any
+from .mongo_utils import save_stock_news, get_stock_news
 
 # Load environment variables from .env file
 load_dotenv()
@@ -153,23 +154,73 @@ def fetch_stock_news(symbol: str, days_back: int = 7) -> Optional[List[Dict[str,
     logger.info(f"Successfully fetched {len(valid_news)} valid news items for {symbol}.")
     return valid_news
 
+def store_news_in_mongodb(symbol: str, news_items: List[Dict[str, Any]]) -> int:
+    """
+    Stores stock news items in MongoDB.
+    Returns the number of items successfully stored.
+    """
+    count = 0
+    for item in news_items:
+        try:
+            # Transform the Finnhub news data into our MongoDB schema
+            news_data = {
+                'stock_symbol': symbol,
+                'headline': item.get('headline', ''),
+                'summary': item.get('summary', ''),
+                'url': item.get('url', ''),
+                'source': item.get('source', 'Finnhub'),
+                'published_at': item.get('published_at_dt', datetime.now()),
+                'sentiment_positive': item.get('sentiment_positive', None),
+                'sentiment_negative': item.get('sentiment_negative', None),
+                'sentiment_neutral': item.get('sentiment_neutral', None),
+                'raw_data': item  # Store the full raw data for future reference
+            }
+            
+            save_stock_news(news_data)
+            count += 1
+        except Exception as e:
+            logger.error(f"Error storing news item for {symbol}: {e}")
+    
+    logger.info(f"Successfully stored {count} news items for {symbol} in MongoDB.")
+    return count
+
+def fetch_and_store_news(symbol: str, days_back: int = 7) -> Optional[int]:
+    """
+    Fetches news for a stock and stores it in MongoDB.
+    Returns the number of news items stored or None if fetching failed.
+    """
+    news_items = fetch_stock_news(symbol, days_back)
+    if not news_items:
+        return None
+    
+    return store_news_in_mongodb(symbol, news_items)
+
+def get_stored_news(symbol: str = None, limit: int = 50) -> List[Dict[str, Any]]:
+    """
+    Retrieves stored news from MongoDB, either for a specific stock or all stocks.
+    """
+    return get_stock_news(symbol, limit)
+
 # Example Usage (for testing)
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     # Make sure you have a .env file with FINNHUB_API_KEYS="your_key1,your_key2"
     
     test_symbol = 'AAPL' # Example symbol
-    print(f"Attempting to fetch news for {test_symbol}...")
+    print(f"Attempting to fetch and store news for {test_symbol}...")
     
-    news = fetch_stock_news(test_symbol, days_back=7)
+    count = fetch_and_store_news(test_symbol, days_back=7)
     
-    if news:
-        print(f"\nFetched {len(news)} news items for {test_symbol}:")
-        for i, item in enumerate(news[:5]): # Print first 5
+    if count:
+        print(f"\nFetched and stored {count} news items for {test_symbol} in MongoDB.")
+        
+        # Retrieve and display the stored news
+        stored_news = get_stored_news(test_symbol, limit=5)
+        print(f"\nRetrieved {len(stored_news)} stored news items for {test_symbol}:")
+        for i, item in enumerate(stored_news):
             print(f"  {i+1}. Headline: {item.get('headline')}")
             print(f"     Source: {item.get('source')}")
-            print(f"     Date: {item.get('published_at_dt')}")
-            print(f"     URL: {item.get('url')}")
+            print(f"     Date: {item.get('published_at')}")
             print("-" * 20)
     else:
         print(f"\nCould not fetch news for {test_symbol}.")

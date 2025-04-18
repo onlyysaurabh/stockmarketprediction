@@ -1,0 +1,1000 @@
+{
+  "sqlite_schema": [
+    {
+      "table_name": "django_migrations",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": true
+        },
+        {
+          "name": "app",
+          "type": "varchar(255)",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(255)",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "applied",
+          "type": "datetime",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        }
+      ],
+      "foreign_keys": [],
+      "indices": []
+    },
+    {
+      "table_name": "auth_group_permissions",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": true
+        },
+        {
+          "name": "group_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "permission_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from_column": "permission_id",
+          "to_table": "auth_permission",
+          "to_column": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION"
+        },
+        {
+          "from_column": "group_id",
+          "to_table": "auth_group",
+          "to_column": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION"
+        }
+      ],
+      "indices": [
+        {
+          "name": 0,
+          "unique": true,
+          "columns": []
+        },
+        {
+          "name": 1,
+          "unique": true,
+          "columns": []
+        },
+        {
+          "name": 2,
+          "unique": true,
+          "columns": []
+        }
+      ]
+    },
+    {
+      "table_name": "auth_user_groups",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": true
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "group_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from_column": "group_id",
+          "to_table": "auth_group",
+          "to_column": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION"
+        },
+        {
+          "from_column": "user_id",
+          "to_table": "auth_user",
+          "to_column": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION"
+        }
+      ],
+      "indices": [
+        {
+          "name": 0,
+          "unique": true,
+          "columns": []
+        },
+        {
+          "name": 1,
+          "unique": true,
+          "columns": []
+        },
+        {
+          "name": 2,
+          "unique": true,
+          "columns": []
+        }
+      ]
+    },
+    {
+      "table_name": "auth_user_user_permissions",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": true
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "permission_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from_column": "permission_id",
+          "to_table": "auth_permission",
+          "to_column": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION"
+        },
+        {
+          "from_column": "user_id",
+          "to_table": "auth_user",
+          "to_column": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION"
+        }
+      ],
+      "indices": [
+        {
+          "name": 0,
+          "unique": true,
+          "columns": []
+        },
+        {
+          "name": 1,
+          "unique": true,
+          "columns": []
+        },
+        {
+          "name": 2,
+          "unique": true,
+          "columns": []
+        }
+      ]
+    },
+    {
+      "table_name": "django_admin_log",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": true
+        },
+        {
+          "name": "action_time",
+          "type": "datetime",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "object_id",
+          "type": "TEXT",
+          "not_null": false,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "object_repr",
+          "type": "varchar(200)",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "change_message",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "content_type_id",
+          "type": "INTEGER",
+          "not_null": false,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "action_flag",
+          "type": "smallint unsigned",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from_column": "user_id",
+          "to_table": "auth_user",
+          "to_column": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION"
+        },
+        {
+          "from_column": "content_type_id",
+          "to_table": "django_content_type",
+          "to_column": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION"
+        }
+      ],
+      "indices": [
+        {
+          "name": 0,
+          "unique": true,
+          "columns": []
+        },
+        {
+          "name": 1,
+          "unique": true,
+          "columns": []
+        }
+      ]
+    },
+    {
+      "table_name": "django_content_type",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": true
+        },
+        {
+          "name": "app_label",
+          "type": "varchar(100)",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "model",
+          "type": "varchar(100)",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        }
+      ],
+      "foreign_keys": [],
+      "indices": [
+        {
+          "name": 0,
+          "unique": true,
+          "columns": []
+        }
+      ]
+    },
+    {
+      "table_name": "auth_permission",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": true
+        },
+        {
+          "name": "content_type_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "codename",
+          "type": "varchar(100)",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(255)",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from_column": "content_type_id",
+          "to_table": "django_content_type",
+          "to_column": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION"
+        }
+      ],
+      "indices": [
+        {
+          "name": 0,
+          "unique": true,
+          "columns": []
+        },
+        {
+          "name": 1,
+          "unique": true,
+          "columns": []
+        }
+      ]
+    },
+    {
+      "table_name": "auth_group",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": true
+        },
+        {
+          "name": "name",
+          "type": "varchar(150)",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        }
+      ],
+      "foreign_keys": [],
+      "indices": [
+        {
+          "name": 0,
+          "unique": true,
+          "columns": []
+        }
+      ]
+    },
+    {
+      "table_name": "auth_user",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": true
+        },
+        {
+          "name": "password",
+          "type": "varchar(128)",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "last_login",
+          "type": "datetime",
+          "not_null": false,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "is_superuser",
+          "type": "bool",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "username",
+          "type": "varchar(150)",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "last_name",
+          "type": "varchar(150)",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "email",
+          "type": "varchar(254)",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "is_staff",
+          "type": "bool",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "is_active",
+          "type": "bool",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "date_joined",
+          "type": "datetime",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "first_name",
+          "type": "varchar(150)",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        }
+      ],
+      "foreign_keys": [],
+      "indices": [
+        {
+          "name": 0,
+          "unique": true,
+          "columns": []
+        }
+      ]
+    },
+    {
+      "table_name": "django_session",
+      "columns": [
+        {
+          "name": "session_key",
+          "type": "varchar(40)",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": true
+        },
+        {
+          "name": "session_data",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "expire_date",
+          "type": "datetime",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        }
+      ],
+      "foreign_keys": [],
+      "indices": [
+        {
+          "name": 0,
+          "unique": true,
+          "columns": []
+        },
+        {
+          "name": 1,
+          "unique": true,
+          "columns": []
+        }
+      ]
+    },
+    {
+      "table_name": "stocks_stock",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": true
+        },
+        {
+          "name": "symbol",
+          "type": "varchar(10)",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(255)",
+          "not_null": false,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "sector",
+          "type": "varchar(100)",
+          "not_null": false,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "industry",
+          "type": "varchar(100)",
+          "not_null": false,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "current_price",
+          "type": "decimal",
+          "not_null": false,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "previous_close",
+          "type": "decimal",
+          "not_null": false,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "open_price",
+          "type": "decimal",
+          "not_null": false,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "day_high",
+          "type": "decimal",
+          "not_null": false,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "day_low",
+          "type": "decimal",
+          "not_null": false,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "volume",
+          "type": "bigint",
+          "not_null": false,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "market_cap",
+          "type": "bigint",
+          "not_null": false,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "pe_ratio",
+          "type": "decimal",
+          "not_null": false,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "dividend_yield",
+          "type": "decimal",
+          "not_null": false,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "data_updated",
+          "type": "datetime",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        }
+      ],
+      "foreign_keys": [],
+      "indices": [
+        {
+          "name": 0,
+          "unique": true,
+          "columns": []
+        }
+      ]
+    },
+    {
+      "table_name": "stocks_watchlist",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": true
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from_column": "user_id",
+          "to_table": "auth_user",
+          "to_column": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION"
+        }
+      ],
+      "indices": [
+        {
+          "name": 0,
+          "unique": true,
+          "columns": []
+        }
+      ]
+    },
+    {
+      "table_name": "stocks_watchlistitem",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": true
+        },
+        {
+          "name": "symbol",
+          "type": "varchar(10)",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "tracking_type",
+          "type": "varchar(10)",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "purchase_price",
+          "type": "decimal",
+          "not_null": false,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "purchase_date",
+          "type": "date",
+          "not_null": false,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "purchase_quantity",
+          "type": "decimal",
+          "not_null": false,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "last_price_check",
+          "type": "datetime",
+          "not_null": false,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "last_price",
+          "type": "decimal",
+          "not_null": false,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "notes",
+          "type": "TEXT",
+          "not_null": false,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "watchlist_id",
+          "type": "bigint",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from_column": "watchlist_id",
+          "to_table": "stocks_watchlist",
+          "to_column": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION"
+        }
+      ],
+      "indices": [
+        {
+          "name": 0,
+          "unique": true,
+          "columns": []
+        },
+        {
+          "name": 1,
+          "unique": true,
+          "columns": []
+        }
+      ]
+    },
+    {
+      "table_name": "stocks_stocknews",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": true
+        },
+        {
+          "name": "source",
+          "type": "varchar(50)",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "headline",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "summary",
+          "type": "TEXT",
+          "not_null": false,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "url",
+          "type": "varchar(1024)",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "published_at",
+          "type": "datetime",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "sentiment_positive",
+          "type": "REAL",
+          "not_null": false,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "sentiment_negative",
+          "type": "REAL",
+          "not_null": false,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "sentiment_neutral",
+          "type": "REAL",
+          "not_null": false,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        },
+        {
+          "name": "stock_id",
+          "type": "bigint",
+          "not_null": true,
+          "default": null,
+          "is_primary_key": false
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from_column": "stock_id",
+          "to_table": "stocks_stock",
+          "to_column": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION"
+        }
+      ],
+      "indices": [
+        {
+          "name": 0,
+          "unique": true,
+          "columns": []
+        },
+        {
+          "name": 1,
+          "unique": true,
+          "columns": []
+        }
+      ]
+    }
+  ],
+  "mongodb_collections": {
+    "commodity_prices": {
+      "fields": {
+        "_id": "ObjectId",
+        "symbol": "str",
+        "historical_data": "list",
+        "last_updated": "datetime",
+        "name": "str"
+      },
+      "count": 3,
+      "size": 2181873,
+      "avg_obj_size": 727291,
+      "indexes": [
+        {
+          "name": "_id_",
+          "key_fields": [
+            [
+              "_id",
+              1
+            ]
+          ],
+          "unique": false
+        },
+        {
+          "name": "symbol_1",
+          "key_fields": [
+            [
+              "symbol",
+              1
+            ]
+          ],
+          "unique": true
+        }
+      ]
+    },
+    "stock_prices": {
+      "fields": {
+        "_id": "ObjectId",
+        "symbol": "str",
+        "historical_data": "list",
+        "info": "dict",
+        "last_updated": "datetime",
+        "name": "str"
+      },
+      "count": 250,
+      "size": 160416555,
+      "avg_obj_size": 641666,
+      "indexes": [
+        {
+          "name": "_id_",
+          "key_fields": [
+            [
+              "_id",
+              1
+            ]
+          ],
+          "unique": false
+        },
+        {
+          "name": "symbol_1",
+          "key_fields": [
+            [
+              "symbol",
+              1
+            ]
+          ],
+          "unique": true
+        }
+      ]
+    }
+  }
+}

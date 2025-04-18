@@ -10,6 +10,9 @@ from django.urls import path, reverse
 from django.template.response import TemplateResponse
 from django.contrib.admin import SimpleListFilter
 from .forms import FetchNewsForm
+from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
+from django.contrib.contenttypes.models import ContentType
+import json
 
 # Custom filter classes for Sector and Industry
 class SectorListFilter(SimpleListFilter):
@@ -142,6 +145,17 @@ class StockAdmin(admin.ModelAdmin):
                 f"Successfully updated {results['success']} stock(s).", 
                 level=messages.SUCCESS
             )
+            
+            # Add to admin log for showing in "Recent actions"
+            content_type_id = ContentType.objects.get_for_model(Stock).pk
+            LogEntry.objects.log_action(
+                user_id=request.user.id,
+                content_type_id=content_type_id,
+                object_id=None,
+                object_repr=f"Stock prices: {', '.join(symbols[:10])}{'...' if len(symbols) > 10 else ''}",
+                action_flag=CHANGE,
+                change_message=json.dumps([{"changed": {"fields": ["price data"]}}])
+            )
         
         if results['not_found'] > 0:
             self.message_user(
@@ -156,7 +170,8 @@ class StockAdmin(admin.ModelAdmin):
                 f"Failed to update {results['failed']} stock(s) due to errors.",
                 level=messages.ERROR
             )
-
+    update_selected_stock_prices.short_description = "Update prices for selected stocks"
+    
     def fetch_news_for_selected(self, request, queryset):
         """Admin action to redirect to the custom news fetching form."""
         selected_ids = queryset.values_list('pk', flat=True)
@@ -169,7 +184,6 @@ class StockAdmin(admin.ModelAdmin):
         ids_param = ','.join(str(pk) for pk in selected_ids)
         
         return HttpResponseRedirect(f"{redirect_url}?ids={ids_param}")
-
     fetch_news_for_selected.short_description = "Fetch news for selected stocks"
 
     def get_actions(self, request):
@@ -182,9 +196,10 @@ class StockAdmin(admin.ModelAdmin):
         custom_urls = [
             path('update-all-prices/', self.admin_site.admin_view(self.update_all_prices_view), name='stocks_stock_update_all_prices'),
             path('fetch-news/', self.admin_site.admin_view(self.fetch_news_view), name='stocks_stock_fetch_news'),
+            path('update-commodities/', self.admin_site.admin_view(self.update_commodities_view), name='stocks_stock_update_commodities'),
         ]
         return custom_urls + urls
-    
+
     def update_all_prices_view(self, request):
         """Custom admin view to update all stock prices using our robust update mechanism"""
         if request.method == 'POST':
@@ -197,6 +212,17 @@ class StockAdmin(admin.ModelAdmin):
                     request, 
                     f"Successfully updated {results['success']} stock(s).", 
                     level=messages.SUCCESS
+                )
+                
+                # Add to admin log for showing in "Recent actions"
+                content_type_id = ContentType.objects.get_for_model(Stock).pk
+                LogEntry.objects.log_action(
+                    user_id=request.user.id,
+                    content_type_id=content_type_id,
+                    object_id=None,
+                    object_repr=f"All Stock Prices ({results['success']} updated)",
+                    action_flag=CHANGE,
+                    change_message=json.dumps([{"changed": {"fields": ["price data"]}}])
                 )
             
             if results['not_found'] > 0:
@@ -240,7 +266,75 @@ class StockAdmin(admin.ModelAdmin):
             'opts': self.model._meta,
         }
         return TemplateResponse(request, "admin/stocks/stock/update_all_prices.html", context)
+    
+    def update_commodities_view(self, request):
+        """Custom admin view to update commodity prices"""
+        from stocks.services import fetch_and_store_commodity_data
         
+        # Define the commodities to update (same as in the management command)
+        COMMODITIES = {
+            'GC=F': 'Gold',
+            'CL=F': 'Crude Oil',
+            'BTC-USD': 'Bitcoin',
+        }
+        
+        if request.method == 'POST':
+            success_count = 0
+            fail_count = 0
+            updated_commodities = []
+            
+            for symbol, name in COMMODITIES.items():
+                try:
+                    # Call the service function to fetch/store data
+                    result = fetch_and_store_commodity_data(symbol=symbol, name=name, force_update=True)
+                    if result:
+                        success_count += 1
+                        updated_commodities.append(f"{name} ({symbol})")
+                    else:
+                        fail_count += 1
+                        self.message_user(
+                            request,
+                            f"Could not fetch or store data for {name} ({symbol}).",
+                            level=messages.WARNING
+                        )
+                except Exception as e:
+                    fail_count += 1
+                    self.message_user(
+                        request,
+                        f"Error updating {name} ({symbol}): {str(e)}",
+                        level=messages.ERROR
+                    )
+            
+            # Show summary message
+            if success_count > 0:
+                self.message_user(
+                    request,
+                    f"Successfully updated {success_count} commodity price(s).",
+                    level=messages.SUCCESS
+                )
+                
+                # Add to admin log for showing in "Recent actions"
+                content_type_id = ContentType.objects.get_for_model(Stock).pk
+                LogEntry.objects.log_action(
+                    user_id=request.user.id,
+                    content_type_id=content_type_id,
+                    object_id=None,
+                    object_repr=f"Commodities: {', '.join(updated_commodities)}",
+                    action_flag=CHANGE,
+                    change_message=json.dumps([{"changed": {"fields": ["price data"]}}])
+                )
+            
+            return HttpResponseRedirect("../")
+        
+        # If not POST, show confirmation page
+        context = {
+            'title': 'Confirm Commodity Price Update',
+            'commodity_count': len(COMMODITIES),
+            'commodities': COMMODITIES,
+            'opts': self.model._meta,
+        }
+        return TemplateResponse(request, "admin/stocks/stock/update_commodities.html", context)
+
     def fetch_news_view(self, request):
         """Custom admin view to fetch news with date range and stock selection options"""
         # Get selected stock IDs from the query parameters (passed from admin action)
@@ -291,6 +385,23 @@ class StockAdmin(admin.ModelAdmin):
                     f"{total_updated} updated, {total_failed} stocks with failures.", 
                     level=messages.SUCCESS)
                 
+                # Add to admin log for showing in "Recent actions"
+                content_type_id = ContentType.objects.get_for_model(StockNews).pk
+                display_symbols = stock_symbols[:5]
+                LogEntry.objects.log_action(
+                    user_id=request.user.id,
+                    content_type_id=content_type_id,
+                    object_id=None,
+                    object_repr=f"Fetched News: {', '.join(display_symbols)}{'...' if len(stock_symbols) > 5 else ''}",
+                    action_flag=ADDITION,
+                    change_message=json.dumps([{
+                        "added": {
+                            "name": "stock news", 
+                            "object": f"{total_created} new articles from {start_date} to {end_date}"
+                        }
+                    }])
+                )
+                
                 # Redirect back to the stock changelist
                 return HttpResponseRedirect("../")
             else:
@@ -317,12 +428,13 @@ class StockAdmin(admin.ModelAdmin):
         """Override to add the update button to the template"""
         extra_context = extra_context or {}
         extra_context['show_update_button'] = True
+        extra_context['show_commodity_button'] = True  # Add this to enable the commodity update button
         return super().changelist_view(request, extra_context=extra_context)
 
     def get_list_display_links(self, request, list_display):
         # Make symbol and name clickable for easy navigation to detail view
         return ('symbol', 'name')
-    
+
     def get_search_results(self, request, queryset, search_term):
         # Enhanced search to prioritize symbol matches and improve full-text search
         queryset, use_distinct = super().get_search_results(request, queryset, search_term)

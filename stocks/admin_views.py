@@ -7,6 +7,9 @@ from django.http import HttpRequest, HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.admin.models import LogEntry, ADDITION
+from django.contrib.contenttypes.models import ContentType
+import json
 
 from .models import Stock, StockNews
 from .forms import FetchNewsForm
@@ -32,9 +35,12 @@ def fetch_stock_news_view(request: HttpRequest) -> TemplateResponse | HttpRespon
     selected_ids_str = request.GET.get('ids')
     if selected_ids_str:
         try:
-            preselected_ids = [id_str for id_str in selected_ids_str.split(',')]
+            # Convert string IDs to integers for proper database querying
+            preselected_ids = [int(id_str) for id_str in selected_ids_str.split(',')]
             selected_stocks = Stock.objects.filter(pk__in=preselected_ids)
             stock_symbols = list(selected_stocks.values_list('symbol', flat=True))
+            # Convert back to strings for template comparison
+            preselected_ids = [str(id_val) for id_val in preselected_ids]
         except (ValueError, TypeError):
             messages.error(request, "Invalid selection provided.")
             return redirect('admin:stocks_stock_changelist')
@@ -68,8 +74,8 @@ def fetch_stock_news_view(request: HttpRequest) -> TemplateResponse | HttpRespon
                 }
                 return TemplateResponse(request, "admin/stocks/stock/fetch_news_form.html", context)
                 
-            # Get the selected stocks
-            selected_stocks = Stock.objects.filter(pk__in=selected_stock_ids)
+            # Get the selected stocks - ensure IDs are integers
+            selected_stocks = Stock.objects.filter(pk__in=[int(id_val) for id_val in selected_stock_ids])
             selected_symbols = list(selected_stocks.values_list('symbol', flat=True))
             stock_count = len(selected_symbols)
             
@@ -125,10 +131,7 @@ def fetch_stock_news_view(request: HttpRequest) -> TemplateResponse | HttpRespon
 
 @staff_member_required
 def fetch_news_standalone_view(request: HttpRequest) -> TemplateResponse | HttpResponseRedirect:
-    """
-    Standalone view for fetching news articles for selected stocks.
-    This view is accessible directly from the admin panel and does not require pre-selected stocks.
-    """
+    """Standalone view for fetching news with full stock selection capability"""
     # Get all unique sectors and industries for the filters
     sectors = Stock.objects.exclude(sector__isnull=True).exclude(sector='').values_list('sector', flat=True).distinct().order_by('sector')
     industries = Stock.objects.exclude(industry__isnull=True).exclude(industry='').values_list('industry', flat=True).distinct().order_by('industry')
@@ -136,7 +139,9 @@ def fetch_news_standalone_view(request: HttpRequest) -> TemplateResponse | HttpR
     # Get all stocks for selection
     all_stocks = Stock.objects.all().order_by('symbol')
     
-    # For POST requests (form submission)
+    # Initialize pre-selected stocks (none by default for the standalone view)
+    preselected_ids = []
+    
     if request.method == 'POST':
         form = FetchNewsForm(request.POST)
         if form.is_valid():
@@ -162,8 +167,8 @@ def fetch_news_standalone_view(request: HttpRequest) -> TemplateResponse | HttpR
                 }
                 return TemplateResponse(request, "admin/stocks/stock/fetch_news_form.html", context)
             
-            # Get the selected stocks
-            selected_stocks = Stock.objects.filter(pk__in=selected_stock_ids)
+            # Get the selected stocks - ensure IDs are integers
+            selected_stocks = Stock.objects.filter(pk__in=[int(id_val) for id_val in selected_stock_ids])
             selected_symbols = list(selected_stocks.values_list('symbol', flat=True))
             stock_count = len(selected_symbols)
             
@@ -188,6 +193,23 @@ def fetch_news_standalone_view(request: HttpRequest) -> TemplateResponse | HttpR
                             f"News fetch completed for {stock_count} stocks ({start_date} to {end_date}). "
                             f"Articles: {total_processed} processed, {total_created} created, "
                             f"{total_updated} updated, {total_failed} stocks with failures.")
+            
+            # Add to admin log for showing in "Recent actions"
+            content_type_id = ContentType.objects.get_for_model(StockNews).pk
+            display_symbols = selected_symbols[:5]
+            LogEntry.objects.log_action(
+                user_id=request.user.id,
+                content_type_id=content_type_id,
+                object_id=None,
+                object_repr=f"Standalone News Fetch: {', '.join(display_symbols)}{'...' if len(selected_symbols) > 5 else ''}",
+                action_flag=ADDITION,
+                change_message=json.dumps([{
+                    "added": {
+                        "name": "stock news", 
+                        "object": f"{total_created} new articles from {start_date} to {end_date}"
+                    }
+                }])
+            )
             
             # Either redirect to StockNews admin or back to this page based on user choice
             if request.POST.get('continue_fetching'):

@@ -18,6 +18,14 @@
         </form>
     </li>
     {% endif %}
+    
+    {% if show_commodity_button %}
+    <li style="margin-left: 10px;">
+        <a href="{% url 'admin:stocks_stock_update_commodities' %}" class="btn btn-info" style="margin-right: 10px;">
+            <i class="fas fa-chart-line"></i> {% trans "Update Commodity Prices" %}
+        </a>
+    </li>
+    {% endif %}
     {# Removed the {{ block.super }} to hide the default "Add Stock" button #}
 {% endblock %}
 
