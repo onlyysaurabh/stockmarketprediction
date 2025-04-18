@@ -1,6 +1,6 @@
 from django.urls import path, re_path
 from . import views
-from . import admin_views # Import the new admin views
+# Removed admin_views import as we're now registering these URLs at the project level
 # Removed unused: from django.contrib.auth.views import LogoutView
 
 # Define URL patterns for the stocks app
@@ -24,16 +24,15 @@ urlpatterns = [
     path('watchlist/edit/<int:item_id>/', views.edit_watchlist_item, name='edit_watchlist_item'),
     path('watchlist/remove/<int:item_id>/', views.remove_from_watchlist, name='remove_from_watchlist'),
 
+    # News URLs
+    path('news/', views.stock_news, name='stock_news'),  # News page without symbol
+    path('news/<str:symbol>/', views.stock_news, name='stock_news_with_symbol'),  # News page with symbol
+
     # Example: /AAPL/update/ (POST endpoint to trigger data update)
     path('<str:symbol>/update/', views.update_stock_data, name='update_stock_data'),
 
     # Example: /AAPL/ (Stock detail page)
     path('<str:symbol>/', views.stock_detail, name='stock_detail'),
 
-    # --- Custom Admin Views ---
-    # Note: These might be better placed in a separate admin_urls.py
-    # but adding here for simplicity based on current structure.
-    # The URL needs to match what we'll use in the admin action.
-    # Using re_path for flexibility with query parameters if needed, though path might suffice.
-    re_path(r'^admin/stocks/stock/fetch-news/$', admin_views.fetch_stock_news_view, name='admin_fetch_stock_news'),
+    # Removed custom admin URLs as they're now registered at the project level
 ]

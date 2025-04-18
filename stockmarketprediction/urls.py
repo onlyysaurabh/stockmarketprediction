@@ -15,8 +15,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include # Import include
+from stocks import admin_views  # Import admin_views for direct URL registration
 
+# Register custom admin URLs before including the default admin URLs
 urlpatterns = [
+    # Custom admin views must be defined before the admin site URLs
+    path('admin/fetch-news/', admin_views.fetch_news_standalone_view, name='admin_fetch_news_standalone'),
+    path('admin/stocks/stock/fetch-news/', admin_views.fetch_stock_news_view, name='admin_fetch_stock_news'),
+    
+    # Standard admin URLs
     path('admin/', admin.site.urls),
     path('accounts/', include('django.contrib.auth.urls')),  # Django auth URLs
     path('', include('stocks.urls')), # Include URLs from the stocks app

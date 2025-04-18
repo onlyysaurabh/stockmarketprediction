@@ -63,6 +63,102 @@
 
     <hr style="margin: 30px 0;">
 
+    {# Historical Data Table #}
+    <h2>Historical Data Table</h2>
+    {% if stock_historical_data %} {# Use the correct context variable name #}
+        <div class="data-table-container" style="max-height: 500px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+            <table style="width: 100%; border-collapse: collapse; text-align: center;">
+                <thead style="position: sticky; top: 0; background-color: #f8f9fa; z-index: 1;">
+                    <tr>
+                        <th style="padding: 12px; border-bottom: 2px solid #dee2e6; font-weight: bold;">Date</th>
+                        <th style="padding: 12px; border-bottom: 2px solid #dee2e6; font-weight: bold;">Open</th>
+                        <th style="padding: 12px; border-bottom: 2px solid #dee2e6; font-weight: bold;">High</th>
+                        <th style="padding: 12px; border-bottom: 2px solid #dee2e6; font-weight: bold;">Low</th>
+                        <th style="padding: 12px; border-bottom: 2px solid #dee2e6; font-weight: bold;">Close</th>
+                        <th style="padding: 12px; border-bottom: 2px solid #dee2e6; font-weight: bold;">Volume</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for data_point in stock_historical_data %} {# Use the correct context variable name #}
+                    <tr style="{% cycle 'background-color: #ffffff;' 'background-color: #f8f9fa;' %}">
+                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">{% if data_point.Date %}{{ data_point.Date }}{% else %}N/A{% endif %}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">{{ data_point.Open|floatformat:2|default:"N/A" }}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">{{ data_point.High|floatformat:2|default:"N/A" }}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">{{ data_point.Low|floatformat:2|default:"N/A" }}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">{{ data_point.Close|floatformat:2|default:"N/A" }}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">{{ data_point.Volume|intcomma|default:"N/A" }}</td> {# Format volume #}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p>No historical data available for this stock.</p>
+    {% endif %}
+
+    <hr style="margin: 30px 0;">
+
+    {# News Section - Moved below historical data table #}
+    <h2>Recent News (Last 7 Days)</h2>
+    <div class="action-buttons" style="margin-bottom: 15px;">
+        <a href="{% url 'stock_news_with_symbol' symbol=stock_data.symbol %}" class="btn btn-news">
+            <i class="fas fa-newspaper"></i> View All News
+        </a>
+    </div>
+    {% if news_items %}
+        <div class="news-list" style="margin-bottom: 30px; max-height: 400px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px;">
+            {% for news in news_items %}
+                <div class="news-item" style="border: 1px solid #eee; padding: 15px; margin-bottom: 15px; border-radius: 5px; background-color: #fff;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                        <h4 style="margin-top: 0; margin-bottom: 5px; flex: 1;">
+                            {{ news.headline }}
+                        </h4>
+                        <a href="{{ news.url }}" target="_blank" class="btn btn-visit-article" title="Read full article">
+                            <i class="fas fa-external-link-alt"></i> Visit
+                        </a>
+                    </div>
+                    <p style="font-size: 0.9em; color: #666; margin-bottom: 10px;">
+                        <strong>Source:</strong> {{ news.source }} |
+                        <strong>Published:</strong>
+                        {% timezone "Asia/Calcutta" %}
+                            {{ news.published_at|date:"Y-m-d H:i" }}
+                        {% endtimezone %}
+                        {% if news.sentiment_positive is not None %}
+                            | <strong>Sentiment:</strong>
+                            {% if news.sentiment_positive > news.sentiment_negative and news.sentiment_positive > news.sentiment_neutral %}
+                                <span style="color: green;">Positive</span> ({{ news.sentiment_positive|floatformat:2 }})
+                            {% elif news.sentiment_negative > news.sentiment_positive and news.sentiment_negative > news.sentiment_neutral %}
+                                <span style="color: red;">Negative</span> ({{ news.sentiment_negative|floatformat:2 }})
+                            {% else %}
+                                <span style="color: orange;">Neutral</span> ({{ news.sentiment_neutral|floatformat:2 }})
+                            {% endif %}
+                        {% endif %}
+                    </p>
+                    {% if news.summary %}
+                        <p style="font-size: 0.95em; margin-bottom: 0;">{{ news.summary|truncatewords:50 }}</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No recent news found for this stock.</p>
+    {% endif %}
+
+    <hr style="margin: 30px 0;">
+
+    {# Sentiment Pie Chart Section - Moved below news section #}
+    <h2>News Sentiment Distribution (Last 7 Days)</h2>
+    {% if total_analyzed_news > 0 %}
+        <div style="max-width: 400px; margin: 20px auto;"> {# Center the chart #}
+            <canvas id="sentimentPieChart"></canvas>
+        </div>
+        <p style="text-align: center; font-size: 0.9em; color: #777;">Based on {{ total_analyzed_news }} analyzed news articles.</p>
+    {% else %}
+        <p>No news articles with sentiment analysis found in the last 7 days.</p>
+    {% endif %}
+
+    <hr style="margin: 30px 0;">
+
     {# Display Prioritized Stock Info #}
     <h2>Key Information</h2>
     <dl class="stock-info-list">
@@ -139,93 +235,6 @@
         {% endif %}
     {% endwith %}
 
-    {# Historical Data Table - Moved below the chart #}
-    <h2>Historical Data Table</h2>
-    {% if stock_historical_data %} {# Use the correct context variable name #}
-        <div class="data-table-container" style="max-height: 500px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-            <table style="width: 100%; border-collapse: collapse; text-align: center;">
-                <thead style="position: sticky; top: 0; background-color: #f8f9fa; z-index: 1;">
-                    <tr>
-                        <th style="padding: 12px; border-bottom: 2px solid #dee2e6; font-weight: bold;">Date</th>
-                        <th style="padding: 12px; border-bottom: 2px solid #dee2e6; font-weight: bold;">Open</th>
-                        <th style="padding: 12px; border-bottom: 2px solid #dee2e6; font-weight: bold;">High</th>
-                        <th style="padding: 12px; border-bottom: 2px solid #dee2e6; font-weight: bold;">Low</th>
-                        <th style="padding: 12px; border-bottom: 2px solid #dee2e6; font-weight: bold;">Close</th>
-                        <th style="padding: 12px; border-bottom: 2px solid #dee2e6; font-weight: bold;">Volume</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for data_point in stock_historical_data %} {# Use the correct context variable name #}
-                    <tr style="{% cycle 'background-color: #ffffff;' 'background-color: #f8f9fa;' %}">
-                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">{% if data_point.Date %}{{ data_point.Date }}{% else %}N/A{% endif %}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">{{ data_point.Open|floatformat:2|default:"N/A" }}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">{{ data_point.High|floatformat:2|default:"N/A" }}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">{{ data_point.Low|floatformat:2|default:"N/A" }}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">{{ data_point.Close|floatformat:2|default:"N/A" }}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">{{ data_point.Volume|intcomma|default:"N/A" }}</td> {# Format volume #}
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    {% else %}
-        <p>No historical data available for this stock.</p>
-    {% endif %}
-
-    <hr style="margin: 30px 0;">
-
-    {# News Section #}
-    <h2>Recent News (Last 7 Days)</h2>
-    {% if news_items %}
-        <div class="news-list" style="margin-bottom: 30px;">
-            {% for news in news_items %}
-                <div class="news-item" style="border: 1px solid #eee; padding: 15px; margin-bottom: 15px; border-radius: 5px; background-color: #fff;">
-                    <h4 style="margin-top: 0; margin-bottom: 5px;">
-                        <a href="{{ news.url }}" target="_blank" title="Read full article">{{ news.headline }}</a>
-                    </h4>
-                    <p style="font-size: 0.9em; color: #666; margin-bottom: 10px;">
-                        <strong>Source:</strong> {{ news.source }} |
-                        <strong>Published:</strong>
-                        {% timezone "Asia/Calcutta" %}
-                            {{ news.published_at|date:"Y-m-d H:i" }}
-                        {% endtimezone %}
-                        {% if news.sentiment_positive is not None %}
-                            | <strong>Sentiment:</strong>
-                            {% if news.sentiment_positive > news.sentiment_negative and news.sentiment_positive > news.sentiment_neutral %}
-                                <span style="color: green;">Positive</span> ({{ news.sentiment_positive|floatformat:2 }})
-                            {% elif news.sentiment_negative > news.sentiment_positive and news.sentiment_negative > news.sentiment_neutral %}
-                                <span style="color: red;">Negative</span> ({{ news.sentiment_negative|floatformat:2 }})
-                            {% else %}
-                                <span style="color: orange;">Neutral</span> ({{ news.sentiment_neutral|floatformat:2 }})
-                            {% endif %}
-                        {% endif %}
-                    </p>
-                    {% if news.summary %}
-                        <p style="font-size: 0.95em; margin-bottom: 0;">{{ news.summary|truncatewords:50 }}</p>
-                    {% endif %}
-                </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <p>No recent news found for this stock.</p>
-    {% endif %}
-
-    <hr style="margin: 30px 0;">
-
-     {# Sentiment Pie Chart Section #}
-    <h2>News Sentiment Distribution (Last 7 Days)</h2>
-    {% if total_analyzed_news > 0 %}
-        <div style="max-width: 400px; margin: 20px auto;"> {# Center the chart #}
-            <canvas id="sentimentPieChart"></canvas>
-        </div>
-        <p style="text-align: center; font-size: 0.9em; color: #777;">Based on {{ total_analyzed_news }} analyzed news articles.</p>
-    {% else %}
-        <p>No news articles with sentiment analysis found in the last 7 days.</p>
-    {% endif %}
-
-    <hr style="margin: 30px 0;">
-
-
     {# Collapsible Other Information Section #}
     <div id="other-info-container">
         <button type="button" id="toggle-other-info" class="btn btn-info" style="margin-bottom: 10px;">Show Other Information</button>
@@ -266,7 +275,7 @@
         align-items: center;
     }
     
-    .btn-update, .btn-watchlist, .btn-visit-website {
+    .btn-update, .btn-watchlist, .btn-news, .btn-visit-website, .btn-visit-article {
         padding: 8px 15px;
         border-radius: 6px;
         border: none;
@@ -299,6 +308,16 @@
         transform: translateY(-2px);
     }
     
+    .btn-news {
+        background-color: rgba(0, 123, 255, 0.1);
+        color: #007bff;
+    }
+    
+    .btn-news:hover {
+        background-color: rgba(0, 123, 255, 0.2);
+        transform: translateY(-2px);
+    }
+    
     .btn-visit-website {
         background-color: rgba(46, 204, 113, 0.1);
         color: #2ecc71;
@@ -309,6 +328,19 @@
     
     .btn-visit-website:hover {
         background-color: rgba(46, 204, 113, 0.2);
+        transform: translateY(-2px);
+    }
+    
+    .btn-visit-article {
+        background-color: rgba(41, 128, 185, 0.1);
+        color: #2980b9;
+        font-size: 13px;
+        padding: 5px 10px;
+        margin-left: 10px;
+    }
+    
+    .btn-visit-article:hover {
+        background-color: rgba(41, 128, 185, 0.2);
         transform: translateY(-2px);
     }
     

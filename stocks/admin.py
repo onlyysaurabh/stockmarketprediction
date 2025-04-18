@@ -1,14 +1,15 @@
 from django.contrib import admin
 from django.contrib import messages
 from django.utils.html import format_html
-from .models import Watchlist, WatchlistItem, Stock
-from .services import update_stock_prices
+from .models import Watchlist, WatchlistItem, Stock, StockNews
+from .services import update_stock_prices, process_news_for_stock
 import yfinance as yf
-from datetime import datetime
+from datetime import datetime, date, timedelta
 from django.http import HttpResponseRedirect
-from django.urls import path, reverse # Added reverse
+from django.urls import path, reverse
 from django.template.response import TemplateResponse
 from django.contrib.admin import SimpleListFilter
+from .forms import FetchNewsForm
 
 # Custom filter classes for Sector and Industry
 class SectorListFilter(SimpleListFilter):
@@ -57,6 +58,44 @@ class WatchlistItemAdmin(admin.ModelAdmin):
     def watchlist_user(self, obj):
         return obj.watchlist.user
     watchlist_user.short_description = 'User' # Column header
+
+@admin.register(StockNews)
+class StockNewsAdmin(admin.ModelAdmin):
+    list_display = ('headline_short', 'stock', 'source', 'published_at', 'get_sentiment')
+    list_filter = ('source', 'published_at', 'stock')
+    search_fields = ('headline', 'summary', 'stock__symbol', 'stock__name')
+    readonly_fields = ('created_at', 'stock', 'source', 'headline', 'summary', 'url', 'published_at', 
+                      'sentiment_positive', 'sentiment_negative', 'sentiment_neutral')
+    date_hierarchy = 'published_at'
+    
+    def has_add_permission(self, request):
+        # Remove ability to add news items manually
+        return False
+    
+    def headline_short(self, obj):
+        """Return a shortened version of the headline for display"""
+        if len(obj.headline) > 70:
+            return obj.headline[:70] + "..."
+        return obj.headline
+    headline_short.short_description = "Headline"
+    
+    def get_sentiment(self, obj):
+        """Display sentiment with color coding"""
+        if obj.sentiment_positive is None or obj.sentiment_negative is None or obj.sentiment_neutral is None:
+            return "N/A"
+        
+        # Convert to float and format as string first to avoid SafeString formatting issues
+        pos_formatted = "{:.2f}".format(float(obj.sentiment_positive))
+        neg_formatted = "{:.2f}".format(float(obj.sentiment_negative))
+        neu_formatted = "{:.2f}".format(float(obj.sentiment_neutral))
+        
+        if obj.sentiment_positive > obj.sentiment_negative and obj.sentiment_positive > obj.sentiment_neutral:
+            return format_html('<span style="color: green;">Positive ({})</span>', pos_formatted)
+        elif obj.sentiment_negative > obj.sentiment_positive and obj.sentiment_negative > obj.sentiment_neutral:
+            return format_html('<span style="color: red;">Negative ({})</span>', neg_formatted)
+        else:
+            return format_html('<span style="color: gray;">Neutral ({})</span>', neu_formatted)
+    get_sentiment.short_description = "Sentiment"
 
 @admin.register(Stock)
 class StockAdmin(admin.ModelAdmin):
@@ -142,6 +181,7 @@ class StockAdmin(admin.ModelAdmin):
         urls = super().get_urls()
         custom_urls = [
             path('update-all-prices/', self.admin_site.admin_view(self.update_all_prices_view), name='stocks_stock_update_all_prices'),
+            path('fetch-news/', self.admin_site.admin_view(self.fetch_news_view), name='stocks_stock_fetch_news'),
         ]
         return custom_urls + urls
     
@@ -201,6 +241,78 @@ class StockAdmin(admin.ModelAdmin):
         }
         return TemplateResponse(request, "admin/stocks/stock/update_all_prices.html", context)
         
+    def fetch_news_view(self, request):
+        """Custom admin view to fetch news with date range and stock selection options"""
+        # Get selected stock IDs from the query parameters (passed from admin action)
+        selected_ids_str = request.GET.get('ids')
+        if not selected_ids_str:
+            # If no IDs provided, show form with all stocks
+            selected_stocks = Stock.objects.all()
+            stock_symbols = list(selected_stocks.values_list('symbol', flat=True))
+        else:
+            try:
+                selected_ids = [int(id_str) for id_str in selected_ids_str.split(',')]
+                selected_stocks = Stock.objects.filter(pk__in=selected_ids)
+                if not selected_stocks.exists():
+                    self.message_user(request, "Selected stocks not found.", level=messages.ERROR)
+                    return HttpResponseRedirect("../")
+                stock_symbols = list(selected_stocks.values_list('symbol', flat=True))
+            except (ValueError, TypeError):
+                self.message_user(request, "Invalid selection provided.", level=messages.ERROR)
+                return HttpResponseRedirect("../")
+
+        stock_count = len(stock_symbols)
+
+        if request.method == 'POST':
+            form = FetchNewsForm(request.POST)
+            if form.is_valid():
+                start_date = form.cleaned_data['start_date']
+                end_date = form.cleaned_data['end_date']
+                
+                # Process the news fetching for each stock
+                total_processed = 0
+                total_created = 0
+                total_updated = 0
+                total_failed = 0
+                
+                for symbol in stock_symbols:
+                    # Process news for this stock with the given date range
+                    result = process_news_for_stock(symbol, start_date=start_date, end_date=end_date)
+                    
+                    total_processed += result.get('processed', 0)
+                    total_created += result.get('created', 0)
+                    total_updated += result.get('updated', 0)
+                    if result.get('failed', 0) > 0:
+                        total_failed += 1  # Count stocks with failures
+                
+                self.message_user(request, 
+                    f"News fetch completed for {stock_count} stocks ({start_date} to {end_date}). "
+                    f"Articles: {total_processed} processed, {total_created} created, "
+                    f"{total_updated} updated, {total_failed} stocks with failures.", 
+                    level=messages.SUCCESS)
+                
+                # Redirect back to the stock changelist
+                return HttpResponseRedirect("../")
+            else:
+                # Form is invalid, show errors
+                self.message_user(request, "Please correct the date errors below.", level=messages.ERROR)
+        else:
+            # Default date range (e.g., last 7 days)
+            today = date.today()
+            seven_days_ago = today - timedelta(days=7)
+            form = FetchNewsForm(initial={'start_date': seven_days_ago, 'end_date': today})
+        
+        context = {
+            'title': f'Fetch News for {stock_count} Stocks',
+            'form': form,
+            'selected_stocks': selected_stocks,
+            'stock_symbols': stock_symbols,
+            'media': form.media,  # Include form media (for date picker JS/CSS)
+            'opts': self.model._meta,  # Pass model options for breadcrumbs etc.
+        }
+        
+        return TemplateResponse(request, "admin/stocks/stock/fetch_news_form.html", context)
+
     def changelist_view(self, request, extra_context=None):
         """Override to add the update button to the template"""
         extra_context = extra_context or {}

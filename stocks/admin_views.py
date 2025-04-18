@@ -1,15 +1,16 @@
 import logging
 from datetime import date, timedelta
 from django.contrib import admin
-from django.shortcuts import redirect # Removed unused render
-# Removed unused: from django.urls import reverse
+from django.shortcuts import redirect
 from django.contrib import messages
 from django.http import HttpRequest, HttpResponseRedirect
 from django.template.response import TemplateResponse
+from django.urls import reverse
+from django.contrib.admin.views.decorators import staff_member_required
 
-from .models import Stock
+from .models import Stock, StockNews
 from .forms import FetchNewsForm
-from .services import process_news_for_stock # Import the processing function
+from .services import process_news_for_stock
 
 logger = logging.getLogger(__name__)
 
@@ -17,76 +18,81 @@ logger = logging.getLogger(__name__)
 def fetch_stock_news_view(request: HttpRequest) -> TemplateResponse | HttpResponseRedirect:
     """
     Custom admin view to fetch news for selected stocks within a date range.
+    Allows filtering stocks by sector and industry.
     """
-    # Get selected stock IDs from the query parameters (passed from admin action)
+    # Get all unique sectors and industries for the filters
+    sectors = Stock.objects.exclude(sector__isnull=True).exclude(sector='').values_list('sector', flat=True).distinct().order_by('sector')
+    industries = Stock.objects.exclude(industry__isnull=True).exclude(industry='').values_list('industry', flat=True).distinct().order_by('industry')
+    
+    # Get all stocks for selection
+    all_stocks = Stock.objects.all().order_by('symbol')
+    
+    # Get pre-selected stock IDs from query parameters
+    preselected_ids = []
     selected_ids_str = request.GET.get('ids')
-    if not selected_ids_str:
-        messages.error(request, "No stocks selected.")
-        # Redirect back to the stock changelist
-        return redirect('admin:stocks_stock_changelist')
-
-    try:
-        selected_ids = [int(id_str) for id_str in selected_ids_str.split(',')]
-        selected_stocks = Stock.objects.filter(pk__in=selected_ids)
-        if not selected_stocks.exists():
-             messages.error(request, "Selected stocks not found.")
-             return redirect('admin:stocks_stock_changelist')
-    except (ValueError, TypeError):
-        messages.error(request, "Invalid selection provided.")
-        return redirect('admin:stocks_stock_changelist')
-
-    stock_symbols = list(selected_stocks.values_list('symbol', flat=True))
-    stock_count = len(stock_symbols)
+    if selected_ids_str:
+        try:
+            preselected_ids = [id_str for id_str in selected_ids_str.split(',')]
+            selected_stocks = Stock.objects.filter(pk__in=preselected_ids)
+            stock_symbols = list(selected_stocks.values_list('symbol', flat=True))
+        except (ValueError, TypeError):
+            messages.error(request, "Invalid selection provided.")
+            return redirect('admin:stocks_stock_changelist')
+    else:
+        selected_stocks = Stock.objects.none()
+        stock_symbols = []
 
     if request.method == 'POST':
         form = FetchNewsForm(request.POST)
         if form.is_valid():
-            start_date: date = form.cleaned_data['start_date']
-            end_date: date = form.cleaned_data['end_date']
+            start_date = form.cleaned_data['start_date']
+            end_date = form.cleaned_data['end_date']
             
-            # Calculate days_back based on start_date relative to today
-            # Note: Finnhub API uses 'from' and 'to', not 'days_back'.
-            # We need to adapt process_news_for_stock or create a new service function.
-            # For now, let's stick to the plan and assume process_news_for_stock
-            # can be adapted or we create a new one. Let's calculate days_back
-            # just for demonstration, but ideally, pass start/end dates directly.
+            # Get selected stocks from the checkboxes
+            selected_stock_ids = request.POST.getlist('selected_stocks')
             
-            # --- Modification Needed ---
-            # The current `process_news_for_stock` uses `days_back`.
-            # We should ideally modify it or create a new function like
-            # `process_news_for_stock_range(symbol, start_date, end_date)`
-            # For now, we'll proceed but acknowledge this discrepancy.
-            # Let's simulate calling it for each stock (inefficient for many stocks).
+            if not selected_stock_ids:
+                messages.warning(request, "No stocks selected. Please select at least one stock.")
+                context = {
+                    **admin.site.each_context(request),
+                    'title': 'Fetch News for Stocks',
+                    'form': form,
+                    'selected_stocks': selected_stocks,
+                    'all_stocks': all_stocks,
+                    'sectors': sectors,
+                    'industries': industries,
+                    'preselected_ids': preselected_ids,
+                    'stock_symbols': stock_symbols,
+                    'media': form.media,
+                    'opts': Stock._meta,
+                }
+                return TemplateResponse(request, "admin/stocks/stock/fetch_news_form.html", context)
+                
+            # Get the selected stocks
+            selected_stocks = Stock.objects.filter(pk__in=selected_stock_ids)
+            selected_symbols = list(selected_stocks.values_list('symbol', flat=True))
+            stock_count = len(selected_symbols)
             
-            logger.info(f"Processing news fetch for {stock_count} stocks: {stock_symbols} from {start_date} to {end_date}")
-            
+            # Process the news fetching for each stock
             total_processed = 0
             total_created = 0
             total_updated = 0
             total_failed = 0
             
-            # TODO: Ideally, adapt process_news_for_stock to take date range
-            # or create a new function. Simulating for now.
-            days_back = (date.today() - start_date).days + 1 # Approximate days back
+            for symbol in selected_symbols:
+                # Process news for this stock with the given date range
+                result = process_news_for_stock(symbol, start_date=start_date, end_date=end_date)
+                
+                total_processed += result.get('processed', 0)
+                total_created += result.get('created', 0)
+                total_updated += result.get('updated', 0)
+                if result.get('failed', 0) > 0:
+                    total_failed += 1  # Count stocks with failures
 
-            for symbol in stock_symbols:
-                 # This call needs adjustment based on service function signature
-                 # Assuming process_news_for_stock is adapted or replaced
-                 # result = process_news_for_stock_range(symbol, start_date, end_date)
-                 
-                 # Using existing function for now (will fetch from days_back ago to today)
-                 # This is NOT correct based on the form, needs fixing in services.py
-                 result = process_news_for_stock(symbol, days_back=days_back) 
-                 
-                 total_processed += result.get('processed', 0)
-                 total_created += result.get('created', 0)
-                 total_updated += result.get('updated', 0)
-                 if result.get('failed', 0) != 0: # Count failures per stock
-                     total_failed += 1 # Count stocks that had >= 1 failure
-
-            messages.success(request, f"News fetch process completed for {stock_count} stocks ({start_date} to {end_date}). "
-                                      f"Total Articles Processed: {total_processed}, Created: {total_created}, "
-                                      f"Updated: {total_updated}, Stocks with Failures: {total_failed}.")
+            messages.success(request, 
+                            f"News fetch completed for {stock_count} stocks ({start_date} to {end_date}). "
+                            f"Articles: {total_processed} processed, {total_created} created, "
+                            f"{total_updated} updated, {total_failed} stocks with failures.")
             
             # Redirect back to the stock changelist after processing
             return redirect('admin:stocks_stock_changelist')
@@ -94,21 +100,132 @@ def fetch_stock_news_view(request: HttpRequest) -> TemplateResponse | HttpRespon
             # Form is invalid, show errors
             messages.error(request, "Please correct the date errors below.")
 
-    else: # GET request
+    else:  # GET request
         # Default date range (e.g., last 7 days)
         today = date.today()
         seven_days_ago = today - timedelta(days=7)
         form = FetchNewsForm(initial={'start_date': seven_days_ago, 'end_date': today})
 
     context = {
-        **admin.site.each_context(request), # Include standard admin context
-        'title': f'Fetch News for {stock_count} Stocks',
+        **admin.site.each_context(request),
+        'title': 'Fetch News for Stocks',
         'form': form,
         'selected_stocks': selected_stocks,
+        'all_stocks': all_stocks,
+        'sectors': sectors,
+        'industries': industries,
+        'preselected_ids': preselected_ids,
         'stock_symbols': stock_symbols,
-        'media': form.media, # Include form media (for date picker JS/CSS)
-        'opts': Stock._meta, # Pass model options for breadcrumbs etc.
+        'media': form.media,
+        'opts': Stock._meta,
     }
     
-    # Use a custom template for this view
+    # Use the enhanced template for this view
+    return TemplateResponse(request, "admin/stocks/stock/fetch_news_form.html", context)
+
+@staff_member_required
+def fetch_news_standalone_view(request: HttpRequest) -> TemplateResponse | HttpResponseRedirect:
+    """
+    Standalone view for fetching news articles for selected stocks.
+    This view is accessible directly from the admin panel and does not require pre-selected stocks.
+    """
+    # Get all unique sectors and industries for the filters
+    sectors = Stock.objects.exclude(sector__isnull=True).exclude(sector='').values_list('sector', flat=True).distinct().order_by('sector')
+    industries = Stock.objects.exclude(industry__isnull=True).exclude(industry='').values_list('industry', flat=True).distinct().order_by('industry')
+    
+    # Get all stocks for selection
+    all_stocks = Stock.objects.all().order_by('symbol')
+    
+    # For POST requests (form submission)
+    if request.method == 'POST':
+        form = FetchNewsForm(request.POST)
+        if form.is_valid():
+            start_date = form.cleaned_data['start_date']
+            end_date = form.cleaned_data['end_date']
+            
+            # Get selected stocks from the checkboxes
+            selected_stock_ids = request.POST.getlist('selected_stocks')
+            
+            if not selected_stock_ids:
+                messages.warning(request, "No stocks selected. Please select at least one stock.")
+                context = {
+                    **admin.site.each_context(request),
+                    'title': 'Fetch Stock News',
+                    'form': form,
+                    'all_stocks': all_stocks,
+                    'sectors': sectors,
+                    'industries': industries,
+                    'preselected_ids': [],
+                    'is_standalone': True,
+                    'media': form.media,
+                    'opts': Stock._meta,
+                }
+                return TemplateResponse(request, "admin/stocks/stock/fetch_news_form.html", context)
+            
+            # Get the selected stocks
+            selected_stocks = Stock.objects.filter(pk__in=selected_stock_ids)
+            selected_symbols = list(selected_stocks.values_list('symbol', flat=True))
+            stock_count = len(selected_symbols)
+            
+            # Process the news fetching for each stock
+            total_processed = 0
+            total_created = 0 
+            total_updated = 0
+            total_failed = 0
+            
+            for symbol in selected_symbols:
+                # Process news for this stock with the given date range
+                result = process_news_for_stock(symbol, start_date=start_date, end_date=end_date)
+                
+                total_processed += result.get('processed', 0)
+                total_created += result.get('created', 0)
+                total_updated += result.get('updated', 0)
+                if result.get('failed', 0) > 0:
+                    total_failed += 1  # Count stocks with failures
+
+            # Show success message
+            messages.success(request, 
+                            f"News fetch completed for {stock_count} stocks ({start_date} to {end_date}). "
+                            f"Articles: {total_processed} processed, {total_created} created, "
+                            f"{total_updated} updated, {total_failed} stocks with failures.")
+            
+            # Either redirect to StockNews admin or back to this page based on user choice
+            if request.POST.get('continue_fetching'):
+                return redirect(reverse('admin_fetch_news_standalone'))
+            elif request.POST.get('view_news'):
+                return redirect('admin:stocks_stocknews_changelist')
+            else:
+                return redirect('admin:stocks_stock_changelist')
+        else:
+            # Form is invalid, show errors
+            messages.error(request, "Please correct the date errors below.")
+    else:
+        # Default date range (e.g., last 7 days)
+        today = date.today()
+        seven_days_ago = today - timedelta(days=7)
+        form = FetchNewsForm(initial={'start_date': seven_days_ago, 'end_date': today})
+    
+    # Get stats about news in the database for display
+    news_stats = {
+        'total_news': StockNews.objects.count(),
+        'recent_news': StockNews.objects.filter(published_at__gte=date.today() - timedelta(days=7)).count(),
+        'stock_count': Stock.objects.filter(news__isnull=False).distinct().count(),
+    }
+    
+    context = {
+        **admin.site.each_context(request),
+        'title': 'Fetch Stock News',
+        'subtitle': 'Select stocks and date range to fetch news articles',
+        'form': form,
+        'all_stocks': all_stocks,
+        'sectors': sectors,
+        'industries': industries,
+        'preselected_ids': [],
+        'is_standalone': True,
+        'news_stats': news_stats,
+        'media': form.media,
+        'opts': Stock._meta,
+    }
+    
+    # Use the fetch news template
     return TemplateResponse(request, "admin/stocks/stock/fetch_news_form.html", context)

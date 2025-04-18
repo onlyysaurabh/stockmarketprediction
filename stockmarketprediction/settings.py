@@ -184,8 +184,8 @@ JAZZMIN_SETTINGS = {
         # Url that gets reversed (Permissions can be added)
         {"name": "Home",  "url": "admin:index", "permissions": ["auth.view_user"]},
 
-        # external url that opens in a new window (Permissions can be added)
-        # {"name": "Support", "url": "https://github.com/farridav/django-jazzmin/issues", "new_window": True},
+        # Custom direct link to our news fetching interface
+        {"name": "Fetch News", "url": "admin_fetch_news_standalone", "permissions": ["auth.view_user"]},
 
         # model admin to link to (Permissions checked against model)
         {"model": "auth.User"},
@@ -193,6 +193,44 @@ JAZZMIN_SETTINGS = {
         # App with dropdown menu to all its models pages (Permissions checked against models)
         {"app": "stocks"},
     ],
+
+    #############
+    # User Menu #
+    #############
+
+    # Additional links to include in the user menu on the top right ("app" url type is not allowed)
+    "usermenu_links": [
+        {"name": "Fetch Stock News", "url": "admin_fetch_news_standalone", "new_window": False},
+    ],
+
+    #############
+    # Side Menu #
+    #############
+
+    # Whether to display the side menu
+    "show_sidebar": True,
+
+    # Whether to aut expand the menu
+    "navigation_expanded": True,
+
+    # Hide these apps when generating side menu e.g (auth)
+    "hide_apps": [],
+
+    # Hide these models when generating side menu (e.g auth.user)
+    "hide_models": [],
+
+    # List of apps (and/or models) to base side menu ordering off of (does not need to contain all apps/models)
+    "order_with_respect_to": ["auth", "stocks"],
+    
+    # Custom links to append to app groups, keyed on app name
+    "custom_links": {
+        "stocks": [{
+            "name": "Fetch News", 
+            "url": "admin_fetch_news_standalone", 
+            "icon": "fas fa-newspaper",
+            # "permissions": ["stocks.view_stocknews"]
+        }]
+    },
 
     #############
     # UI Tweaks #
@@ -217,6 +255,17 @@ JAZZMIN_SETTINGS = {
     # "changeform_format_overrides": {"auth.user": "collapsible", "auth.group": "vertical_tabs"},
     # Add a language dropdown into the admin
     # "language_chooser": True,
+    
+    # Icons for models in the side menu (where possible)
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user",
+        "auth.Group": "fas fa-users",
+        "stocks.Stock": "fas fa-chart-line",
+        "stocks.StockNews": "fas fa-newspaper",
+        "stocks.Watchlist": "fas fa-list",
+        "stocks.WatchlistItem": "fas fa-star",
+    },
 }
 
 JAZZMIN_UI_TWEAKS = {

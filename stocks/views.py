@@ -2,7 +2,7 @@ import csv
 import os
 from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse, HttpRequest # Keep HttpRequest for type hinting
+from django.http import JsonResponse, HttpRequest, Http404 # Keep HttpRequest for type hinting
 from django.views.decorators.http import require_GET # require_POST removed as unused
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -12,17 +12,18 @@ from django.db import IntegrityError
 from .models import Watchlist, WatchlistItem # Stock removed as unused here
 from .forms import WatchlistItemForm
 # Import specific functions needed from services
-from .services import get_stock_data, get_stock_historical_data, get_commodity_historical_data
+from .services import get_stock_data, get_stock_historical_data, get_commodity_historical_data, process_news_for_stock
 import logging
 import json
 import yfinance as yf
 from decimal import Decimal
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date  # Added date import here
 from django.contrib.auth.forms import UserCreationForm, PasswordChangeForm # Added PasswordChangeForm
 from django.contrib.auth import login, update_session_auth_hash, logout
 from django.utils import timezone # Import timezone for date calculations
 from .forms import WatchlistItemForm, UserUpdateForm
 from .models import Stock, StockNews # Import Stock and StockNews
+from .news_service import fetch_stock_news
 
 logger = logging.getLogger(__name__)
 
@@ -180,7 +181,32 @@ def stock_detail(request: HttpRequest, symbol: str):
         stock=stock_obj,
         published_at__gte=seven_days_ago
     ).order_by('-published_at') # Get news for the last 7 days
-
+    
+    # If no news is available for the past 7 days, try to fetch and store it
+    if not news_items.exists():
+        today = date.today()
+        seven_days_ago_date = today - timedelta(days=7)
+        
+        logger.info(f"No recent news found for {symbol}. Attempting to fetch news for the past 7 days.")
+        try:
+            # Process news for this stock with date range of the last 7 days
+            result = process_news_for_stock(symbol, start_date=seven_days_ago_date, end_date=today)
+            
+            if result.get('created', 0) > 0 or result.get('updated', 0) > 0:
+                messages.success(request, f"Successfully fetched {result.get('created', 0) + result.get('updated', 0)} news articles for {symbol}.")
+                # Fetch the newly added news
+                news_items = StockNews.objects.filter(
+                    stock=stock_obj,
+                    published_at__gte=seven_days_ago
+                ).order_by('-published_at')
+            elif result.get('processed', 0) == 0:
+                messages.info(request, f"No news articles found for {symbol} in the past 7 days.")
+            else:
+                messages.warning(request, f"Attempted to fetch news for {symbol} but found none or encountered issues.")
+        except Exception as e:
+            logger.error(f"Error fetching news for {symbol}: {e}")
+            messages.error(request, f"Could not fetch news for {symbol}. Please try again later.")
+    
     sentiment_counts = {'positive': 0, 'negative': 0, 'neutral': 0}
     total_analyzed = 0
 
@@ -533,3 +559,84 @@ def logout_view(request: HttpRequest):
     
     # Redirect to home page
     return redirect('home')
+
+@login_required
+def stock_news(request: HttpRequest, symbol: str = None):
+    """
+    View to fetch and display news for a specific stock symbol with optional date filtering.
+    Shows prefetched news from the database with sentiment scores.
+    """
+    # Default to the last 7 days if no dates provided
+    end_date = request.GET.get('end_date', datetime.now().strftime('%Y-%m-%d'))
+    
+    # Default start date is 7 days before end date
+    try:
+        end_date_obj = datetime.strptime(end_date, '%Y-%m-%d')
+        default_start_date = (end_date_obj - timedelta(days=7)).strftime('%Y-%m-%d')
+    except ValueError:
+        end_date = datetime.now().strftime('%Y-%m-%d')
+        default_start_date = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
+    
+    start_date = request.GET.get('start_date', default_start_date)
+    
+    # If symbol is provided in URL, use it; otherwise check for GET parameter
+    if not symbol:
+        symbol = request.GET.get('symbol', '')
+    
+    symbol = symbol.upper() if symbol else ''
+    
+    # Convert string dates to datetime objects for filtering
+    try:
+        start_date_obj = datetime.strptime(start_date, '%Y-%m-%d')
+        end_date_obj = datetime.strptime(end_date, '%Y-%m-%d')
+        # Add a day to end_date to include the full end date
+        end_date_obj = end_date_obj + timedelta(days=1)
+    except ValueError:
+        start_date_obj = datetime.now() - timedelta(days=7)
+        end_date_obj = datetime.now() + timedelta(days=1)
+        start_date = start_date_obj.strftime('%Y-%m-%d')
+        end_date = end_date_obj.strftime('%Y-%m-%d')
+    
+    error_message = None
+    
+    # Query for news articles from the database
+    if symbol:
+        try:
+            # Get stock object or 404
+            try:
+                stock_obj = Stock.objects.get(symbol=symbol)
+                
+                # Query StockNews model for the specific stock and date range
+                news_items = StockNews.objects.filter(
+                    stock=stock_obj,
+                    published_at__gte=start_date_obj,
+                    published_at__lt=end_date_obj
+                ).order_by('-published_at')
+                
+                if not news_items.exists():
+                    error_message = f"No news articles found for {symbol} in the selected date range."
+                
+            except Stock.DoesNotExist:
+                error_message = f"Stock with symbol '{symbol}' does not exist."
+                news_items = []
+                
+        except Exception as e:
+            logger.error(f"Error retrieving news for {symbol}: {e}")
+            error_message = f"An error occurred while retrieving news: {str(e)}"
+            news_items = []
+    else:
+        # If no symbol specified, get recent news across all stocks
+        news_items = StockNews.objects.filter(
+            published_at__gte=start_date_obj,
+            published_at__lt=end_date_obj
+        ).order_by('-published_at')[:50]  # Limit to 50 most recent articles
+    
+    context = {
+        'symbol': symbol,
+        'news_items': news_items,
+        'start_date': start_date,
+        'end_date': end_date,
+        'error_message': error_message,
+    }
+    
+    return render(request, 'stocks/stock_news.html', context)

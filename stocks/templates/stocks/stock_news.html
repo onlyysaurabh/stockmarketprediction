@@ -1,0 +1,314 @@
+{% extends 'stocks/base.html' %}
+{% load stock_tags %}
+
+{% block title %}
+    {% if symbol %}{{ symbol }} - Stock News{% else %}Stock News{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="news-page">
+    <h1>{% if symbol %}{{ symbol }} - Stock News{% else %}Stock News{% endif %}</h1>
+
+    <!-- Search Form -->
+    <div class="news-search-form">
+        <form method="GET" action="{% if symbol %}{% url 'stock_news_with_symbol' symbol=symbol %}{% else %}{% url 'stock_news' %}{% endif %}">
+            <div class="form-group">
+                {% if not symbol %}
+                <label for="symbol">Stock Symbol:</label>
+                <input type="text" id="symbol" name="symbol" value="{{ symbol }}" placeholder="Enter stock symbol (e.g., AAPL)" required>
+                {% endif %}
+                
+                <label for="start_date">Start Date:</label>
+                <input type="date" id="start_date" name="start_date" value="{{ start_date }}" required>
+                
+                <label for="end_date">End Date:</label>
+                <input type="date" id="end_date" name="end_date" value="{{ end_date }}" required>
+                
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Search News
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Error Message -->
+    {% if error_message %}
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-circle"></i> {{ error_message }}
+    </div>
+    {% endif %}
+
+    <!-- News Results -->
+    <div class="news-results">
+        {% if news_items %}
+            <h2>News Results ({{ news_items|length }} articles)</h2>
+            <div class="news-grid">
+                {% for news in news_items %}
+                <div class="news-card">
+                    <h4 class="news-headline">
+                        <a href="{{ news.url }}" target="_blank" rel="noopener noreferrer">
+                            {{ news.headline|truncatechars:60 }}
+                        </a>
+                    </h4>
+                    
+                    <div class="news-meta">
+                        <span class="news-source">{{ news.source }}</span>
+                        
+                        <!-- Simplified sentiment badge - Only show the dominant sentiment -->
+                        {% if news.sentiment_positive is not None and news.sentiment_negative is not None and news.sentiment_neutral is not None %}
+                            {% if news.sentiment_positive > news.sentiment_negative and news.sentiment_positive > news.sentiment_neutral %}
+                                <span class="sentiment-badge positive">
+                                    <i class="fas fa-smile"></i> Positive
+                                </span>
+                            {% elif news.sentiment_negative > news.sentiment_positive and news.sentiment_negative > news.sentiment_neutral %}
+                                <span class="sentiment-badge negative">
+                                    <i class="fas fa-frown"></i> Negative
+                                </span>
+                            {% else %}
+                                <span class="sentiment-badge neutral">
+                                    <i class="fas fa-meh"></i> Neutral
+                                </span>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    
+                    <a href="{{ news.url }}" class="news-link" target="_blank" rel="noopener noreferrer">
+                        Read Article <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        {% elif symbol %}
+            <div class="no-results">
+                <p><i class="fas fa-info-circle"></i> No news articles found for {{ symbol }} in the selected date range.</p>
+            </div>
+        {% else %}
+            <div class="instructions">
+                <p><i class="fas fa-info-circle"></i> Enter a stock symbol and date range to search for news.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .news-page {
+        max-width: 100%;
+    }
+    
+    .news-search-form {
+        background: #f9f9f9;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 25px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .form-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        align-items: center;
+    }
+    
+    .form-group label {
+        font-weight: 600;
+        margin-right: 5px;
+    }
+    
+    .form-group input {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    
+    .btn-primary {
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+    }
+    
+    .btn-primary:hover {
+        background-color: var(--secondary-color);
+    }
+    
+    .alert {
+        padding: 15px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+    }
+    
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+    
+    /* New grid layout for news cards */
+    .news-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+    
+    .news-card {
+        background: white;
+        border: 1px solid #eee;
+        border-radius: 8px;
+        padding: 15px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        transition: all 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+    
+    .news-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .news-headline {
+        margin: 0 0 10px 0;
+        line-height: 1.3;
+        font-size: 1rem;
+    }
+    
+    .news-headline a {
+        color: var(--dark-color);
+        text-decoration: none;
+    }
+    
+    .news-headline a:hover {
+        color: var(--primary-color);
+    }
+    
+    .news-meta {
+        margin: 10px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+    
+    .news-source {
+        display: inline-block;
+        background-color: var(--light-color);
+        padding: 3px 6px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+    
+    .sentiment-badge {
+        padding: 3px 6px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: white;
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    .sentiment-badge i {
+        margin-right: 3px;
+    }
+    
+    .sentiment-badge.positive {
+        background-color: #28a745;
+    }
+    
+    .sentiment-badge.negative {
+        background-color: #dc3545;
+    }
+    
+    .sentiment-badge.neutral {
+        background-color: #6c757d;
+    }
+    
+    .news-link {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.85rem;
+        margin-top: auto;
+        display: inline-block;
+    }
+    
+    .news-link:hover {
+        text-decoration: underline;
+    }
+    
+    .no-results, .instructions {
+        background: #f0f4f8;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+        color: #555;
+        grid-column: span 3;
+    }
+    
+    .instructions {
+        border: 2px dashed #ddd;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 992px) {
+        .news-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .no-results, .instructions {
+            grid-column: span 2;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .form-group {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .form-group input {
+            width: 100%;
+        }
+        
+        .form-group button {
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .news-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .no-results, .instructions {
+            grid-column: span 1;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Ensure end date is not before start date
+        const startDateInput = document.getElementById('start_date');
+        const endDateInput = document.getElementById('end_date');
+        
+        if (startDateInput && endDateInput) {
+            endDateInput.addEventListener('change', function() {
+                if (startDateInput.value && this.value && this.value < startDateInput.value) {
+                    alert('End date cannot be before start date');
+                    this.value = startDateInput.value;
+                }
+            });
+            
+            startDateInput.addEventListener('change', function() {
+                if (endDateInput.value && this.value && this.value > endDateInput.value) {
+                    endDateInput.value = this.value;
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
