@@ -262,6 +262,7 @@ from django.urls import reverse
 from django.utils.html import format_html
 from django.views.decorators.http import require_POST
 from django.db import transaction
+from django.db.models import Exists, OuterRef
 
 from .models import Stock, TrainedPredictionModel
 from .prediction_service import train_model_for_stock, get_prediction_for_stock, get_multiple_predictions
@@ -271,26 +272,61 @@ logger = logging.getLogger(__name__)
 @staff_member_required
 def admin_prediction_dashboard(request):
     """
-    Admin dashboard for model training and predictions
+    Admin dashboard for model training and predictions, with filtering.
     """
-    stocks = Stock.objects.all().order_by('symbol')
+    # Get filter parameters from GET request
+    selected_sector = request.GET.get('sector', '')
+    selected_industry = request.GET.get('industry', '')
+    selected_model_status = request.GET.get('model_status', '') # e.g., 'all', 'trained', 'not_trained'
+
+    # Base queryset
+    stocks_qs = Stock.objects.all()
+
+    # Apply filters
+    if selected_sector:
+        stocks_qs = stocks_qs.filter(sector=selected_sector)
+    if selected_industry:
+        stocks_qs = stocks_qs.filter(industry=selected_industry)
+
+    # Annotate stocks with model training status
+    stocks_qs = stocks_qs.annotate(has_trained_model=Exists(
+        TrainedPredictionModel.objects.filter(stock=OuterRef('pk'))
+    ))
+
+    # Filter based on model status
+    if selected_model_status == 'trained':
+        stocks_qs = stocks_qs.filter(has_trained_model=True)
+    elif selected_model_status == 'not_trained':
+        stocks_qs = stocks_qs.filter(has_trained_model=False)
+
+    # Order stocks
+    stocks_qs = stocks_qs.order_by('symbol')
+
+    # Get distinct sectors and industries for filter dropdowns
+    sectors = Stock.objects.exclude(sector__isnull=True).exclude(sector='').values_list('sector', flat=True).distinct().order_by('sector')
+    industries = Stock.objects.exclude(industry__isnull=True).exclude(industry='').values_list('industry', flat=True).distinct().order_by('industry')
+
+    # Get all trained models for the "Recent Models" tab (unfiltered)
     trained_models = TrainedPredictionModel.objects.all().order_by('-trained_at')
-    
+
     # Get count of models per type
     model_counts = {}
     for model_type, _ in TrainedPredictionModel.MODEL_TYPES:
         model_counts[model_type] = TrainedPredictionModel.objects.filter(model_type=model_type).count()
-    
-    # Get the most recent model for each stock
+
+    # Get the most recent model for each stock (for display in the predictions table)
+    # This needs to be done efficiently, perhaps after filtering stocks if performance is an issue
+    # For now, fetch for all stocks and filter in template/view logic if needed
+    all_stocks_for_recent_models = Stock.objects.all() # Use all stocks to find recent models
     recent_models = {}
-    for stock in stocks:
+    for stock in all_stocks_for_recent_models:
         stock_models = TrainedPredictionModel.objects.filter(stock=stock).order_by('-trained_at')
         if stock_models.exists():
             recent_models[stock.symbol] = stock_models.first()
-    
-    # Provide model choices for the dropdown
+
+    # Provide model choices for the training dropdown
     model_choices = TrainedPredictionModel.MODEL_TYPES
-    
+
     # Default date ranges for quick selection
     today = date.today()
     date_presets = {
@@ -307,21 +343,26 @@ def admin_prediction_dashboard(request):
             'end_date': today
         }
     }
-    
+
     # Include admin site context for proper sidebar rendering
     context = {
         **admin.site.each_context(request),
-        'stocks': stocks,
-        'trained_models': trained_models[:20],  # limit to 20 for performance
+        'stocks': stocks_qs, # Use the filtered queryset
+        'trained_models': trained_models[:20],  # limit recent models display
         'model_counts': model_counts,
-        'recent_models': recent_models,
+        'recent_models': recent_models, # Dictionary of recent models keyed by symbol
         'model_choices': model_choices,
         'date_presets': date_presets,
+        'sectors': sectors, # For filter dropdown
+        'industries': industries, # For filter dropdown
+        'selected_sector': selected_sector, # To retain filter selection
+        'selected_industry': selected_industry, # To retain filter selection
+        'selected_model_status': selected_model_status, # To retain filter selection
         'title': 'Prediction Model Management',
-        'opts': Stock._meta,  # This helps with admin breadcrumbs
+        'opts': Stock._meta,
         'app_label': 'stocks',
     }
-    
+
     return render(request, 'admin/stocks/prediction_dashboard.html', context)
 
 @staff_member_required
