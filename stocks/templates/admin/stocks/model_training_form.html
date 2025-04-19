@@ -5,22 +5,130 @@
   {{ block.super }}
   <link rel="stylesheet" type="text/css" href="{% static 'admin/css/forms.css' %}">
   <style>
+    .container {
+      width: 95%;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
     .form-row {
-      margin-bottom: 10px;
+      margin-bottom: 15px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
     }
-    .form-group {
+    
+    .form-row label {
+      width: 200px;
+      padding-right: 20px;
+      text-align: right;
+    }
+    
+    .form-row .field-container {
+      flex: 1;
+      min-width: 250px;
+    }
+    
+    .form-row input[type="text"],
+    .form-row input[type="number"],
+    .form-row input[type="date"],
+    .form-row select,
+    .form-row textarea {
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
       border: 1px solid #ddd;
-      padding: 15px;
-      margin-bottom: 20px;
-      border-radius: 5px;
+      border-radius: 4px;
     }
+    
+    .form-group {
+      border: 1px solid #e0e0e0;
+      padding: 20px;
+      margin-bottom: 25px;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
     .form-group-title {
       font-weight: bold;
-      margin-bottom: 10px;
-      font-size: 1.1em;
+      margin-bottom: 15px;
+      font-size: 1.2em;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #e0e0e0;
+      color: #2c5282;
     }
+    
+    .header-description {
+      margin-bottom: 20px;
+      color: #555;
+      line-height: 1.4;
+    }
+    
     .hidden {
       display: none;
+    }
+    
+    .help {
+      color: #666;
+      font-size: 0.9em;
+      margin-top: 5px;
+    }
+    
+    .sub-section-title {
+      font-weight: bold;
+      margin: 15px 0 10px 0;
+      padding-top: 15px;
+      border-top: 1px dashed #e0e0e0;
+    }
+    
+    .submit-row {
+      margin-top: 25px;
+      padding: 15px 0;
+      text-align: right;
+    }
+    
+    .submit-row input[type="submit"] {
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+    
+    /* Checkbox styling */
+    .form-row.checkbox-row {
+      display: flex;
+      align-items: center;
+    }
+    
+    .form-row.checkbox-row label {
+      width: 200px;
+      text-align: right;
+      padding-right: 20px;
+    }
+    
+    .checkbox-container {
+      display: flex;
+      align-items: center;
+    }
+    
+    .checkbox-container input[type="checkbox"] {
+      margin-right: 5px;
+    }
+    
+    @media (max-width: 768px) {
+      .form-row label {
+        width: 100%;
+        text-align: left;
+        margin-bottom: 5px;
+      }
+      
+      .form-row .field-container {
+        width: 100%;
+      }
+      
+      .form-row.checkbox-row label {
+        width: 100%;
+        text-align: left;
+      }
     }
   </style>
 {% endblock %}
@@ -35,13 +143,13 @@
 {% endblock %}
 
 {% block content %}
-<div id="content-main">
+<div id="content-main" class="container">
   <form method="post" novalidate>
     {% csrf_token %}
     
     <div class="module aligned">
       <h2>Train Stock Prediction Model</h2>
-      <p>Configure the model parameters and start the training process.</p>
+      <p class="header-description">Configure the model parameters and start the training process. Select stocks, model type, and parameters to create a predictive model.</p>
       
       {% if form.errors %}
         <p class="errornote">
@@ -60,10 +168,12 @@
         <div class="form-group-title">Stock Selection</div>
         <div class="form-row">
           {{ form.stock.label_tag }}
-          {{ form.stock }}
-          {% if form.stock.help_text %}
-            <div class="help">{{ form.stock.help_text|safe }}</div>
-          {% endif %}
+          <div class="field-container">
+            {{ form.stock }}
+            {% if form.stock.help_text %}
+              <div class="help">{{ form.stock.help_text|safe }}</div>
+            {% endif %}
+          </div>
         </div>
       </div>
       
@@ -71,10 +181,12 @@
         <div class="form-group-title">Model Type</div>
         <div class="form-row">
           {{ form.model_type.label_tag }}
-          {{ form.model_type }}
-          {% if form.model_type.help_text %}
-            <div class="help">{{ form.model_type.help_text|safe }}</div>
-          {% endif %}
+          <div class="field-container">
+            {{ form.model_type }}
+            {% if form.model_type.help_text %}
+              <div class="help">{{ form.model_type.help_text|safe }}</div>
+            {% endif %}
+          </div>
         </div>
       </div>
       
@@ -82,156 +194,176 @@
         <div class="form-group-title">Training Data Period</div>
         <div class="form-row">
           {{ form.training_period.label_tag }}
-          {{ form.training_period }}
-          {% if form.training_period.help_text %}
-            <div class="help">{{ form.training_period.help_text|safe }}</div>
-          {% endif %}
+          <div class="field-container">
+            {{ form.training_period }}
+            {% if form.training_period.help_text %}
+              <div class="help">{{ form.training_period.help_text|safe }}</div>
+            {% endif %}
+          </div>
         </div>
         
-        <div class="form-row">
-          <div style="font-weight: bold; margin-top: 10px;">Or specify custom date range:</div>
-        </div>
+        <div class="sub-section-title">Or specify custom date range:</div>
         
         <div class="form-row">
           {{ form.start_date.label_tag }}
-          {{ form.start_date }}
-          {% if form.start_date.help_text %}
-            <div class="help">{{ form.start_date.help_text|safe }}</div>
-          {% endif %}
+          <div class="field-container">
+            {{ form.start_date }}
+            {% if form.start_date.help_text %}
+              <div class="help">{{ form.start_date.help_text|safe }}</div>
+            {% endif %}
+          </div>
         </div>
         
         <div class="form-row">
           {{ form.end_date.label_tag }}
-          {{ form.end_date }}
-          {% if form.end_date.help_text %}
-            <div class="help">{{ form.end_date.help_text|safe }}</div>
-          {% endif %}
+          <div class="field-container">
+            {{ form.end_date }}
+            {% if form.end_date.help_text %}
+              <div class="help">{{ form.end_date.help_text|safe }}</div>
+            {% endif %}
+          </div>
         </div>
       </div>
       
       <div class="form-group">
         <div class="form-group-title">Model Parameters</div>
-        <div class="form-row">
+        <div class="form-row checkbox-row">
           {{ form.auto_parameters.label_tag }}
-          {{ form.auto_parameters }}
-          {% if form.auto_parameters.help_text %}
-            <div class="help">{{ form.auto_parameters.help_text|safe }}</div>
-          {% endif %}
+          <div class="checkbox-container">
+            {{ form.auto_parameters }}
+            {% if form.auto_parameters.help_text %}
+              <span class="help">{{ form.auto_parameters.help_text|safe }}</span>
+            {% endif %}
+          </div>
         </div>
         
         <!-- SARIMAX parameters -->
         <div id="sarimax-params">
-          <div class="form-row">
-            <div style="font-weight: bold; margin-top: 10px;">SARIMAX Parameters</div>
-          </div>
+          <div class="sub-section-title">SARIMAX Parameters</div>
           
           <div class="form-row">
             {{ form.order_p.label_tag }}
-            {{ form.order_p }}
-            {% if form.order_p.help_text %}
-              <div class="help">{{ form.order_p.help_text|safe }}</div>
-            {% endif %}
+            <div class="field-container">
+              {{ form.order_p }}
+              {% if form.order_p.help_text %}
+                <div class="help">{{ form.order_p.help_text|safe }}</div>
+              {% endif %}
+            </div>
           </div>
           
           <div class="form-row">
             {{ form.order_d.label_tag }}
-            {{ form.order_d }}
-            {% if form.order_d.help_text %}
-              <div class="help">{{ form.order_d.help_text|safe }}</div>
-            {% endif %}
+            <div class="field-container">
+              {{ form.order_d }}
+              {% if form.order_d.help_text %}
+                <div class="help">{{ form.order_d.help_text|safe }}</div>
+              {% endif %}
+            </div>
           </div>
           
           <div class="form-row">
             {{ form.order_q.label_tag }}
-            {{ form.order_q }}
-            {% if form.order_q.help_text %}
-              <div class="help">{{ form.order_q.help_text|safe }}</div>
-            {% endif %}
+            <div class="field-container">
+              {{ form.order_q }}
+              {% if form.order_q.help_text %}
+                <div class="help">{{ form.order_q.help_text|safe }}</div>
+              {% endif %}
+            </div>
           </div>
         </div>
         
         <!-- LSTM parameters -->
         <div id="lstm-params">
-          <div class="form-row">
-            <div style="font-weight: bold; margin-top: 10px;">LSTM Parameters</div>
-          </div>
+          <div class="sub-section-title">LSTM Parameters</div>
           
           <div class="form-row">
             {{ form.sequence_length.label_tag }}
-            {{ form.sequence_length }}
-            {% if form.sequence_length.help_text %}
-              <div class="help">{{ form.sequence_length.help_text|safe }}</div>
-            {% endif %}
+            <div class="field-container">
+              {{ form.sequence_length }}
+              {% if form.sequence_length.help_text %}
+                <div class="help">{{ form.sequence_length.help_text|safe }}</div>
+              {% endif %}
+            </div>
           </div>
           
           <div class="form-row">
             {{ form.lstm_units.label_tag }}
-            {{ form.lstm_units }}
-            {% if form.lstm_units.help_text %}
-              <div class="help">{{ form.lstm_units.help_text|safe }}</div>
-            {% endif %}
+            <div class="field-container">
+              {{ form.lstm_units }}
+              {% if form.lstm_units.help_text %}
+                <div class="help">{{ form.lstm_units.help_text|safe }}</div>
+              {% endif %}
+            </div>
           </div>
           
           <div class="form-row">
             {{ form.lstm_layers.label_tag }}
-            {{ form.lstm_layers }}
-            {% if form.lstm_layers.help_text %}
-              <div class="help">{{ form.lstm_layers.help_text|safe }}</div>
-            {% endif %}
+            <div class="field-container">
+              {{ form.lstm_layers }}
+              {% if form.lstm_layers.help_text %}
+                <div class="help">{{ form.lstm_layers.help_text|safe }}</div>
+              {% endif %}
+            </div>
           </div>
         </div>
         
         <!-- XGBoost parameters -->
         <div id="xgboost-params">
-          <div class="form-row">
-            <div style="font-weight: bold; margin-top: 10px;">XGBoost Parameters</div>
-          </div>
+          <div class="sub-section-title">XGBoost Parameters</div>
           
           <div class="form-row">
             {{ form.n_estimators.label_tag }}
-            {{ form.n_estimators }}
-            {% if form.n_estimators.help_text %}
-              <div class="help">{{ form.n_estimators.help_text|safe }}</div>
-            {% endif %}
+            <div class="field-container">
+              {{ form.n_estimators }}
+              {% if form.n_estimators.help_text %}
+                <div class="help">{{ form.n_estimators.help_text|safe }}</div>
+              {% endif %}
+            </div>
           </div>
           
           <div class="form-row">
             {{ form.max_depth.label_tag }}
-            {{ form.max_depth }}
-            {% if form.max_depth.help_text %}
-              <div class="help">{{ form.max_depth.help_text|safe }}</div>
-            {% endif %}
+            <div class="field-container">
+              {{ form.max_depth }}
+              {% if form.max_depth.help_text %}
+                <div class="help">{{ form.max_depth.help_text|safe }}</div>
+              {% endif %}
+            </div>
           </div>
           
           <div class="form-row">
             {{ form.learning_rate.label_tag }}
-            {{ form.learning_rate }}
-            {% if form.learning_rate.help_text %}
-              <div class="help">{{ form.learning_rate.help_text|safe }}</div>
-            {% endif %}
+            <div class="field-container">
+              {{ form.learning_rate }}
+              {% if form.learning_rate.help_text %}
+                <div class="help">{{ form.learning_rate.help_text|safe }}</div>
+              {% endif %}
+            </div>
           </div>
         </div>
         
         <!-- SVM parameters -->
         <div id="svm-params">
-          <div class="form-row">
-            <div style="font-weight: bold; margin-top: 10px;">SVM Parameters</div>
-          </div>
+          <div class="sub-section-title">SVM Parameters</div>
           
           <div class="form-row">
             {{ form.kernel.label_tag }}
-            {{ form.kernel }}
-            {% if form.kernel.help_text %}
-              <div class="help">{{ form.kernel.help_text|safe }}</div>
-            {% endif %}
+            <div class="field-container">
+              {{ form.kernel }}
+              {% if form.kernel.help_text %}
+                <div class="help">{{ form.kernel.help_text|safe }}</div>
+              {% endif %}
+            </div>
           </div>
           
           <div class="form-row">
             {{ form.c_parameter.label_tag }}
-            {{ form.c_parameter }}
-            {% if form.c_parameter.help_text %}
-              <div class="help">{{ form.c_parameter.help_text|safe }}</div>
-            {% endif %}
+            <div class="field-container">
+              {{ form.c_parameter }}
+              {% if form.c_parameter.help_text %}
+                <div class="help">{{ form.c_parameter.help_text|safe }}</div>
+              {% endif %}
+            </div>
           </div>
         </div>
       </div>
@@ -241,18 +373,22 @@
         
         <div class="form-row">
           {{ form.validation_split.label_tag }}
-          {{ form.validation_split }}
-          {% if form.validation_split.help_text %}
-            <div class="help">{{ form.validation_split.help_text|safe }}</div>
-          {% endif %}
+          <div class="field-container">
+            {{ form.validation_split }}
+            {% if form.validation_split.help_text %}
+              <div class="help">{{ form.validation_split.help_text|safe }}</div>
+            {% endif %}
+          </div>
         </div>
         
         <div class="form-row">
           {{ form.forecast_horizon.label_tag }}
-          {{ form.forecast_horizon }}
-          {% if form.forecast_horizon.help_text %}
-            <div class="help">{{ form.forecast_horizon.help_text|safe }}</div>
-          {% endif %}
+          <div class="field-container">
+            {{ form.forecast_horizon }}
+            {% if form.forecast_horizon.help_text %}
+              <div class="help">{{ form.forecast_horizon.help_text|safe }}</div>
+            {% endif %}
+          </div>
         </div>
       </div>
       
@@ -261,18 +397,22 @@
         
         <div class="form-row">
           {{ form.model_name.label_tag }}
-          {{ form.model_name }}
-          {% if form.model_name.help_text %}
-            <div class="help">{{ form.model_name.help_text|safe }}</div>
-          {% endif %}
+          <div class="field-container">
+            {{ form.model_name }}
+            {% if form.model_name.help_text %}
+              <div class="help">{{ form.model_name.help_text|safe }}</div>
+            {% endif %}
+          </div>
         </div>
         
         <div class="form-row">
           {{ form.description.label_tag }}
-          {{ form.description }}
-          {% if form.description.help_text %}
-            <div class="help">{{ form.description.help_text|safe }}</div>
-          {% endif %}
+          <div class="field-container">
+            {{ form.description }}
+            {% if form.description.help_text %}
+              <div class="help">{{ form.description.help_text|safe }}</div>
+            {% endif %}
+          </div>
         </div>
       </div>
       
