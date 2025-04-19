@@ -1,0 +1,103 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrahead %}
+{{ block.super }}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<style>
+    .form-container {
+        padding: 20px;
+        max-width: 800px;
+    }
+    .date-range-container {
+        margin-bottom: 20px;
+    }
+    .actions-container {
+        margin-top: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h1>{{ title }}</h1>
+    <form method="post">
+        {% csrf_token %}
+        <div class="date-range-container">
+            <div class="form-group">
+                <label for="{{ form.preset_range.id_for_label }}">{{ form.preset_range.label }}</label>
+                {{ form.preset_range }}
+                <small class="form-text text-muted">{{ form.preset_range.help_text }}</small>
+            </div>
+            <div class="form-group">
+                <label for="{{ form.start_date.id_for_label }}">{{ form.start_date.label }}</label>
+                {{ form.start_date }}
+                <small class="form-text text-muted">{{ form.start_date.help_text }}</small>
+            </div>
+            <div class="form-group">
+                <label for="{{ form.end_date.id_for_label }}">{{ form.end_date.label }}</label>
+                {{ form.end_date }}
+                <small class="form-text text-muted">{{ form.end_date.help_text }}</small>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="{{ form.stocks.id_for_label }}">{{ form.stocks.label }}</label>
+            {{ form.stocks }}
+            <small class="form-text text-muted">{{ form.stocks.help_text }}</small>
+        </div>
+        <div class="actions-container">
+            <input type="submit" value="Fetch News" class="default" name="_save">
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize select2 for better stock selection UX
+    $('.select2').select2({
+        placeholder: 'Select stocks...',
+        width: '100%'
+    });
+
+    // Handle preset date range changes
+    window.updateDateRange = function(value) {
+        const today = new Date();
+        let startDate = new Date();
+
+        switch(value) {
+            case '1D':
+                startDate.setDate(today.getDate() - 1);
+                break;
+            case '7D':
+                startDate.setDate(today.getDate() - 7);
+                break;
+            case '1M':
+                startDate.setMonth(today.getMonth() - 1);
+                break;
+            case '3M':
+                startDate.setMonth(today.getMonth() - 3);
+                break;
+            case '6M':
+                startDate.setMonth(today.getMonth() - 6);
+                break;
+            case '1Y':
+                startDate.setFullYear(today.getFullYear() - 1);
+                break;
+            default:
+                return;
+        }
+
+        document.getElementById('{{ form.start_date.id_for_label }}').value = 
+            startDate.toISOString().split('T')[0];
+        document.getElementById('{{ form.end_date.id_for_label }}').value = 
+            today.toISOString().split('T')[0];
+    }
+
+    // Clear preset selection when custom dates are changed
+    window.clearPresetRange = function() {
+        document.getElementById('{{ form.preset_range.id_for_label }}').value = '';
+    }
+});
+</script>
+{% endblock %}

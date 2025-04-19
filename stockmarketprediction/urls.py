@@ -20,8 +20,6 @@ from stocks.admin import admin_site
 
 urlpatterns = [
     path('admin/predictions/', admin_views.prediction_dashboard, name='admin_prediction_dashboard'),
-    path('admin/stocks/update-all-prices/', admin_views.update_all_stock_prices, name='admin:stocks_stock_update_all_prices'),
-    path('admin/stocks/update-commodities/', admin_views.update_commodities, name='admin:stocks_stock_update_commodities'),
     path('admin/', admin_site.urls),  # Use our custom admin site
     path('accounts/', include('django.contrib.auth.urls')),  # Add Django authentication URLs
     path('', include('stocks.urls')),

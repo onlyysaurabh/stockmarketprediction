@@ -5,21 +5,52 @@ from django.contrib.auth.models import User
 
 class FetchNewsForm(forms.Form):
     """Form for fetching news for selected stocks within a date range."""
+    PRESET_CHOICES = [
+        ('', 'Custom Range'),
+        ('1D', 'Last 24 Hours'),
+        ('7D', 'Last 7 Days'),
+        ('1M', 'Last 30 Days'),
+        ('3M', 'Last 3 Months'),
+        ('6M', 'Last 6 Months'),
+        ('1Y', 'Last Year'),
+    ]
+
+    preset_range = forms.ChoiceField(
+        choices=PRESET_CHOICES,
+        required=False,
+        widget=forms.Select(attrs={
+            'class': 'form-control',
+            'onchange': 'updateDateRange(this.value)'
+        }),
+        help_text='Select a preset date range or use custom dates'
+    )
+
     start_date = forms.DateField(
-        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        widget=forms.DateInput(attrs={
+            'type': 'date',
+            'class': 'form-control',
+            'onchange': 'clearPresetRange()'
+        }),
         initial=date.today() - timedelta(days=30),
         help_text='Start date for news retrieval'
     )
     
     end_date = forms.DateField(
-        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        widget=forms.DateInput(attrs={
+            'type': 'date',
+            'class': 'form-control',
+            'onchange': 'clearPresetRange()'
+        }),
         initial=date.today(),
         help_text='End date for news retrieval'
     )
     
     stocks = forms.ModelMultipleChoiceField(
         queryset=Stock.objects.all().order_by('symbol'),
-        widget=forms.SelectMultiple(attrs={'class': 'form-control'}),
+        widget=forms.SelectMultiple(attrs={
+            'class': 'form-control select2',  # Added select2 for better UX
+            'style': 'width: 100%'
+        }),
         required=True,
         help_text='Select stocks to fetch news for'
     )

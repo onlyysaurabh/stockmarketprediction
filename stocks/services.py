@@ -1,17 +1,17 @@
 import os
 import yfinance as yf
 from pymongo import MongoClient
-from datetime import datetime, timezone # Import timezone
 import pandas as pd
 import logging
-from django.db import transaction # Removed unused models import
-# Removed unused: from django.utils import timezone as django_timezone
 import time
-from .models import Stock, StockNews # Import Stock and new StockNews model
-from .news_service import FinnhubClient # Import the client
-from .sentiment_service import analyze_sentiment # Import sentiment analyzer
-from typing import Dict, Optional # Added Optional
-from datetime import date, timedelta # Added date, timedelta
+from typing import Dict, Optional
+from datetime import datetime, timezone, date, timedelta
+from django.db import transaction
+from django.utils import timezone
+
+from .models import Stock, StockNews
+from .news_client import FinnhubClient
+from .sentiment_service import analyze_sentiment
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -24,18 +24,13 @@ try:
     client = MongoClient(MONGO_URI)
     db = client[MONGO_DB_NAME]
     stock_collection = db['stock_prices']
-    commodity_collection = db['commodity_prices'] # New collection for commodities
-    # Create index on symbol for faster lookups
+    commodity_collection = db['commodity_prices']
     stock_collection.create_index('symbol', unique=True)
-    commodity_collection.create_index('symbol', unique=True) # Index for commodity collection
+    commodity_collection.create_index('symbol', unique=True)
     logger.info(f"Connected to MongoDB: {MONGO_URI}, Database: {MONGO_DB_NAME}")
 except Exception as e:
     logger.error(f"Failed to connect to MongoDB: {e}")
-    # Handle connection error appropriately in a real application
-    # For now, we'll let it raise if connection fails on startup
     raise
-
-# --- Data Fetching and Storing ---
 
 def fetch_and_store_stock_data(symbol: str, force_update: bool = False):
     """
@@ -52,97 +47,11 @@ def fetch_and_store_stock_data(symbol: str, force_update: bool = False):
     symbol = symbol.upper()
     logger.info(f"Attempting to fetch/store data for symbol: {symbol}, force_update: {force_update}")
 
-    # Check if data exists and if update is not forced (basic check)
-    # A more robust check might involve looking at the last_updated timestamp
+    # Check if data exists and if update is not forced
     if not force_update:
         existing_data = stock_collection.find_one({'symbol': symbol})
         if existing_data:
             logger.info(f"Data for {symbol} already exists. Skipping fetch unless forced.")
-            # Optionally add logic here to check if data is stale based on last_updated
-            # For now, just return existing if not forcing update
-            return existing_data
-
-    try:
-        ticker = yf.Ticker(symbol)
-
-        # Fetch MAX historical data
-        # yfinance returns a pandas DataFrame
-        hist_df = ticker.history(period="max") # Changed period to "max"
-        if hist_df.empty:
-            logger.warning(f"No historical data found for symbol: {symbol}")
-            return None # Or raise an error
-
-        # Fetch company info
-        info = ticker.info
-        company_name = info.get('longName', symbol) # Use longName if available
-
-        # Convert DataFrame to list of dicts, handling timezone and NaNs
-        hist_df = hist_df.reset_index() # Make Date a column
-        # Ensure Date is timezone-naive UTC before converting to Python datetime
-        if pd.api.types.is_datetime64_any_dtype(hist_df['Date']):
-             if hist_df['Date'].dt.tz is not None:
-                 hist_df['Date'] = hist_df['Date'].dt.tz_convert('UTC').dt.tz_localize(None)
-        hist_df['Date'] = hist_df['Date'].dt.to_pydatetime()
-
-        # Convert NaN/NaT to None for JSON/BSON compatibility
-        hist_df = hist_df.where(pd.notnull(hist_df), None)
-        historical_data_list = hist_df.to_dict('records')
-
-        # Prepare document for MongoDB
-        stock_document = {
-            'symbol': symbol,
-            'name': company_name,
-            'last_updated': datetime.now(timezone.utc), # Use timezone-aware UTC time
-            'info': info, # Store the whole info dict for flexibility
-            'historical_data': historical_data_list
-        }
-
-        # Use update_one with upsert=True to insert or update
-        result = stock_collection.update_one(
-            {'symbol': symbol},
-            {'$set': stock_document},
-            upsert=True
-        )
-
-        if result.upserted_id or result.modified_count > 0:
-            logger.info(f"Successfully stored/updated data for {symbol}")
-            # Fetch the updated document to return it
-            return stock_collection.find_one({'symbol': symbol})
-        else:
-             # This case might happen if the exact same data was set again
-             logger.info(f"Data for {symbol} already up-to-date.")
-             return stock_collection.find_one({'symbol': symbol})
-
-
-    except Exception as e:
-        # yfinance can raise various errors for invalid tickers etc.
-        logger.error(f"Error fetching or storing stock data for {symbol}: {e}")
-        return None
-
-# --- Commodity Data Fetching and Storing ---
-
-def fetch_and_store_commodity_data(symbol: str, name: str, force_update: bool = False):
-    """
-    Fetches historical commodity data using yfinance and stores/updates it
-    in the MongoDB commodity_prices collection.
-
-    Args:
-        symbol (str): The commodity symbol (ticker).
-        name (str): The common name for the commodity (e.g., "Gold", "Crude Oil").
-        force_update (bool): If True, fetches data regardless of whether it exists.
-
-    Returns:
-        dict: The commodity data document from MongoDB, or None if fetching failed.
-    """
-    symbol = symbol.upper()
-    logger.info(f"Attempting to fetch/store data for commodity: {symbol} ({name}), force_update: {force_update}")
-
-    # Check if data exists and if update is not forced
-    if not force_update:
-        existing_data = commodity_collection.find_one({'symbol': symbol})
-        if existing_data:
-            logger.info(f"Data for commodity {symbol} already exists. Skipping fetch unless forced.")
-            # Add logic here to check if data is stale based on last_updated if needed
             return existing_data
 
     try:
@@ -151,8 +60,12 @@ def fetch_and_store_commodity_data(symbol: str, name: str, force_update: bool = 
         # Fetch MAX historical data
         hist_df = ticker.history(period="max")
         if hist_df.empty:
-            logger.warning(f"No historical data found for commodity symbol: {symbol}")
+            logger.warning(f"No historical data found for symbol: {symbol}")
             return None
+
+        # Fetch company info
+        info = ticker.info
+        company_name = info.get('longName', symbol)
 
         # Convert DataFrame to list of dicts, handling timezone and NaNs
         hist_df = hist_df.reset_index()
@@ -165,34 +78,151 @@ def fetch_and_store_commodity_data(symbol: str, name: str, force_update: bool = 
         historical_data_list = hist_df.to_dict('records')
 
         # Prepare document for MongoDB
-        commodity_document = {
+        stock_document = {
             'symbol': symbol,
-            'name': name, # Store the provided common name
+            'name': company_name,
             'last_updated': datetime.now(timezone.utc),
+            'info': info,
             'historical_data': historical_data_list
-            # Note: Commodities might not have the same 'info' dict as stocks
         }
 
         # Use update_one with upsert=True
+        result = stock_collection.update_one(
+            {'symbol': symbol},
+            {'$set': stock_document},
+            upsert=True
+        )
+
+        if result.upserted_id or result.modified_count > 0:
+            logger.info(f"Successfully stored/updated data for {symbol}")
+            return stock_collection.find_one({'symbol': symbol})
+        else:
+            logger.info(f"Data for {symbol} already up-to-date.")
+            return stock_collection.find_one({'symbol': symbol})
+
+    except Exception as e:
+        logger.error(f"Error fetching or storing stock data for {symbol}: {e}")
+        return None
+
+def fetch_and_store_commodity_data(symbol: str, force_update: bool = False):
+    """
+    Fetches historical commodity data using yfinance and stores/updates it in the MongoDB collection.
+    Common commodity symbols: GC=F (Gold), SI=F (Silver), CL=F (Crude Oil), etc.
+
+    Args:
+        symbol (str): The commodity symbol (ticker).
+        force_update (bool): If True, fetches data regardless of whether it exists.
+
+    Returns:
+        dict: The commodity data document from MongoDB, or None if fetching failed.
+    """
+    symbol = symbol.upper()
+    logger.info(f"Attempting to fetch/store commodity data for symbol: {symbol}, force_update: {force_update}")
+
+    if not force_update:
+        existing_data = commodity_collection.find_one({'symbol': symbol})
+        if existing_data:
+            logger.info(f"Data for commodity {symbol} already exists. Skipping fetch unless forced.")
+            return existing_data
+
+    try:
+        ticker = yf.Ticker(symbol)
+
+        # Fetch historical data
+        hist_df = ticker.history(period="max")
+        if hist_df.empty:
+            logger.warning(f"No historical data found for commodity: {symbol}")
+            return None
+
+        # Convert DataFrame to list of dicts, handling timezone and NaNs
+        hist_df = hist_df.reset_index()
+        if pd.api.types.is_datetime64_any_dtype(hist_df['Date']):
+            if hist_df['Date'].dt.tz is not None:
+                hist_df['Date'] = hist_df['Date'].dt.tz_convert('UTC').dt.tz_localize(None)
+        hist_df['Date'] = hist_df['Date'].dt.to_pydatetime()
+
+        # Convert NaN/NaT to None for JSON/BSON compatibility
+        hist_df = hist_df.where(pd.notnull(hist_df), None)
+        historical_data_list = hist_df.to_dict('records')
+
+        # Prepare document for MongoDB
+        commodity_document = {
+            'symbol': symbol,
+            'name': f"{symbol} Commodity",  # Basic name since commodities don't have company info
+            'last_updated': datetime.now(timezone.utc),
+            'historical_data': historical_data_list
+        }
+
+        # Use update_one with upsert=True to insert or update
         result = commodity_collection.update_one(
             {'symbol': symbol},
             {'$set': commodity_document},
             upsert=True
         )
 
-        if result.upserted_id or result.modified_count > 0:
-            logger.info(f"Successfully stored/updated data for commodity {symbol}")
-            return commodity_collection.find_one({'symbol': symbol})
+        if result.modified_count > 0 or result.upserted_id is not None:
+            logger.info(f"Successfully updated/inserted commodity data for {symbol}")
+            return commodity_document
         else:
-             logger.info(f"Commodity data for {symbol} already up-to-date.")
-             return commodity_collection.find_one({'symbol': symbol})
+            logger.warning(f"No changes made to commodity data for {symbol}")
+            return commodity_collection.find_one({'symbol': symbol})
 
     except Exception as e:
-        logger.error(f"Error fetching or storing data for commodity {symbol}: {e}")
-        return None
+        logger.error(f"Error fetching/storing commodity data for {symbol}: {str(e)}")
+        raise
 
-
-# --- Stock Data Retrieval ---
+def process_news_for_stock(stock: Stock, start_date: datetime) -> list:
+    """
+    Fetches and processes news for a given stock, analyzing sentiment and storing in database.
+    
+    Args:
+        stock (Stock): The stock to fetch news for
+        start_date (datetime): The date from which to start fetching news
+        
+    Returns:
+        list: List of processed news items
+    """
+    logger.info(f"Processing news for {stock.symbol} from {start_date}")
+    
+    try:
+        client = FinnhubClient()
+        end_date = datetime.now()
+        news_items = client.get_company_news(stock.symbol, start_date, end_date)
+        
+        if not news_items:
+            logger.info(f"No news found for {stock.symbol}")
+            return []
+        
+        processed_items = []
+        
+        for item in news_items:
+            # Skip if this news item already exists
+            if StockNews.objects.filter(url=item.get('url', '')).exists():
+                continue
+                
+            # Analyze sentiment of the news
+            sentiment_score = analyze_sentiment(
+                f"{item.get('headline', '')} {item.get('summary', '')}"
+            )
+            
+            # Create news item with sentiment
+            news_item = StockNews.objects.create(
+                stock=stock,
+                title=item.get('headline', ''),
+                summary=item.get('summary', ''),
+                url=item.get('url', ''),
+                source=item.get('source', ''),
+                date=datetime.fromtimestamp(item.get('datetime', 0), tz=timezone.utc),
+                sentiment_score=sentiment_score
+            )
+            processed_items.append(news_item)
+            
+        logger.info(f"Processed {len(processed_items)} new news items for {stock.symbol}")
+        return processed_items
+        
+    except Exception as e:
+        logger.error(f"Error processing news for {stock.symbol}: {str(e)}")
+        raise
 
 def get_stock_data(symbol: str, force_update: bool = False):
     """
@@ -313,10 +343,7 @@ def get_stock_historical_data(symbol: str, period='1y'):
     logger.info(f"Returning {len(filtered_data)} historical stock data points for {symbol} over {period}")
     return filtered_data
 
-
-# --- Commodity Data Retrieval ---
-
-def get_commodity_historical_data(symbol: str, name: str, period='1y', force_update: bool = False):
+def get_commodity_historical_data(symbol: str, name: str = None, period='1y', force_update: bool = False):
     """
     Retrieves historical commodity data for a given symbol.
 
@@ -330,6 +357,9 @@ def get_commodity_historical_data(symbol: str, name: str, period='1y', force_upd
         list: A list of historical data points (dictionaries), or None.
     """
     symbol = symbol.upper()
+    if name is None:
+        name = f"{symbol} Commodity"
+        
     logger.info(f"Getting historical data for commodity: {symbol}, period: {period}, force_update: {force_update}")
 
     commodity_data = None
@@ -339,7 +369,7 @@ def get_commodity_historical_data(symbol: str, name: str, period='1y', force_upd
     # If data not in MongoDB or force_update is True, fetch and store it
     if not commodity_data or force_update:
         logger.info(f"Historical data for commodity {symbol} not found or force_update=True. Triggering fetch...")
-        commodity_data = fetch_and_store_commodity_data(symbol, name, force_update=True) # Always force if fetching here
+        commodity_data = fetch_and_store_commodity_data(symbol, force_update=True)
         if not commodity_data:
             return None # Fetch failed
 
@@ -361,16 +391,26 @@ def get_commodity_historical_data(symbol: str, name: str, period='1y', force_upd
 
     # Filter based on period (same logic as for stocks)
     today = datetime.now()
-    if period == '1d': start_date = today - pd.Timedelta(days=1)
-    elif period in ['1wk', '1w']: start_date = today - pd.Timedelta(weeks=1)
-    elif period == '1mo': start_date = today - pd.Timedelta(days=30)
-    elif period == '3mo': start_date = today - pd.Timedelta(days=90)
-    elif period == '6mo': start_date = today - pd.Timedelta(days=180)
-    elif period == '1y': start_date = today - pd.Timedelta(days=365)
-    elif period == '2y': start_date = today - pd.Timedelta(days=2*365)
-    elif period == '5y': start_date = today - pd.Timedelta(days=5*365)
-    elif period == '10y': start_date = today - pd.Timedelta(days=10*365)
-    elif period == 'max': filtered_df = df
+    if period == '1d': 
+        start_date = today - pd.Timedelta(days=1)
+    elif period in ['1wk', '1w']: 
+        start_date = today - pd.Timedelta(weeks=1)
+    elif period == '1mo': 
+        start_date = today - pd.Timedelta(days=30)
+    elif period == '3mo': 
+        start_date = today - pd.Timedelta(days=90)
+    elif period == '6mo': 
+        start_date = today - pd.Timedelta(days=180)
+    elif period == '1y': 
+        start_date = today - pd.Timedelta(days=365)
+    elif period == '2y': 
+        start_date = today - pd.Timedelta(days=2*365)
+    elif period == '5y': 
+        start_date = today - pd.Timedelta(days=5*365)
+    elif period == '10y': 
+        start_date = today - pd.Timedelta(days=10*365)
+    elif period == 'max': 
+        filtered_df = df
     else:
         logger.warning(f"Unrecognized period '{period}' for commodity, defaulting to 1 year")
         start_date = today - pd.Timedelta(days=365)
@@ -388,297 +428,3 @@ def get_commodity_historical_data(symbol: str, name: str, period='1y', force_upd
 
     logger.info(f"Returning {len(filtered_data)} historical commodity data points for {symbol} over {period}")
     return filtered_data
-
-
-# --- Utility Functions ---
-
-def update_stock_prices(symbols=None, delay=1.0, update_django_model=True):
-    """
-    Robust function to update stock prices for either specified symbols or all stocks.
-    
-    Args:
-        symbols (list): List of stock symbols to update. If None, updates all stocks in the database.
-        delay (float): Delay in seconds between API calls to avoid rate limiting.
-        update_django_model (bool): If True, also updates the Django Stock model.
-        
-    Returns:
-        dict: Summary of update results with counts of successes, failures, and error details.
-    """
-    from .models import Stock  # Import here to avoid circular import
-    
-    results = {
-        "success": 0,
-        "failed": 0,
-        "not_found": 0,
-        "errors": {}
-    }
-    
-    # If no symbols provided, get all symbols from both MongoDB and Django models
-    if symbols is None:
-        mongo_symbols = {doc['symbol'] for doc in stock_collection.find({}, {'symbol': 1})}
-        django_symbols = set(Stock.objects.values_list('symbol', flat=True)) if update_django_model else set()
-        symbols = list(mongo_symbols.union(django_symbols))
-        logger.info(f"Updating all {len(symbols)} stocks in the database")
-    
-    total = len(symbols)
-    count = 0
-    
-    # Process each symbol with error handling and retries
-    for symbol in symbols:
-        symbol = symbol.upper().strip()
-        count += 1
-        logger.info(f"Processing {symbol} ({count}/{total})")
-        
-        try:
-            # First, try to update MongoDB data
-            mongo_data = fetch_and_store_stock_data(symbol, force_update=True)
-            
-            if mongo_data:
-                # If MongoDB update successful, update Django model if requested
-                if update_django_model:
-                    try:
-                        # Get or create Django model instance
-                        # stock, created = Stock.objects.get_or_create(symbol=symbol) # 'created' is unused
-                        stock, _ = Stock.objects.get_or_create(symbol=symbol) # Use _ for unused variable
-
-                        # Extract info from MongoDB document
-                        info = mongo_data.get('info', {})
-                        historical_data = mongo_data.get('historical_data', [])
-                        
-                        # Update fields
-                        stock.name = info.get('longName', info.get('shortName', symbol))
-                        stock.sector = info.get('sector')
-                        stock.industry = info.get('industry')
-                        
-                        # Get current price and previous close
-                        if historical_data and len(historical_data) > 0:
-                            latest = historical_data[-1]
-                            if len(historical_data) > 1:
-                                prev = historical_data[-2]
-                                stock.previous_close = prev.get('Close')
-                            
-                            stock.current_price = latest.get('Close')
-                            stock.open_price = latest.get('Open')
-                            stock.day_high = latest.get('High')
-                            stock.day_low = latest.get('Low')
-                            stock.volume = latest.get('Volume')
-                        
-                        # Additional financial info
-                        stock.market_cap = info.get('marketCap')
-                        stock.pe_ratio = info.get('trailingPE')
-                        stock.dividend_yield = info.get('dividendYield')
-                        
-                        # Save changes
-                        stock.save()
-                        logger.info(f"Successfully updated Django model for {symbol}")
-                    except Exception as e:
-                        logger.error(f"Error updating Django model for {symbol}: {e}")
-                
-                results["success"] += 1
-                
-            else:
-                results["not_found"] += 1
-                results["errors"][symbol] = "No data returned from API"
-                logger.warning(f"No data returned for {symbol}")
-        
-        except Exception as e:
-            results["failed"] += 1
-            error_msg = str(e)
-            results["errors"][symbol] = error_msg
-            logger.error(f"Error updating {symbol}: {error_msg}")
-        
-        # Add delay between requests to avoid rate limiting
-        if delay > 0 and count < total:
-            time.sleep(delay)
-    
-    # Return summary
-    return results
-
-
-# --- News Fetching, Analysis, and Storing ---
-
-def process_news_for_stock(
-    stock_symbol: str,
-    start_date: Optional[date] = None,
-    end_date: Optional[date] = None,
-    days_back: int = 7
-) -> Dict[str, int]:
-    """
-    Fetches news for a stock symbol for a given date range or the last N days,
-    analyzes sentiment, and stores the results in the StockNews model.
-
-    Args:
-        stock_symbol (str): The stock symbol.
-        start_date (Optional[date]): The start date for the news fetch.
-        end_date (Optional[date]): The end date for the news fetch.
-        days_back (int): How many days back to fetch news for if start/end dates are not provided.
-
-    Returns:
-        Dict[str, int]: A summary dictionary {'processed': count, 'created': count, 'updated': count, 'failed': count}.
-    """
-    summary = {'processed': 0, 'created': 0, 'updated': 0, 'failed': 0}
-
-    try:
-        stock = Stock.objects.get(symbol=stock_symbol)
-    except Stock.DoesNotExist:
-        logger.error(f"Stock with symbol {stock_symbol} not found in the database. Cannot process news.")
-        summary['failed'] = -1 # Indicate stock not found
-        return summary
-
-    # Determine date range
-    if start_date is None or end_date is None:
-        # Calculate dates based on days_back if range not provided
-        today = date.today()
-        end_date_calc = today
-        start_date_calc = today - timedelta(days=days_back)
-        logger.info(f"Date range not provided, fetching news for {stock_symbol} for the last {days_back} days ({start_date_calc} to {end_date_calc}).")
-    else:
-        # Use provided dates
-        start_date_calc = start_date
-        end_date_calc = end_date
-        logger.info(f"Starting news processing for {stock_symbol} from {start_date_calc} to {end_date_calc}.")
-
-    # Format dates for API call
-    start_date_str = start_date_calc.strftime('%Y-%m-%d')
-    end_date_str = end_date_calc.strftime('%Y-%m-%d')
-
-    # Use FinnhubClient to fetch news
-    client = FinnhubClient()
-    news_items = client.get_company_news(stock_symbol, start_date_str, end_date_str)
-
-    if news_items is None:
-        logger.warning(f"No news items fetched from Finnhub for {stock_symbol} between {start_date_str} and {end_date_str}.")
-        return summary # Nothing to process
-
-    if not isinstance(news_items, list):
-        logger.error(f"Unexpected data type received from Finnhub news endpoint: {type(news_items)}")
-        return summary
-
-    logger.info(f"Fetched {len(news_items)} news items for {stock_symbol}.")
-
-    for item in news_items:
-        summary['processed'] += 1
-        if not isinstance(item, dict) or not all(k in item for k in ['url', 'headline', 'datetime']):
-            logger.warning(f"Skipping invalid news item format: {item}")
-            summary['failed'] += 1
-            continue
-
-        news_url = item.get('url')
-        headline = item.get('headline')
-        summary_text = item.get('summary', '') # Use summary if available
-        source = item.get('source', 'Finnhub') # Get source if provided
-        
-        # Combine headline and summary for better sentiment context
-        text_to_analyze = f"{headline}. {summary_text}".strip()
-
-        # Analyze sentiment
-        sentiment_scores = analyze_sentiment(text_to_analyze)
-        if sentiment_scores is None:
-            logger.warning(f"Sentiment analysis failed for news item URL: {news_url}")
-            # Decide whether to store without sentiment or skip
-            # For now, let's store it without sentiment
-            sentiment_scores = {'positive': None, 'negative': None, 'neutral': None}
-            # summary['failed'] += 1 # Optionally count as failed if sentiment is crucial
-            # continue
-
-        # Convert Finnhub timestamp (seconds since epoch) to timezone-aware datetime
-        try:
-            published_at_ts = item.get('datetime')
-            # Ensure published_at_ts is an integer or float before conversion
-            if isinstance(published_at_ts, (int, float)):
-                 # Assume UTC if no timezone info from Finnhub
-                published_at_dt = datetime.fromtimestamp(published_at_ts, tz=timezone.utc)
-            else:
-                 logger.warning(f"Invalid timestamp format for news item URL {news_url}: {published_at_ts}")
-                 summary['failed'] += 1
-                 continue # Skip if timestamp is invalid
-        except (ValueError, TypeError, OSError) as e: # OSError for large timestamps
-            logger.error(f"Error converting timestamp {published_at_ts} for news URL {news_url}: {e}")
-            summary['failed'] += 1
-            continue
-
-        # Use transaction.atomic for database operations
-        try:
-            with transaction.atomic():
-                # news_obj, created = StockNews.objects.update_or_create( # news_obj is unused
-                _, created = StockNews.objects.update_or_create( # Use _ for unused variable
-                    url=news_url, # Use URL as the unique identifier
-                    defaults={
-                        'stock': stock,
-                        'source': source,
-                        'headline': headline,
-                        'summary': summary_text if summary_text else None, # Store None if empty
-                        'published_at': published_at_dt,
-                        'sentiment_positive': sentiment_scores.get('positive'),
-                        'sentiment_negative': sentiment_scores.get('negative'),
-                        'sentiment_neutral': sentiment_scores.get('neutral'),
-                    }
-                )
-                if created:
-                    summary['created'] += 1
-                    logger.debug(f"Created StockNews entry for URL: {news_url}")
-                else:
-                    summary['updated'] += 1
-                    logger.debug(f"Updated StockNews entry for URL: {news_url}")
-
-        except Exception as e:
-            logger.error(f"Database error storing news for URL {news_url}: {e}", exc_info=True)
-            summary['failed'] += 1
-
-    logger.info(f"Finished news processing for {stock_symbol}. Summary: {summary}")
-    return summary
-
-
-# Example usage (for testing purposes)
-if __name__ == '__main__':
-    # Make sure .env is loaded if running this script directly
-    from dotenv import load_dotenv
-    dotenv_path = os.path.join(os.path.dirname(__file__), '..', '.env') # Assumes .env is in parent dir
-    load_dotenv(dotenv_path=dotenv_path)
-
-    # Test fetching
-    aapl_data = get_stock_data('AAPL')
-    if aapl_data:
-        print(f"Successfully retrieved/fetched AAPL data. Last updated: {aapl_data.get('last_updated')}")
-        # print(aapl_data['historical_data'][-5:]) # Print last 5 data points
-    else:
-        print("Failed to get AAPL data.")
-
-    # Test force update
-    print("\nForcing update for AAPL...")
-    aapl_updated = fetch_and_store_stock_data('AAPL', force_update=True)
-    if aapl_updated:
-         print(f"Successfully forced update for AAPL. Last updated: {aapl_updated.get('last_updated')}")
-    else:
-        print("Failed to force update AAPL data.")
-
-    # Test invalid stock symbol
-    print("\nTesting invalid stock symbol...")
-    invalid_stock_data = get_stock_data('INVALIDTICKERXYZ')
-    if not invalid_stock_data:
-        print("Correctly handled invalid stock ticker.")
-    else:
-        print("Something went wrong with invalid stock ticker test.")
-
-    # Test fetching commodity data
-    print("\nTesting commodity fetch (Gold)...")
-    gold_data = get_commodity_historical_data('GC=F', 'Gold', period='1mo')
-    if gold_data:
-        print(f"Successfully retrieved/fetched Gold data. Got {len(gold_data)} points.")
-        # print(gold_data[-5:])
-    else:
-        print("Failed to get Gold data.")
-
-    print("\nTesting commodity fetch (Oil)...")
-    oil_data = get_commodity_historical_data('CL=F', 'Crude Oil', period='1mo')
-    if oil_data:
-        print(f"Successfully retrieved/fetched Oil data. Got {len(oil_data)} points.")
-    else:
-        print("Failed to get Oil data.")
-
-    print("\nTesting commodity fetch (Bitcoin)...")
-    btc_data = get_commodity_historical_data('BTC-USD', 'Bitcoin', period='1mo')
-    if btc_data:
-        print(f"Successfully retrieved/fetched Bitcoin data. Got {len(btc_data)} points.")
-    else:
-        print("Failed to get Bitcoin data.")

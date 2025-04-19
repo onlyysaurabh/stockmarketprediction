@@ -192,9 +192,6 @@ JAZZMIN_SETTINGS = {
         {"name": "Home", "url": "/admin/"},
 
         # Direct URLs for custom views - no permissions logic
-        {"name": "Fetch News", "url": "/admin/stocks/fetch-news/"},
-        {"name": "Update All Prices", "url": "/admin/stocks/update-all-prices/"},
-        {"name": "Update Commodities", "url": "/admin/stocks/update-commodities/"},
         {"name": "Prediction Dashboard", "url": "/admin/predictions/"},
         
         # Simple app link instead of model
@@ -229,18 +226,6 @@ JAZZMIN_SETTINGS = {
     # Custom links to append to app groups, keyed on app name
     "custom_links": {
         "stocks": [{
-            "name": "Fetch News", 
-            "url": "/admin/stocks/fetch-news/", 
-            "icon": "fas fa-newspaper",
-        }, {
-            "name": "Update All Prices", 
-            "url": "/admin/stocks/update-all-prices/", 
-            "icon": "fas fa-sync",
-        }, {
-            "name": "Update Commodities", 
-            "url": "/admin/stocks/update-commodities/", 
-            "icon": "fas fa-chart-line",
-        }, {
             "name": "Prediction Dashboard", 
             "url": "/admin/predictions/", 
             "icon": "fas fa-brain",

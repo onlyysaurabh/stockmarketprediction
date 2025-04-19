@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib import messages
 from django.utils.html import format_html
 from .models import Watchlist, WatchlistItem, Stock, StockNews
-from .services import update_stock_prices, process_news_for_stock
+from .services import fetch_and_store_stock_data
 import yfinance as yf
 from datetime import datetime, date, timedelta
 from django.http import HttpResponseRedirect
@@ -79,6 +79,42 @@ class StockAdmin(admin.ModelAdmin):
         )
     get_action_buttons.short_description = 'Actions'
 
+    def update_all_prices(self, request):
+        try:
+            # Get all active stocks
+            stocks = Stock.objects.filter(is_active=True)
+            updated_count = 0
+            
+            for stock in stocks:
+                try:
+                    # Use yfinance to fetch latest data
+                    ticker = yf.Ticker(stock.symbol)
+                    info = ticker.info
+                    
+                    if info and 'regularMarketPrice' in info:
+                        stock.current_price = info['regularMarketPrice']
+                        stock.last_updated = datetime.now()
+                        stock.save()
+                        updated_count += 1
+                except Exception as e:
+                    messages.warning(request, f"Failed to update {stock.symbol}: {str(e)}")
+            
+            if updated_count > 0:
+                self.message_user(request, f"Successfully updated prices for {updated_count} stocks", messages.SUCCESS)
+            else:
+                self.message_user(request, "No stock prices were updated", messages.WARNING)
+                
+        except Exception as e:
+            self.message_user(request, f"Error updating stock prices: {str(e)}", messages.ERROR)
+        
+        return HttpResponseRedirect("../")
+
+    def fetch_news(self, request):
+        """
+        View for fetching news for stocks
+        """
+        return fetch_stock_news_view(request, self.admin_site)
+
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
@@ -93,21 +129,10 @@ class StockAdmin(admin.ModelAdmin):
             # Get all commodity stocks
             commodities = Stock.objects.filter(sector='Basic Materials')
             for commodity in commodities:
-                update_stock_prices(commodity.symbol, force_update=True)
+                fetch_and_store_stock_data(commodity.symbol, force_update=True)
             self.message_user(request, "Commodities update completed successfully", messages.SUCCESS)
         except Exception as e:
             self.message_user(request, f"Error updating commodities: {str(e)}", messages.ERROR)
-        return HttpResponseRedirect("../")
-
-    def update_all_prices(self, request):
-        try:
-            # Get all stocks
-            stocks = Stock.objects.all()
-            for stock in stocks:
-                update_stock_prices(stock.symbol, force_update=True)
-            self.message_user(request, "All stock prices updated successfully", messages.SUCCESS)
-        except Exception as e:
-            self.message_user(request, f"Error updating prices: {str(e)}", messages.ERROR)
         return HttpResponseRedirect("../")
 
 # Register models with custom admin site
