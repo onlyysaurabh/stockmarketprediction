@@ -252,15 +252,27 @@ JAZZMIN_SETTINGS = {
             "url": "admin_fetch_news_standalone", 
             "icon": "fas fa-newspaper",
             # "permissions": ["stocks.view_stocknews"]
+        }, {
+            "name": "Update All Prices", 
+            "url": "admin:stocks_stock_update_all_prices", 
+            "icon": "fas fa-sync",
+            # "permissions": ["stocks.view_stock"]
+        }, {
+            "name": "Update Commodities", 
+            "url": "admin:stocks_stock_update_commodities", 
+            "icon": "fas fa-chart-line",
+            # "permissions": ["stocks.view_stock"]
+        }, {
+            "name": "Prediction Dashboard", 
+            "url": "admin_prediction_dashboard", 
+            "icon": "fas fa-brain",
+            # "permissions": ["stocks.view_stock"]
         }]
     },
 
     #############
     # UI Tweaks #
     #############
-    # Relative paths to custom CSS/JS scripts (must be present in static files)
-    "custom_css": "css/admin-custom.css",
-    # "custom_js": None,
     # Whether to show the UI customizer on the sidebar
     # "show_ui_builder": False,
 

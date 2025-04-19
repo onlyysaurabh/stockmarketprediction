@@ -1,9 +1,11 @@
-{% extends "admin/base_site.html" %}
-{% load i18n admin_urls static %}
+{% extends "admin/base.html" %}
+{% load i18n admin_urls static dict_filters jazzmin %}
+{% get_jazzmin_ui_tweaks as jazzmin_ui %}
 
 {% block extrastyle %}
   {{ block.super }}
   <link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}">
+  <link rel="stylesheet" href="{% static 'admin/css/widgets.css' %}">
   <style>
     .model-card {
         border: 1px solid #ddd;
@@ -78,6 +80,25 @@
     .tab-content > .active {
         display: block;
     }
+
+    /* Date range quick selection buttons */
+    .date-preset-buttons {
+        display: flex;
+        gap: 10px;
+        margin: 10px 0;
+    }
+    
+    .date-preset-button {
+        padding: 5px 10px;
+        background-color: #f8f9fa;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    
+    .date-preset-button:hover {
+        background-color: #e9ecef;
+    }
   </style>
 {% endblock %}
 
@@ -104,6 +125,38 @@
         } else {
             $('.nav-tabs a:first').tab('show');
         }
+        
+        // Date preset buttons functionality
+        $('.date-preset-button').click(function() {
+            var period = $(this).data('period');
+            var today = new Date();
+            var startDate = new Date();
+            
+            // Set the start date based on the selected period
+            if (period === 'month') {
+                startDate.setMonth(today.getMonth() - 1);
+            } else if (period === 'year') {
+                startDate.setFullYear(today.getFullYear() - 1);
+            } else if (period === 'five_years') {
+                startDate.setFullYear(today.getFullYear() - 5);
+            }
+            
+            // Format dates as YYYY-MM-DD for input fields
+            var formatDate = function(date) {
+                var month = '' + (date.getMonth() + 1),
+                    day = '' + date.getDate(),
+                    year = date.getFullYear();
+                
+                if (month.length < 2) month = '0' + month;
+                if (day.length < 2) day = '0' + day;
+                
+                return [year, month, day].join('-');
+            };
+            
+            // Set the input field values
+            $('#id_start_date').val(formatDate(startDate));
+            $('#id_end_date').val(formatDate(today));
+        });
     });
     
     $.fn.tab = function(action) {
@@ -178,8 +231,26 @@
             
             <div class="form-row">
                 <div class="fieldWrapper">
-                    <label for="id_days">Data Period (days):</label>
-                    <input type="number" name="days" id="id_days" value="365" min="30" max="3650" required>
+                    <label>Date Range:</label>
+                    <div class="date-preset-buttons">
+                        <button type="button" class="date-preset-button" data-period="month">Last Month</button>
+                        <button type="button" class="date-preset-button" data-period="year">Last Year</button>
+                        <button type="button" class="date-preset-button" data-period="five_years">Last 5 Years</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="fieldWrapper">
+                    <label for="id_start_date">Start Date:</label>
+                    <input type="date" name="start_date" id="id_start_date" value="{{ date_presets.year.start_date|date:'Y-m-d' }}" required>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="fieldWrapper">
+                    <label for="id_end_date">End Date:</label>
+                    <input type="date" name="end_date" id="id_end_date" value="{{ date_presets.year.end_date|date:'Y-m-d' }}" required>
                 </div>
             </div>
             
@@ -248,8 +319,8 @@
                         <td>{{ stock.symbol }} - {{ stock.name }}</td>
                         <td>
                             {% if stock.symbol in recent_models %}
-                                {{ recent_models|get_item:stock.symbol.get_model_type_display }} trained on 
-                                {{ recent_models|get_item:stock.symbol.trained_at }}
+                                {{ recent_models|get_item:stock.symbol|get_item:"get_model_type_display" }} trained on 
+                                {{ recent_models|get_item:stock.symbol|get_item:"trained_at" }}
                             {% else %}
                                 No models trained
                             {% endif %}

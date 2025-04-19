@@ -288,12 +288,38 @@ def admin_prediction_dashboard(request):
         if stock_models.exists():
             recent_models[stock.symbol] = stock_models.first()
     
+    # Provide model choices for the dropdown
+    model_choices = TrainedPredictionModel.MODEL_TYPES
+    
+    # Default date ranges for quick selection
+    today = date.today()
+    date_presets = {
+        'month': {
+            'start_date': today - timedelta(days=30),
+            'end_date': today
+        },
+        'year': {
+            'start_date': today - timedelta(days=365),
+            'end_date': today
+        },
+        'five_years': {
+            'start_date': today - timedelta(days=365*5),
+            'end_date': today
+        }
+    }
+    
+    # Include admin site context for proper sidebar rendering
     context = {
+        **admin.site.each_context(request),
         'stocks': stocks,
         'trained_models': trained_models[:20],  # limit to 20 for performance
         'model_counts': model_counts,
         'recent_models': recent_models,
-        'title': 'Prediction Model Management'
+        'model_choices': model_choices,
+        'date_presets': date_presets,
+        'title': 'Prediction Model Management',
+        'opts': Stock._meta,  # This helps with admin breadcrumbs
+        'app_label': 'stocks',
     }
     
     return render(request, 'admin/stocks/prediction_dashboard.html', context)
@@ -306,16 +332,31 @@ def admin_train_model(request):
     """
     stock_symbol = request.POST.get('stock_symbol')
     model_type = request.POST.get('model_type')
-    days = request.POST.get('days', '365')
+    start_date_str = request.POST.get('start_date')
+    end_date_str = request.POST.get('end_date')
     
     if not stock_symbol or not model_type:
         messages.error(request, 'Stock symbol and model type are required.')
         return redirect(reverse('admin_prediction_dashboard'))
     
     try:
-        days = int(days)
+        # Parse dates if provided, otherwise use defaults
+        start_date = None
+        end_date = None
+        days = 365  # Default if dates not provided
+        
+        if start_date_str and end_date_str:
+            from datetime import datetime
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+            # Calculate days between dates for the API call
+            days = (end_date - start_date).days
+            if days <= 0:
+                messages.error(request, 'End date must be after start date.')
+                return redirect(reverse('admin_prediction_dashboard'))
     except ValueError:
-        days = 365
+        messages.error(request, 'Invalid date format. Please use YYYY-MM-DD.')
+        return redirect(reverse('admin_prediction_dashboard'))
     
     # Train the model asynchronously
     # In a production environment, this should be a background task
@@ -363,10 +404,13 @@ def admin_model_detail(request, model_id):
         )
     
     context = {
+        **admin.site.each_context(request),
         'model': model,
         'prediction': prediction,
         'feature_importance': feature_importance,
-        'title': f'Model Detail: {model.stock.symbol} - {model.get_model_type_display()}'
+        'title': f'Model Detail: {model.stock.symbol} - {model.get_model_type_display()}',
+        'opts': Stock._meta,  # This helps with admin breadcrumbs
+        'app_label': 'stocks',
     }
     
     return render(request, 'admin/stocks/model_detail.html', context)
@@ -389,10 +433,13 @@ def admin_stock_predictions(request, stock_id):
             predictions[model_type] = pred
     
     context = {
+        **admin.site.each_context(request),
         'stock': stock,
         'predictions': predictions,
         'multi_predictions': multi_predictions,
-        'title': f'Predictions for {stock.symbol}'
+        'title': f'Predictions for {stock.symbol}',
+        'opts': Stock._meta,  # This helps with admin breadcrumbs
+        'app_label': 'stocks',
     }
     
     return render(request, 'admin/stocks/stock_predictions.html', context)

@@ -1,5 +1,6 @@
-{% extends "admin/base_site.html" %}
-{% load i18n admin_urls static %}
+{% extends "admin/base.html" %}
+{% load i18n admin_urls static jazzmin %}
+{% get_jazzmin_ui_tweaks as jazzmin_ui %}
 
 {% block extrastyle %}
   {{ block.super }}
