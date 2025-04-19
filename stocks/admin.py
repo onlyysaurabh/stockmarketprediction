@@ -3,8 +3,8 @@ from django.contrib import messages
 from django.utils.html import format_html
 from .models import Watchlist, WatchlistItem, Stock, StockNews
 from .services import update_stock_prices, process_news_for_stock
-import yfinance as yf
-from datetime import datetime, date, timedelta
+# Removed unused imports: import yfinance as yf, from datetime import datetime
+from datetime import date, timedelta # Keep date, timedelta
 from django.http import HttpResponseRedirect
 from django.urls import path, reverse
 from django.template.response import TemplateResponse
@@ -135,8 +135,8 @@ class StockAdmin(admin.ModelAdmin):
         """Admin action to update prices for selected stocks using the robust update mechanism"""
         symbols = list(queryset.values_list('symbol', flat=True))
         
-        # Call our robust update function
-        results = update_stock_prices(symbols=symbols, delay=1.0)
+        # Call our robust update function (ensure symbols is List[str])
+        results = update_stock_prices(symbols=list(symbols), delay=1.0) # Explicitly cast to list
         
         # Show messages based on results
         if results['success'] > 0:

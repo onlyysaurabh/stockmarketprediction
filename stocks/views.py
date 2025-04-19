@@ -96,6 +96,11 @@ def register_view(request: HttpRequest):
 def stock_detail(request: HttpRequest, symbol: str):
     """Display detailed information about a specific stock."""
 
+    # Special case for favicon.ico requests
+    if symbol.lower() == 'favicon.ico':
+        # Return a 404 for favicon.ico requests
+        raise Http404("Favicon not found")
+
     # Uppercase the symbol for consistency
     symbol = symbol.upper()
 

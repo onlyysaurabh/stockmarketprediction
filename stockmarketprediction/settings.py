@@ -208,7 +208,7 @@ JAZZMIN_SETTINGS = {
         {"name": "Fetch News", "url": "admin_fetch_stock_news", "permissions": ["auth.view_user"]},
         
         # Stock prediction links
-        {"name": "Train Models", "url": "admin:train_model", "permissions": ["auth.view_user"]},
+        {"name": "Train Models", "url": "/admin/train-model/", "permissions": ["auth.view_user"]},
         {"name": "Model Comparison", "url": "model_comparison", "permissions": ["auth.view_user"]},
 
         # model admin to link to (Permissions checked against model)
@@ -257,7 +257,7 @@ JAZZMIN_SETTINGS = {
             },
             {
                 "name": "Train Models",
-                "url": "admin:train_model",
+                "url": "/admin/train-model/",
                 "icon": "fas fa-brain",
                 # "permissions": ["stocks.view_stock"]
             },

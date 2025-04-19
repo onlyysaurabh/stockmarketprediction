@@ -10,7 +10,7 @@ import time
 from .models import Stock, StockNews # Import Stock and new StockNews model
 from .news_service import FinnhubClient # Import the client
 from .sentiment_service import analyze_sentiment # Import sentiment analyzer
-from typing import Dict, Optional # Added Optional
+from typing import Dict, Optional, Any, List # Added Any, List
 from datetime import date, timedelta # Added date, timedelta
 
 # Configure logging
@@ -21,13 +21,13 @@ logger = logging.getLogger(__name__)
 try:
     MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost:27017/')
     MONGO_DB_NAME = os.getenv('MONGO_DB_NAME', 'stock_data')
-    client = MongoClient(MONGO_URI)
-    db = client[MONGO_DB_NAME]
-    stock_collection = db['stock_prices']
-    commodity_collection = db['commodity_prices'] # New collection for commodities
+    client: MongoClient = MongoClient(MONGO_URI) # type: ignore Pymongo typing can be complex
+    db = client[MONGO_DB_NAME] # type: ignore
+    stock_collection = db['stock_prices'] # type: ignore
+    commodity_collection = db['commodity_prices'] # type: ignore New collection for commodities
     # Create index on symbol for faster lookups
-    stock_collection.create_index('symbol', unique=True)
-    commodity_collection.create_index('symbol', unique=True) # Index for commodity collection
+    stock_collection.create_index('symbol', unique=True) # type: ignore
+    commodity_collection.create_index('symbol', unique=True) # type: ignore Index for commodity collection
     logger.info(f"Connected to MongoDB: {MONGO_URI}, Database: {MONGO_DB_NAME}")
 except Exception as e:
     logger.error(f"Failed to connect to MongoDB: {e}")
@@ -63,33 +63,33 @@ def fetch_and_store_stock_data(symbol: str, force_update: bool = False):
             return existing_data
 
     try:
-        ticker = yf.Ticker(symbol)
+        ticker = yf.Ticker(symbol) # type: ignore
 
         # Fetch MAX historical data
         # yfinance returns a pandas DataFrame
-        hist_df = ticker.history(period="max") # Changed period to "max"
+        hist_df = ticker.history(period="max") # type: ignore
         if hist_df.empty:
             logger.warning(f"No historical data found for symbol: {symbol}")
             return None # Or raise an error
 
         # Fetch company info
-        info = ticker.info
+        info = ticker.info # type: ignore
         company_name = info.get('longName', symbol) # Use longName if available
 
         # Convert DataFrame to list of dicts, handling timezone and NaNs
         hist_df = hist_df.reset_index() # Make Date a column
         # Ensure Date is timezone-naive UTC before converting to Python datetime
-        if pd.api.types.is_datetime64_any_dtype(hist_df['Date']):
+        if pd.api.types.is_datetime64_any_dtype(hist_df['Date']): # type: ignore
              if hist_df['Date'].dt.tz is not None:
-                 hist_df['Date'] = hist_df['Date'].dt.tz_convert('UTC').dt.tz_localize(None)
-        hist_df['Date'] = hist_df['Date'].dt.to_pydatetime()
+                 hist_df['Date'] = hist_df['Date'].dt.tz_convert('UTC').dt.tz_localize(None) # type: ignore
+        hist_df['Date'] = hist_df['Date'].dt.to_pydatetime() # type: ignore
 
         # Convert NaN/NaT to None for JSON/BSON compatibility
-        hist_df = hist_df.where(pd.notnull(hist_df), None)
-        historical_data_list = hist_df.to_dict('records')
+        hist_df = hist_df.where(pd.notnull(hist_df), None) # type: ignore
+        historical_data_list = hist_df.to_dict('records') # type: ignore
 
         # Prepare document for MongoDB
-        stock_document = {
+        stock_document: Dict[str, Any] = {
             'symbol': symbol,
             'name': company_name,
             'last_updated': datetime.now(timezone.utc), # Use timezone-aware UTC time
@@ -98,7 +98,7 @@ def fetch_and_store_stock_data(symbol: str, force_update: bool = False):
         }
 
         # Use update_one with upsert=True to insert or update
-        result = stock_collection.update_one(
+        result = stock_collection.update_one( # type: ignore
             {'symbol': symbol},
             {'$set': stock_document},
             upsert=True
@@ -107,11 +107,11 @@ def fetch_and_store_stock_data(symbol: str, force_update: bool = False):
         if result.upserted_id or result.modified_count > 0:
             logger.info(f"Successfully stored/updated data for {symbol}")
             # Fetch the updated document to return it
-            return stock_collection.find_one({'symbol': symbol})
+            return stock_collection.find_one({'symbol': symbol}) # type: ignore
         else:
              # This case might happen if the exact same data was set again
              logger.info(f"Data for {symbol} already up-to-date.")
-             return stock_collection.find_one({'symbol': symbol})
+             return stock_collection.find_one({'symbol': symbol}) # type: ignore
 
 
     except Exception as e:
@@ -146,26 +146,26 @@ def fetch_and_store_commodity_data(symbol: str, name: str, force_update: bool = 
             return existing_data
 
     try:
-        ticker = yf.Ticker(symbol)
+        ticker = yf.Ticker(symbol) # type: ignore
 
         # Fetch MAX historical data
-        hist_df = ticker.history(period="max")
+        hist_df = ticker.history(period="max") # type: ignore
         if hist_df.empty:
             logger.warning(f"No historical data found for commodity symbol: {symbol}")
             return None
 
         # Convert DataFrame to list of dicts, handling timezone and NaNs
         hist_df = hist_df.reset_index()
-        if pd.api.types.is_datetime64_any_dtype(hist_df['Date']):
+        if pd.api.types.is_datetime64_any_dtype(hist_df['Date']): # type: ignore
              if hist_df['Date'].dt.tz is not None:
-                 hist_df['Date'] = hist_df['Date'].dt.tz_convert('UTC').dt.tz_localize(None)
-        hist_df['Date'] = hist_df['Date'].dt.to_pydatetime()
+                 hist_df['Date'] = hist_df['Date'].dt.tz_convert('UTC').dt.tz_localize(None) # type: ignore
+        hist_df['Date'] = hist_df['Date'].dt.to_pydatetime() # type: ignore
 
-        hist_df = hist_df.where(pd.notnull(hist_df), None)
-        historical_data_list = hist_df.to_dict('records')
+        hist_df = hist_df.where(pd.notnull(hist_df), None) # type: ignore
+        historical_data_list = hist_df.to_dict('records') # type: ignore
 
         # Prepare document for MongoDB
-        commodity_document = {
+        commodity_document: Dict[str, Any] = {
             'symbol': symbol,
             'name': name, # Store the provided common name
             'last_updated': datetime.now(timezone.utc),
@@ -174,7 +174,7 @@ def fetch_and_store_commodity_data(symbol: str, name: str, force_update: bool = 
         }
 
         # Use update_one with upsert=True
-        result = commodity_collection.update_one(
+        result = commodity_collection.update_one( # type: ignore
             {'symbol': symbol},
             {'$set': commodity_document},
             upsert=True
@@ -182,10 +182,10 @@ def fetch_and_store_commodity_data(symbol: str, name: str, force_update: bool = 
 
         if result.upserted_id or result.modified_count > 0:
             logger.info(f"Successfully stored/updated data for commodity {symbol}")
-            return commodity_collection.find_one({'symbol': symbol})
+            return commodity_collection.find_one({'symbol': symbol}) # type: ignore
         else:
              logger.info(f"Commodity data for {symbol} already up-to-date.")
-             return commodity_collection.find_one({'symbol': symbol})
+             return commodity_collection.find_one({'symbol': symbol}) # type: ignore
 
     except Exception as e:
         logger.error(f"Error fetching or storing data for commodity {symbol}: {e}")
@@ -214,7 +214,7 @@ def get_stock_data(symbol: str, force_update: bool = False):
         return fetch_and_store_stock_data(symbol, force_update=True)
         
     # Otherwise try to get existing data first
-    stock_data = stock_collection.find_one({'symbol': symbol})
+    stock_data = stock_collection.find_one({'symbol': symbol}) # type: ignore
 
     if stock_data:
         logger.info(f"Data for {symbol} found in MongoDB.")
@@ -223,7 +223,8 @@ def get_stock_data(symbol: str, force_update: bool = False):
         logger.info(f"Data for {symbol} not found in MongoDB. Triggering fetch...")
         return fetch_and_store_stock_data(symbol)
 
-def get_stock_historical_data(symbol: str, period='1y'):
+# Add type hint for period
+def get_stock_historical_data(symbol: str, period: str = '1y') -> Optional[List[Dict[str, Any]]]:
     """
     Retrieves historical stock data for a given symbol.
     
@@ -240,7 +241,7 @@ def get_stock_historical_data(symbol: str, period='1y'):
     logger.info(f"Getting historical data for symbol: {symbol}, period: {period}")
     
     # First try to get data from MongoDB
-    stock_data = stock_collection.find_one({'symbol': symbol})
+    stock_data = stock_collection.find_one({'symbol': symbol}) # type: ignore
     
     # If data not in MongoDB, fetch and store it
     if not stock_data:
@@ -250,14 +251,14 @@ def get_stock_historical_data(symbol: str, period='1y'):
             return None
     
     # Extract the historical data from the document
-    historical_data = stock_data.get('historical_data', [])
+    historical_data = stock_data.get('historical_data', []) if stock_data else [] # type: ignore
     
     if not historical_data:
         logger.warning(f"No historical data available for {symbol}")
         return None
     
     # Convert to DataFrame for easier filtering
-    df = pd.DataFrame(historical_data)
+    df = pd.DataFrame(historical_data) # type: ignore
     
     # Ensure we have a Date column
     if 'Date' not in df.columns:
@@ -265,50 +266,46 @@ def get_stock_historical_data(symbol: str, period='1y'):
         return historical_data  # Return all available data
     
     # Convert to datetime if it's not already
-    if not pd.api.types.is_datetime64_any_dtype(df['Date']):
-        df['Date'] = pd.to_datetime(df['Date'])
+    if not pd.api.types.is_datetime64_any_dtype(df['Date']): # type: ignore
+        df['Date'] = pd.to_datetime(df['Date']) # type: ignore
     
     # Filter based on period
     today = datetime.now()
-    if period == '1d':
-        start_date = today - pd.Timedelta(days=1)
-    elif period == '1wk' or period == '1w':
-        start_date = today - pd.Timedelta(weeks=1)
-    elif period == '1mo':
-        start_date = today - pd.Timedelta(days=30)
-    elif period == '3mo':
-        start_date = today - pd.Timedelta(days=90)
-    elif period == '6mo':
-        start_date = today - pd.Timedelta(days=180)
-    elif period == '1y':
-        start_date = today - pd.Timedelta(days=365)
-    elif period == '2y':
-        start_date = today - pd.Timedelta(days=2*365)
-    elif period == '5y':
-        start_date = today - pd.Timedelta(days=5*365)
-    elif period == '10y':
-        start_date = today - pd.Timedelta(days=10*365)
-    elif period == 'max':
-        # Return all data
-        filtered_df = df
+    start_date: Optional[datetime] = None # Initialize start_date
+    filtered_df = df # Default to all data if period is 'max' or unrecognized
+    
+    if period == '1d': start_date = today - pd.Timedelta(days=1) # type: ignore
+    elif period in ['1wk', '1w']: start_date = today - pd.Timedelta(weeks=1) # type: ignore
+    elif period == '1mo': start_date = today - pd.Timedelta(days=30) # type: ignore
+    elif period == '3mo': start_date = today - pd.Timedelta(days=90) # type: ignore
+    elif period == '6mo': start_date = today - pd.Timedelta(days=180) # type: ignore
+    elif period == '1y': start_date = today - pd.Timedelta(days=365) # type: ignore
+    elif period == '2y': start_date = today - pd.Timedelta(days=2*365) # type: ignore
+    elif period == '5y': start_date = today - pd.Timedelta(days=5*365) # type: ignore
+    elif period == '10y': start_date = today - pd.Timedelta(days=10*365) # type: ignore
+    elif period == 'max': start_date = None # No start date needed for max
     else:
         logger.warning(f"Unrecognized period '{period}', defaulting to 1 year")
-        start_date = today - pd.Timedelta(days=365)
+        start_date = today - pd.Timedelta(days=365) # type: ignore
     
-    # Apply filtering if not 'max'
-    if period != 'max':
+    # Apply filtering if start_date is set
+    if start_date:
+        # Ensure 'Date' column is datetime before comparison
+        if not pd.api.types.is_datetime64_any_dtype(df['Date']): # type: ignore
+             df['Date'] = pd.to_datetime(df['Date']) # type: ignore
         filtered_df = df[df['Date'] >= start_date]
-    
+    # else: filtered_df remains the full df
+
     # Convert filtered DataFrame back to list of dictionaries
     # Handle datetime objects for JSON serialization
-    filtered_df = filtered_df.copy()
-    if pd.api.types.is_datetime64_any_dtype(filtered_df['Date']):
+    filtered_df = filtered_df.copy() # type: ignore
+    if pd.api.types.is_datetime64_any_dtype(filtered_df['Date']): # type: ignore
         filtered_df['Date'] = filtered_df['Date'].dt.strftime('%Y-%m-%d')
     
     # Convert NaN values to None for JSON compatibility
-    filtered_df = filtered_df.where(pd.notnull(filtered_df), None)
+    filtered_df = filtered_df.where(pd.notnull(filtered_df), None) # type: ignore
     
-    filtered_data = filtered_df.to_dict('records')
+    filtered_data: List[Dict[str, Any]] = filtered_df.to_dict('records') # type: ignore
     
     logger.info(f"Returning {len(filtered_data)} historical stock data points for {symbol} over {period}")
     return filtered_data
@@ -316,7 +313,8 @@ def get_stock_historical_data(symbol: str, period='1y'):
 
 # --- Commodity Data Retrieval ---
 
-def get_commodity_historical_data(symbol: str, name: str, period='1y', force_update: bool = False):
+# Add type hint for period
+def get_commodity_historical_data(symbol: str, name: str, period: str = '1y', force_update: bool = False) -> Optional[List[Dict[str, Any]]]:
     """
     Retrieves historical commodity data for a given symbol.
 
@@ -332,9 +330,9 @@ def get_commodity_historical_data(symbol: str, name: str, period='1y', force_upd
     symbol = symbol.upper()
     logger.info(f"Getting historical data for commodity: {symbol}, period: {period}, force_update: {force_update}")
 
-    commodity_data = None
+    commodity_data: Optional[Dict[str, Any]] = None
     if not force_update:
-        commodity_data = commodity_collection.find_one({'symbol': symbol})
+        commodity_data = commodity_collection.find_one({'symbol': symbol}) # type: ignore
 
     # If data not in MongoDB or force_update is True, fetch and store it
     if not commodity_data or force_update:
@@ -344,47 +342,54 @@ def get_commodity_historical_data(symbol: str, name: str, period='1y', force_upd
             return None # Fetch failed
 
     # Extract the historical data
-    historical_data = commodity_data.get('historical_data', [])
+    historical_data = commodity_data.get('historical_data', []) if commodity_data else [] # type: ignore
 
     if not historical_data:
         logger.warning(f"No historical data available for commodity {symbol}")
         return None
 
     # Convert to DataFrame for filtering
-    df = pd.DataFrame(historical_data)
+    df = pd.DataFrame(historical_data) # type: ignore
     if 'Date' not in df.columns:
         logger.warning(f"Commodity historical data for {symbol} lacks 'Date' column")
         return historical_data # Return all
 
-    if not pd.api.types.is_datetime64_any_dtype(df['Date']):
-        df['Date'] = pd.to_datetime(df['Date'])
+    if not pd.api.types.is_datetime64_any_dtype(df['Date']): # type: ignore
+        df['Date'] = pd.to_datetime(df['Date']) # type: ignore
 
     # Filter based on period (same logic as for stocks)
     today = datetime.now()
-    if period == '1d': start_date = today - pd.Timedelta(days=1)
-    elif period in ['1wk', '1w']: start_date = today - pd.Timedelta(weeks=1)
-    elif period == '1mo': start_date = today - pd.Timedelta(days=30)
-    elif period == '3mo': start_date = today - pd.Timedelta(days=90)
-    elif period == '6mo': start_date = today - pd.Timedelta(days=180)
-    elif period == '1y': start_date = today - pd.Timedelta(days=365)
-    elif period == '2y': start_date = today - pd.Timedelta(days=2*365)
-    elif period == '5y': start_date = today - pd.Timedelta(days=5*365)
-    elif period == '10y': start_date = today - pd.Timedelta(days=10*365)
-    elif period == 'max': filtered_df = df
+    start_date: Optional[datetime] = None # Initialize start_date
+    filtered_df = df # Default to all data
+
+    if period == '1d': start_date = today - pd.Timedelta(days=1) # type: ignore
+    elif period in ['1wk', '1w']: start_date = today - pd.Timedelta(weeks=1) # type: ignore
+    elif period == '1mo': start_date = today - pd.Timedelta(days=30) # type: ignore
+    elif period == '3mo': start_date = today - pd.Timedelta(days=90) # type: ignore
+    elif period == '6mo': start_date = today - pd.Timedelta(days=180) # type: ignore
+    elif period == '1y': start_date = today - pd.Timedelta(days=365) # type: ignore
+    elif period == '2y': start_date = today - pd.Timedelta(days=2*365) # type: ignore
+    elif period == '5y': start_date = today - pd.Timedelta(days=5*365) # type: ignore
+    elif period == '10y': start_date = today - pd.Timedelta(days=10*365) # type: ignore
+    elif period == 'max': start_date = None
     else:
         logger.warning(f"Unrecognized period '{period}' for commodity, defaulting to 1 year")
-        start_date = today - pd.Timedelta(days=365)
+        start_date = today - pd.Timedelta(days=365) # type: ignore
 
-    if period != 'max':
+    if start_date:
+        # Ensure 'Date' column is datetime before comparison
+        if not pd.api.types.is_datetime64_any_dtype(df['Date']): # type: ignore
+             df['Date'] = pd.to_datetime(df['Date']) # type: ignore
         filtered_df = df[df['Date'] >= start_date]
+    # else: filtered_df remains the full df
 
     # Convert filtered DataFrame back to list of dictionaries
-    filtered_df = filtered_df.copy()
-    if pd.api.types.is_datetime64_any_dtype(filtered_df['Date']):
+    filtered_df = filtered_df.copy() # type: ignore
+    if pd.api.types.is_datetime64_any_dtype(filtered_df['Date']): # type: ignore
         filtered_df['Date'] = filtered_df['Date'].dt.strftime('%Y-%m-%d')
 
-    filtered_df = filtered_df.where(pd.notnull(filtered_df), None)
-    filtered_data = filtered_df.to_dict('records')
+    filtered_df = filtered_df.where(pd.notnull(filtered_df), None) # type: ignore
+    filtered_data: List[Dict[str, Any]] = filtered_df.to_dict('records') # type: ignore
 
     logger.info(f"Returning {len(filtered_data)} historical commodity data points for {symbol} over {period}")
     return filtered_data
@@ -392,7 +397,8 @@ def get_commodity_historical_data(symbol: str, name: str, period='1y', force_upd
 
 # --- Utility Functions ---
 
-def update_stock_prices(symbols=None, delay=1.0, update_django_model=True):
+# Add type hints for parameters
+def update_stock_prices(symbols: Optional[List[str]] = None, delay: float = 1.0, update_django_model: bool = True) -> Dict[str, Any]:
     """
     Robust function to update stock prices for either specified symbols or all stocks.
     
@@ -406,7 +412,7 @@ def update_stock_prices(symbols=None, delay=1.0, update_django_model=True):
     """
     from .models import Stock  # Import here to avoid circular import
     
-    results = {
+    results: Dict[str, Any] = {
         "success": 0,
         "failed": 0,
         "not_found": 0,
@@ -414,78 +420,80 @@ def update_stock_prices(symbols=None, delay=1.0, update_django_model=True):
     }
     
     # If no symbols provided, get all symbols from both MongoDB and Django models
+    target_symbols: List[str]
     if symbols is None:
-        mongo_symbols = {doc['symbol'] for doc in stock_collection.find({}, {'symbol': 1})}
+        mongo_symbols = {doc['symbol'] for doc in stock_collection.find({}, {'symbol': 1})} # type: ignore
         django_symbols = set(Stock.objects.values_list('symbol', flat=True)) if update_django_model else set()
-        symbols = list(mongo_symbols.union(django_symbols))
-        logger.info(f"Updating all {len(symbols)} stocks in the database")
+        target_symbols = list(mongo_symbols.union(django_symbols))
+        logger.info(f"Updating all {len(target_symbols)} stocks in the database")
+    else:
+        target_symbols = symbols # Use provided list
     
-    total = len(symbols)
+    total = len(target_symbols)
     count = 0
     
     # Process each symbol with error handling and retries
-    for symbol in symbols:
-        symbol = symbol.upper().strip()
+    for symbol in target_symbols:
+        symbol_upper = symbol.upper().strip()
         count += 1
-        logger.info(f"Processing {symbol} ({count}/{total})")
+        logger.info(f"Processing {symbol_upper} ({count}/{total})")
         
         try:
             # First, try to update MongoDB data
-            mongo_data = fetch_and_store_stock_data(symbol, force_update=True)
+            mongo_data = fetch_and_store_stock_data(symbol_upper, force_update=True)
             
             if mongo_data:
                 # If MongoDB update successful, update Django model if requested
                 if update_django_model:
                     try:
                         # Get or create Django model instance
-                        # stock, created = Stock.objects.get_or_create(symbol=symbol) # 'created' is unused
-                        stock, _ = Stock.objects.get_or_create(symbol=symbol) # Use _ for unused variable
+                        stock, _ = Stock.objects.get_or_create(symbol=symbol_upper) # Use _ for unused variable
 
                         # Extract info from MongoDB document
-                        info = mongo_data.get('info', {})
-                        historical_data = mongo_data.get('historical_data', [])
+                        info = mongo_data.get('info', {}) # type: ignore
+                        historical_data = mongo_data.get('historical_data', []) # type: ignore
                         
                         # Update fields
-                        stock.name = info.get('longName', info.get('shortName', symbol))
-                        stock.sector = info.get('sector')
-                        stock.industry = info.get('industry')
+                        stock.name = info.get('longName', info.get('shortName', symbol_upper)) # type: ignore
+                        stock.sector = info.get('sector') # type: ignore
+                        stock.industry = info.get('industry') # type: ignore
                         
                         # Get current price and previous close
                         if historical_data and len(historical_data) > 0:
                             latest = historical_data[-1]
                             if len(historical_data) > 1:
                                 prev = historical_data[-2]
-                                stock.previous_close = prev.get('Close')
+                                stock.previous_close = prev.get('Close') # type: ignore
                             
-                            stock.current_price = latest.get('Close')
-                            stock.open_price = latest.get('Open')
-                            stock.day_high = latest.get('High')
-                            stock.day_low = latest.get('Low')
-                            stock.volume = latest.get('Volume')
+                            stock.current_price = latest.get('Close') # type: ignore
+                            stock.open_price = latest.get('Open') # type: ignore
+                            stock.day_high = latest.get('High') # type: ignore
+                            stock.day_low = latest.get('Low') # type: ignore
+                            stock.volume = latest.get('Volume') # type: ignore
                         
                         # Additional financial info
-                        stock.market_cap = info.get('marketCap')
-                        stock.pe_ratio = info.get('trailingPE')
-                        stock.dividend_yield = info.get('dividendYield')
+                        stock.market_cap = info.get('marketCap') # type: ignore
+                        stock.pe_ratio = info.get('trailingPE') # type: ignore
+                        stock.dividend_yield = info.get('dividendYield') # type: ignore
                         
                         # Save changes
                         stock.save()
-                        logger.info(f"Successfully updated Django model for {symbol}")
+                        logger.info(f"Successfully updated Django model for {symbol_upper}")
                     except Exception as e:
-                        logger.error(f"Error updating Django model for {symbol}: {e}")
+                        logger.error(f"Error updating Django model for {symbol_upper}: {e}")
                 
                 results["success"] += 1
                 
             else:
                 results["not_found"] += 1
-                results["errors"][symbol] = "No data returned from API"
-                logger.warning(f"No data returned for {symbol}")
+                results["errors"][symbol_upper] = "No data returned from API"
+                logger.warning(f"No data returned for {symbol_upper}")
         
         except Exception as e:
             results["failed"] += 1
             error_msg = str(e)
-            results["errors"][symbol] = error_msg
-            logger.error(f"Error updating {symbol}: {error_msg}")
+            results["errors"][symbol_upper] = error_msg
+            logger.error(f"Error updating {symbol_upper}: {error_msg}")
         
         # Add delay between requests to avoid rate limiting
         if delay > 0 and count < total:
@@ -502,7 +510,7 @@ def process_news_for_stock(
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
     days_back: int = 7
-) -> Dict[str, int]:
+) -> Dict[str, Any]: # Return type can include non-ints like -1 for failed
     """
     Fetches news for a stock symbol for a given date range or the last N days,
     analyzes sentiment, and stores the results in the StockNews model.
@@ -514,9 +522,9 @@ def process_news_for_stock(
         days_back (int): How many days back to fetch news for if start/end dates are not provided.
 
     Returns:
-        Dict[str, int]: A summary dictionary {'processed': count, 'created': count, 'updated': count, 'failed': count}.
+        Dict[str, Any]: A summary dictionary {'processed': count, 'created': count, 'updated': count, 'failed': count}.
     """
-    summary = {'processed': 0, 'created': 0, 'updated': 0, 'failed': 0}
+    summary: Dict[str, Any] = {'processed': 0, 'created': 0, 'updated': 0, 'failed': 0}
 
     try:
         stock = Stock.objects.get(symbol=stock_symbol)
@@ -550,18 +558,20 @@ def process_news_for_stock(
         logger.warning(f"No news items fetched from Finnhub for {stock_symbol} between {start_date_str} and {end_date_str}.")
         return summary # Nothing to process
 
-    if not isinstance(news_items, list):
-        logger.error(f"Unexpected data type received from Finnhub news endpoint: {type(news_items)}")
-        return summary
+    # No need for isinstance check if client guarantees list or None
+    # if not isinstance(news_items, list):
+    #     logger.error(f"Unexpected data type received from Finnhub news endpoint: {type(news_items)}")
+    #     return summary
 
     logger.info(f"Fetched {len(news_items)} news items for {stock_symbol}.")
 
     for item in news_items:
         summary['processed'] += 1
-        if not isinstance(item, dict) or not all(k in item for k in ['url', 'headline', 'datetime']):
-            logger.warning(f"Skipping invalid news item format: {item}")
-            summary['failed'] += 1
-            continue
+        # No need for isinstance check if client guarantees dict items
+        # if not isinstance(item, dict) or not all(k in item for k in ['url', 'headline', 'datetime']):
+        #     logger.warning(f"Skipping invalid news item format: {item}")
+        #     summary['failed'] += 1
+        #     continue
 
         news_url = item.get('url')
         headline = item.get('headline')
@@ -582,8 +592,13 @@ def process_news_for_stock(
             # continue
 
         # Convert Finnhub timestamp (seconds since epoch) to timezone-aware datetime
+        published_at_ts = item.get('datetime')
+        if published_at_ts is None:
+            logger.warning(f"Missing timestamp for news item URL {news_url}")
+            summary['failed'] += 1
+            continue # Skip if timestamp is missing
+
         try:
-            published_at_ts = item.get('datetime')
             # Ensure published_at_ts is an integer or float before conversion
             if isinstance(published_at_ts, (int, float)):
                  # Assume UTC if no timezone info from Finnhub
@@ -627,6 +642,48 @@ def process_news_for_stock(
 
     logger.info(f"Finished news processing for {stock_symbol}. Summary: {summary}")
     return summary
+
+
+# --- Model Training Service (Placeholder) ---
+
+def initiate_model_training(
+    stock_symbols: List[str], # Use List from typing
+    model_type: str,
+    start_date: date,
+    end_date: date,
+    epochs: int,
+    batch_size: int,
+    # Add other parameters as needed (e.g., hyperparameters)
+) -> Dict[str, Any]: # Added Any import earlier
+    """
+    Placeholder function to simulate the initiation of model training.
+    In a real implementation, this would trigger an asynchronous task (e.g., Celery).
+    """
+    logger.info(f"--- Received Training Request ---")
+    logger.info(f"Symbols: {', '.join(stock_symbols)}")
+    logger.info(f"Model Type: {model_type}")
+    logger.info(f"Data Range: {start_date} to {end_date}")
+    logger.info(f"Epochs: {epochs}, Batch Size: {batch_size}")
+    
+    # --- TODO: Implement Actual Training Logic ---
+    # 1. Fetch data for symbols between start_date and end_date using get_stock_historical_data
+    # 2. Preprocess data (scaling, sequence creation) based on model_type
+    # 3. Define and compile the model (LSTM, GRU using TensorFlow/Keras or PyTorch)
+    # 4. Train the model
+    # 5. Save the trained model (e.g., to a file or database)
+    # 6. Log results/metrics
+    # ---------------------------------------------
+
+    # Simulate initiation success
+    logger.info("Placeholder: Training task successfully initiated (simulation).")
+    
+    # Return a status dictionary
+    return {
+        "status": "initiated",
+        "message": f"Training initiated for {len(stock_symbols)} stocks with model {model_type}.",
+        "symbols": stock_symbols,
+        "model_type": model_type,
+    }
 
 
 # Example usage (for testing purposes)
