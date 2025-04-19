@@ -1,5 +1,6 @@
 from django.urls import path, re_path
 from . import views
+from . import prediction_views
 # Removed admin_views import as we're now registering these URLs at the project level
 # Removed unused: from django.contrib.auth.views import LogoutView
 
@@ -27,6 +28,10 @@ urlpatterns = [
     # News URLs
     path('news/', views.stock_news, name='stock_news'),  # News page without symbol
     path('news/<str:symbol>/', views.stock_news, name='stock_news_with_symbol'),  # News page with symbol
+    
+    # Prediction URLs
+    path('predictions/<str:symbol>/', prediction_views.stock_predictions, name='stock_predictions'),
+    path('models/comparison/', prediction_views.model_comparison, name='model_comparison'),
 
     # Example: /AAPL/update/ (POST endpoint to trigger data update)
     path('<str:symbol>/update/', views.update_stock_data, name='update_stock_data'),

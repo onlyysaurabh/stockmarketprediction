@@ -1,0 +1,374 @@
+{% extends 'stocks/base.html' %}
+{% load humanize %}
+
+{% block title %}{{ stock.symbol }} - Stock Predictions{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.1/dist/chartjs-adapter-moment.min.js"></script>
+<style>
+    .prediction-container {
+        margin-top: 30px;
+        margin-bottom: 30px;
+    }
+    
+    .chart-container {
+        position: relative; 
+        height: 60vh;
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    
+    .model-selector {
+        margin-bottom: 20px;
+    }
+    
+    .model-card {
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 15px;
+        margin-bottom: 15px;
+        background-color: #f9f9f9;
+    }
+    
+    .model-card h3 {
+        margin-top: 0;
+        margin-bottom: 10px;
+    }
+    
+    .metrics-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .metrics-table th, .metrics-table td {
+        padding: 8px;
+        border: 1px solid #ddd;
+        text-align: left;
+    }
+    
+    .metrics-table th {
+        background-color: #f2f2f2;
+    }
+    
+    .model-checkbox {
+        margin-right: 5px;
+    }
+    
+    .model-type-label {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 3px;
+        font-size: 0.8em;
+        color: white;
+        margin-left: 5px;
+    }
+    
+    .model-type-sarimax {
+        background-color: #3366cc;
+    }
+    
+    .model-type-lstm {
+        background-color: #dc3912;
+    }
+    
+    .model-type-xgboost {
+        background-color: #ff9900;
+    }
+    
+    .model-type-svm {
+        background-color: #109618;
+    }
+    
+    .prediction-summary {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #f0f7fb;
+        border-left: 5px solid #3498db;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>{{ stock.name|default:stock.symbol }} ({{ stock.symbol }}) - Predictions</h1>
+
+<div class="action-buttons">
+    <a href="{% url 'stock_detail' symbol=stock.symbol %}" class="btn btn-secondary">
+        <i class="fas fa-chart-line"></i> Back to Stock Details
+    </a>
+    {% if user.is_staff %}
+    <a href="{% url 'admin:train_model' %}?stock_id={{ stock.id }}" class="btn btn-primary">
+        <i class="fas fa-brain"></i> Train New Model
+    </a>
+    {% endif %}
+</div>
+
+<div class="prediction-container">
+    <h2>Price Prediction Chart</h2>
+    
+    <!-- Model selector form -->
+    <form method="get" class="model-selector">
+        <div class="form-group">
+            <label for="model-select">Select Models to Compare:</label>
+            <div class="model-checkboxes">
+                {% for model in available_models %}
+                <div class="form-check">
+                    <input type="checkbox" name="models" value="{{ model.id }}" id="model-{{ model.id }}" class="model-checkbox"
+                        {% if model in selected_models %}checked{% endif %}>
+                    <label for="model-{{ model.id }}">
+                        {{ model.name }}
+                        <span class="model-type-label model-type-{{ model.model_type|lower }}">{{ model.get_model_type_display }}</span>
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Update Comparison</button>
+    </form>
+    
+    <!-- Chart container -->
+    <div class="chart-container">
+        <canvas id="predictionChart"></canvas>
+    </div>
+    
+    <!-- Prediction summary -->
+    <div class="prediction-summary">
+        <h3>Prediction Summary</h3>
+        <p>Current price: <strong>${{ stock.current_price|floatformat:2|intcomma }}</strong></p>
+        
+        {% for model in selected_models %}
+        <div>
+            <strong>{{ model.name }}</strong>: 
+            {% with model_id=model.id|stringformat:"s" %}
+            {% if model_id in predictions %}
+                {% with pred=predictions|get_item:model_id %}
+                    {% if pred.values|length > 0 %}
+                        Predicting <strong>${{ pred.values.0|floatformat:2|intcomma }}</strong> (in 1 day)
+                        {% if pred.values|length >= 5 %}
+                            and <strong>${{ pred.values.4|floatformat:2|intcomma }}</strong> (in 5 days)
+                        {% endif %}
+                    {% endif %}
+                {% endwith %}
+            {% endif %}
+            {% endwith %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="model-details">
+    <h2>Model Details</h2>
+    
+    {% for model in selected_models %}
+    <div class="model-card">
+        <h3>{{ model.name }}</h3>
+        <p>
+            <strong>Type:</strong> {{ model.get_model_type_display }}<br>
+            <strong>Trained on:</strong> {{ model.training_data_start|date:"M d, Y" }} to {{ model.training_data_end|date:"M d, Y" }}
+            ({{ model.data_points|intcomma }} data points)<br>
+            <strong>Created:</strong> {{ model.created_at|date:"M d, Y H:i" }}
+        </p>
+        
+        <h4>Performance Metrics</h4>
+        {% if model.metrics %}
+        <table class="metrics-table">
+            <thead>
+                <tr>
+                    <th>Metric</th>
+                    <th>Value</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if model.metrics.rmse %}
+                <tr>
+                    <td>RMSE</td>
+                    <td>{{ model.metrics.rmse|floatformat:4 }}</td>
+                    <td>Root Mean Squared Error (lower is better)</td>
+                </tr>
+                {% endif %}
+                
+                {% if model.metrics.mae %}
+                <tr>
+                    <td>MAE</td>
+                    <td>{{ model.metrics.mae|floatformat:4 }}</td>
+                    <td>Mean Absolute Error (lower is better)</td>
+                </tr>
+                {% endif %}
+                
+                {% if model.metrics.mape %}
+                <tr>
+                    <td>MAPE</td>
+                    <td>{{ model.metrics.mape|floatformat:2 }}%</td>
+                    <td>Mean Absolute Percentage Error (lower is better)</td>
+                </tr>
+                {% endif %}
+                
+                {% if model.metrics.r2 %}
+                <tr>
+                    <td>R²</td>
+                    <td>{{ model.metrics.r2|floatformat:4 }}</td>
+                    <td>Coefficient of Determination (higher is better, max 1.0)</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No performance metrics available for this model.</p>
+        {% endif %}
+        
+        {% if model.description %}
+        <h4>Description</h4>
+        <p>{{ model.description }}</p>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Parse data from Django template
+    const historicalDates = {{ historical_dates|safe }};
+    const historicalPrices = {{ historical_prices|safe }};
+    const predictions = {{ predictions|safe }};
+    
+    // Prepare datasets for Chart.js
+    const datasets = [];
+    
+    // Add historical data
+    datasets.push({
+        label: 'Historical Price',
+        data: historicalPrices.map((price, i) => ({
+            x: historicalDates[i],
+            y: price
+        })),
+        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 2,
+        pointRadius: 0,
+        fill: false,
+    });
+    
+    // Define colors for different model types
+    const modelTypeColors = {
+        'SARIMAX': {
+            line: 'rgba(51, 102, 204, 1)',
+            fill: 'rgba(51, 102, 204, 0.1)'
+        },
+        'LSTM': {
+            line: 'rgba(220, 57, 18, 1)',
+            fill: 'rgba(220, 57, 18, 0.1)'
+        },
+        'XGBOOST': {
+            line: 'rgba(255, 153, 0, 1)',
+            fill: 'rgba(255, 153, 0, 0.1)'
+        },
+        'SVM': {
+            line: 'rgba(16, 150, 24, 1)',
+            fill: 'rgba(16, 150, 24, 0.1)'
+        }
+    };
+    
+    // Add predictions for each model
+    for (const [modelId, predictionData] of Object.entries(predictions)) {
+        // Get color for this model type
+        const modelColors = modelTypeColors[predictionData.model_type] || {
+            line: 'rgba(128, 0, 128, 1)',
+            fill: 'rgba(128, 0, 128, 0.1)'
+        };
+        
+        // Add prediction line
+        datasets.push({
+            label: `${predictionData.name} (Prediction)`,
+            data: predictionData.dates.map((date, i) => ({
+                x: date,
+                y: predictionData.values[i]
+            })),
+            borderColor: modelColors.line,
+            backgroundColor: 'transparent',
+            borderWidth: 2,
+            borderDash: [5, 5],
+            pointRadius: 3,
+            pointBackgroundColor: modelColors.line,
+            fill: false,
+        });
+        
+        // Add confidence interval if available
+        if (predictionData.lower_bound && predictionData.upper_bound) {
+            const areaData = [];
+            
+            // Add both lower and upper bound for each date
+            predictionData.dates.forEach((date, i) => {
+                areaData.push({
+                    x: date,
+                    y: predictionData.lower_bound[i]
+                });
+            });
+            
+            // Add upper bounds in reverse order to create a shape
+            for (let i = predictionData.dates.length - 1; i >= 0; i--) {
+                areaData.push({
+                    x: predictionData.dates[i],
+                    y: predictionData.upper_bound[i]
+                });
+            }
+            
+            datasets.push({
+                label: `${predictionData.name} (Confidence Interval)`,
+                data: areaData,
+                backgroundColor: modelColors.fill,
+                borderColor: 'transparent',
+                borderWidth: 0,
+                pointRadius: 0,
+                fill: true,
+            });
+        }
+    }
+    
+    // Create Chart.js chart
+    const ctx = document.getElementById('predictionChart').getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'day'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Date'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Price ($)'
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                legend: {
+                    position: 'bottom',
+                },
+                title: {
+                    display: true,
+                    text: '{{ stock.symbol }} - Historical Prices & Predictions'
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

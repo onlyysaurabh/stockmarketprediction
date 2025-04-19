@@ -392,8 +392,8 @@
 {% block breadcrumbs %}
 <div class="breadcrumbs">
 <a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
-&rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
-&rsaquo; <a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+&rsaquo; <a href="{% url 'admin:index' %}">{{ opts.app_config.verbose_name }}</a>
+&rsaquo; <a href="{% url 'admin:stocks_stock_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
 &rsaquo; {% translate 'Fetch News' %}
 </div>
 {% endblock %}

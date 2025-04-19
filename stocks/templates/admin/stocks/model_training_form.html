@@ -1,0 +1,338 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" type="text/css" href="{% static 'admin/css/forms.css' %}">
+  <style>
+    .form-row {
+      margin-bottom: 10px;
+    }
+    .form-group {
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+    }
+    .form-group-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+      font-size: 1.1em;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+  &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_label|capfirst }}</a>
+  &rsaquo; <a href="{% url 'admin:stocks_trainedmodel_changelist' %}">Trained Models</a>
+  &rsaquo; Train New Model
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <form method="post" novalidate>
+    {% csrf_token %}
+    
+    <div class="module aligned">
+      <h2>Train Stock Prediction Model</h2>
+      <p>Configure the model parameters and start the training process.</p>
+      
+      {% if form.errors %}
+        <p class="errornote">
+          Please correct the errors below.
+        </p>
+        <ul class="errorlist">
+          {% for field, errors in form.errors.items %}
+            {% for error in errors %}
+              <li>{{ field }}: {{ error }}</li>
+            {% endfor %}
+          {% endfor %}
+        </ul>
+      {% endif %}
+      
+      <div class="form-group">
+        <div class="form-group-title">Stock Selection</div>
+        <div class="form-row">
+          {{ form.stock.label_tag }}
+          {{ form.stock }}
+          {% if form.stock.help_text %}
+            <div class="help">{{ form.stock.help_text|safe }}</div>
+          {% endif %}
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <div class="form-group-title">Model Type</div>
+        <div class="form-row">
+          {{ form.model_type.label_tag }}
+          {{ form.model_type }}
+          {% if form.model_type.help_text %}
+            <div class="help">{{ form.model_type.help_text|safe }}</div>
+          {% endif %}
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <div class="form-group-title">Training Data Period</div>
+        <div class="form-row">
+          {{ form.training_period.label_tag }}
+          {{ form.training_period }}
+          {% if form.training_period.help_text %}
+            <div class="help">{{ form.training_period.help_text|safe }}</div>
+          {% endif %}
+        </div>
+        
+        <div class="form-row">
+          <div style="font-weight: bold; margin-top: 10px;">Or specify custom date range:</div>
+        </div>
+        
+        <div class="form-row">
+          {{ form.start_date.label_tag }}
+          {{ form.start_date }}
+          {% if form.start_date.help_text %}
+            <div class="help">{{ form.start_date.help_text|safe }}</div>
+          {% endif %}
+        </div>
+        
+        <div class="form-row">
+          {{ form.end_date.label_tag }}
+          {{ form.end_date }}
+          {% if form.end_date.help_text %}
+            <div class="help">{{ form.end_date.help_text|safe }}</div>
+          {% endif %}
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <div class="form-group-title">Model Parameters</div>
+        <div class="form-row">
+          {{ form.auto_parameters.label_tag }}
+          {{ form.auto_parameters }}
+          {% if form.auto_parameters.help_text %}
+            <div class="help">{{ form.auto_parameters.help_text|safe }}</div>
+          {% endif %}
+        </div>
+        
+        <!-- SARIMAX parameters -->
+        <div id="sarimax-params">
+          <div class="form-row">
+            <div style="font-weight: bold; margin-top: 10px;">SARIMAX Parameters</div>
+          </div>
+          
+          <div class="form-row">
+            {{ form.order_p.label_tag }}
+            {{ form.order_p }}
+            {% if form.order_p.help_text %}
+              <div class="help">{{ form.order_p.help_text|safe }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="form-row">
+            {{ form.order_d.label_tag }}
+            {{ form.order_d }}
+            {% if form.order_d.help_text %}
+              <div class="help">{{ form.order_d.help_text|safe }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="form-row">
+            {{ form.order_q.label_tag }}
+            {{ form.order_q }}
+            {% if form.order_q.help_text %}
+              <div class="help">{{ form.order_q.help_text|safe }}</div>
+            {% endif %}
+          </div>
+        </div>
+        
+        <!-- LSTM parameters -->
+        <div id="lstm-params">
+          <div class="form-row">
+            <div style="font-weight: bold; margin-top: 10px;">LSTM Parameters</div>
+          </div>
+          
+          <div class="form-row">
+            {{ form.sequence_length.label_tag }}
+            {{ form.sequence_length }}
+            {% if form.sequence_length.help_text %}
+              <div class="help">{{ form.sequence_length.help_text|safe }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="form-row">
+            {{ form.lstm_units.label_tag }}
+            {{ form.lstm_units }}
+            {% if form.lstm_units.help_text %}
+              <div class="help">{{ form.lstm_units.help_text|safe }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="form-row">
+            {{ form.lstm_layers.label_tag }}
+            {{ form.lstm_layers }}
+            {% if form.lstm_layers.help_text %}
+              <div class="help">{{ form.lstm_layers.help_text|safe }}</div>
+            {% endif %}
+          </div>
+        </div>
+        
+        <!-- XGBoost parameters -->
+        <div id="xgboost-params">
+          <div class="form-row">
+            <div style="font-weight: bold; margin-top: 10px;">XGBoost Parameters</div>
+          </div>
+          
+          <div class="form-row">
+            {{ form.n_estimators.label_tag }}
+            {{ form.n_estimators }}
+            {% if form.n_estimators.help_text %}
+              <div class="help">{{ form.n_estimators.help_text|safe }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="form-row">
+            {{ form.max_depth.label_tag }}
+            {{ form.max_depth }}
+            {% if form.max_depth.help_text %}
+              <div class="help">{{ form.max_depth.help_text|safe }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="form-row">
+            {{ form.learning_rate.label_tag }}
+            {{ form.learning_rate }}
+            {% if form.learning_rate.help_text %}
+              <div class="help">{{ form.learning_rate.help_text|safe }}</div>
+            {% endif %}
+          </div>
+        </div>
+        
+        <!-- SVM parameters -->
+        <div id="svm-params">
+          <div class="form-row">
+            <div style="font-weight: bold; margin-top: 10px;">SVM Parameters</div>
+          </div>
+          
+          <div class="form-row">
+            {{ form.kernel.label_tag }}
+            {{ form.kernel }}
+            {% if form.kernel.help_text %}
+              <div class="help">{{ form.kernel.help_text|safe }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="form-row">
+            {{ form.c_parameter.label_tag }}
+            {{ form.c_parameter }}
+            {% if form.c_parameter.help_text %}
+              <div class="help">{{ form.c_parameter.help_text|safe }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <div class="form-group-title">Common Settings</div>
+        
+        <div class="form-row">
+          {{ form.validation_split.label_tag }}
+          {{ form.validation_split }}
+          {% if form.validation_split.help_text %}
+            <div class="help">{{ form.validation_split.help_text|safe }}</div>
+          {% endif %}
+        </div>
+        
+        <div class="form-row">
+          {{ form.forecast_horizon.label_tag }}
+          {{ form.forecast_horizon }}
+          {% if form.forecast_horizon.help_text %}
+            <div class="help">{{ form.forecast_horizon.help_text|safe }}</div>
+          {% endif %}
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <div class="form-group-title">Description</div>
+        
+        <div class="form-row">
+          {{ form.model_name.label_tag }}
+          {{ form.model_name }}
+          {% if form.model_name.help_text %}
+            <div class="help">{{ form.model_name.help_text|safe }}</div>
+          {% endif %}
+        </div>
+        
+        <div class="form-row">
+          {{ form.description.label_tag }}
+          {{ form.description }}
+          {% if form.description.help_text %}
+            <div class="help">{{ form.description.help_text|safe }}</div>
+          {% endif %}
+        </div>
+      </div>
+      
+      <div class="submit-row">
+        <input type="submit" value="Start Training" class="default" name="_save">
+      </div>
+    </div>
+  </form>
+</div>
+
+<script type="text/javascript">
+  document.addEventListener('DOMContentLoaded', function() {
+    const modelTypeSelect = document.getElementById('id_model_type');
+    const sarimaxParams = document.getElementById('sarimax-params');
+    const lstmParams = document.getElementById('lstm-params');
+    const xgboostParams = document.getElementById('xgboost-params');
+    const svmParams = document.getElementById('svm-params');
+    const autoParams = document.getElementById('id_auto_parameters');
+    
+    // Function to hide all parameter sections
+    function hideAllParams() {
+      sarimaxParams.classList.add('hidden');
+      lstmParams.classList.add('hidden');
+      xgboostParams.classList.add('hidden');
+      svmParams.classList.add('hidden');
+    }
+    
+    // Function to show the appropriate parameter section based on model type
+    function updateVisibleParams() {
+      hideAllParams();
+      
+      const selectedModel = modelTypeSelect.value;
+      const autoTune = autoParams.checked;
+      
+      if (selectedModel === 'SARIMAX') {
+        sarimaxParams.classList.remove('hidden');
+        if (autoTune) {
+          sarimaxParams.querySelectorAll('input').forEach(input => {
+            input.setAttribute('disabled', 'disabled');
+          });
+        } else {
+          sarimaxParams.querySelectorAll('input').forEach(input => {
+            input.removeAttribute('disabled');
+          });
+        }
+      } else if (selectedModel === 'LSTM') {
+        lstmParams.classList.remove('hidden');
+      } else if (selectedModel === 'XGBOOST') {
+        xgboostParams.classList.remove('hidden');
+      } else if (selectedModel === 'SVM') {
+        svmParams.classList.remove('hidden');
+      }
+    }
+    
+    // Set up event listeners
+    modelTypeSelect.addEventListener('change', updateVisibleParams);
+    autoParams.addEventListener('change', updateVisibleParams);
+    
+    // Initialize on page load
+    updateVisibleParams();
+  });
+</script>
+{% endblock %}

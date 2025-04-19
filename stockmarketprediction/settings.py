@@ -205,7 +205,11 @@ JAZZMIN_SETTINGS = {
         {"name": "Home",  "url": "admin:index", "permissions": ["auth.view_user"]},
 
         # Custom direct link to our news fetching interface
-        {"name": "Fetch News", "url": "admin_fetch_news_standalone", "permissions": ["auth.view_user"]},
+        {"name": "Fetch News", "url": "admin_fetch_stock_news", "permissions": ["auth.view_user"]},
+        
+        # Stock prediction links
+        {"name": "Train Models", "url": "admin:train_model", "permissions": ["auth.view_user"]},
+        {"name": "Model Comparison", "url": "model_comparison", "permissions": ["auth.view_user"]},
 
         # model admin to link to (Permissions checked against model)
         {"model": "auth.User"},
@@ -220,7 +224,7 @@ JAZZMIN_SETTINGS = {
 
     # Additional links to include in the user menu on the top right ("app" url type is not allowed)
     "usermenu_links": [
-        {"name": "Fetch Stock News", "url": "admin_fetch_news_standalone", "new_window": False},
+        {"name": "Fetch Stock News", "url": "admin_fetch_stock_news", "new_window": False},
     ],
 
     #############
@@ -244,12 +248,26 @@ JAZZMIN_SETTINGS = {
     
     # Custom links to append to app groups, keyed on app name
     "custom_links": {
-        "stocks": [{
-            "name": "Fetch News", 
-            "url": "admin_fetch_news_standalone", 
-            "icon": "fas fa-newspaper",
-            # "permissions": ["stocks.view_stocknews"]
-        }]
+        "stocks": [
+            {
+                "name": "Fetch News", 
+                "url": "admin_fetch_news_standalone", 
+                "icon": "fas fa-newspaper",
+                # "permissions": ["stocks.view_stocknews"]
+            },
+            {
+                "name": "Train Models",
+                "url": "admin:train_model",
+                "icon": "fas fa-brain",
+                # "permissions": ["stocks.view_stock"]
+            },
+            {
+                "name": "Model Comparison",
+                "url": "model_comparison",
+                "icon": "fas fa-chart-bar",
+                # "permissions": ["stocks.view_stock"]
+            }
+        ]
     },
 
     #############

@@ -1,0 +1,407 @@
+{% extends 'stocks/base.html' %}
+{% load humanize %}
+
+{% block title %}Model Comparison{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+<style>
+    .comparison-container {
+        margin-top: 30px;
+        margin-bottom: 30px;
+    }
+    
+    .chart-container {
+        position: relative; 
+        height: 400px;
+        width: 100%;
+        margin-bottom: 30px;
+    }
+    
+    .filter-panel {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+    
+    .metric-explanation {
+        font-size: 0.9em;
+        margin-top: 5px;
+        color: #666;
+    }
+    
+    .models-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+    
+    .models-table th, .models-table td {
+        padding: 8px;
+        border: 1px solid #ddd;
+        text-align: left;
+    }
+    
+    .models-table th {
+        background-color: #f2f2f2;
+        position: sticky;
+        top: 0;
+    }
+    
+    .models-table tbody tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+    
+    .models-table tbody tr:hover {
+        background-color: #f0f0f0;
+    }
+    
+    .table-responsive {
+        max-height: 500px;
+        overflow-y: auto;
+        margin-bottom: 20px;
+    }
+    
+    .model-name {
+        max-width: 250px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .model-type-label {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 3px;
+        font-size: 0.8em;
+        color: white;
+    }
+    
+    .model-type-sarimax {
+        background-color: #3366cc;
+    }
+    
+    .model-type-lstm {
+        background-color: #dc3912;
+    }
+    
+    .model-type-xgboost {
+        background-color: #ff9900;
+    }
+    
+    .model-type-svm {
+        background-color: #109618;
+    }
+    
+    .metric-card {
+        text-align: center;
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+    
+    .metric-card h3 {
+        margin-top: 0;
+    }
+    
+    .metric-value {
+        font-size: 2em;
+        font-weight: bold;
+        color: #3498db;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>Model Comparison</h1>
+
+<p>Compare the performance of different prediction models across stocks and model types.</p>
+
+<div class="comparison-container">
+    <div class="filter-panel">
+        <h3>Filter Models</h3>
+        <form method="get" class="row">
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label for="stock-select">Stock:</label>
+                    <select name="stock" id="stock-select" class="form-control">
+                        <option value="">All Stocks</option>
+                        {% for stock in all_stocks %}
+                            <option value="{{ stock.id }}" {% if selected_stock == stock.id|stringformat:"s" %}selected{% endif %}>
+                                {{ stock.symbol }} - {{ stock.name|truncatechars:40 }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label for="model-type-select">Model Type:</label>
+                    <select name="model_type" id="model-type-select" class="form-control">
+                        <option value="">All Types</option>
+                        {% for model_type, display_name in all_model_types %}
+                            <option value="{{ model_type }}" {% if selected_model_type == model_type %}selected{% endif %}>
+                                {{ display_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label for="period-select">Time Period:</label>
+                    <select name="period" id="period-select" class="form-control">
+                        <option value="">All Time</option>
+                        <option value="1m" {% if selected_period == '1m' %}selected{% endif %}>Last Month</option>
+                        <option value="3m" {% if selected_period == '3m' %}selected{% endif %}>Last 3 Months</option>
+                        <option value="6m" {% if selected_period == '6m' %}selected{% endif %}>Last 6 Months</option>
+                        <option value="1y" {% if selected_period == '1y' %}selected{% endif %}>Last Year</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="form-group" style="margin-top: 25px;">
+                    <button type="submit" class="btn btn-primary">Apply Filters</button>
+                    <a href="{% url 'model_comparison' %}" class="btn btn-secondary">Clear</a>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    {% if models %}
+        <h2>Models by Type Comparison</h2>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="chart-container">
+                    <canvas id="modelTypeChart"></canvas>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="chart-container">
+                    <canvas id="modelStockChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-4">
+                <div class="metric-card">
+                    <h3>Average RMSE</h3>
+                    <div class="metric-value">{{ models.0.metrics.rmse|default:0|floatformat:4 }}</div>
+                    <div class="metric-explanation">Root Mean Squared Error (lower is better)</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="metric-card">
+                    <h3>Average MAE</h3>
+                    <div class="metric-value">{{ models.0.metrics.mae|default:0|floatformat:4 }}</div>
+                    <div class="metric-explanation">Mean Absolute Error (lower is better)</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="metric-card">
+                    <h3>Average R²</h3>
+                    <div class="metric-value">{{ models.0.metrics.r2|default:0|floatformat:4 }}</div>
+                    <div class="metric-explanation">Coefficient of Determination (higher is better)</div>
+                </div>
+            </div>
+        </div>
+        
+        <h2>Model Details</h2>
+        <div class="table-responsive">
+            <table class="models-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Stock</th>
+                        <th>Type</th>
+                        <th>RMSE</th>
+                        <th>MAE</th>
+                        <th>MAPE</th>
+                        <th>R²</th>
+                        <th>Created</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for model in models %}
+                    <tr>
+                        <td class="model-name">
+                            <a href="{% url 'admin:trained_model_detail' model.id %}">{{ model.name }}</a>
+                        </td>
+                        <td>
+                            <a href="{% url 'stock_predictions' symbol=model.stock_symbol %}">{{ model.stock_symbol }}</a>
+                        </td>
+                        <td>
+                            <span class="model-type-label model-type-{{ model.model_type|slugify }}">
+                                {{ model.model_type }}
+                            </span>
+                        </td>
+                        <td>{{ model.metrics.rmse|default:"-"|floatformat:4 }}</td>
+                        <td>{{ model.metrics.mae|default:"-"|floatformat:4 }}</td>
+                        <td>{{ model.metrics.mape|default:"-"|floatformat:2 }}{% if model.metrics.mape %}%{% endif %}</td>
+                        <td>{{ model.metrics.r2|default:"-"|floatformat:4 }}</td>
+                        <td>{{ model.created_at|date:"Y-m-d H:i" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            No trained models match the selected filters. Please adjust your filters or train new models.
+        </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Parse data from Django template
+    const metricsByType = {{ metrics_by_type|safe }};
+    const metricsByStock = {{ metrics_by_stock|safe }};
+    
+    // Create charts if we have data
+    if (Object.keys(metricsByType).length > 0) {
+        createModelTypeChart();
+    }
+    
+    if (Object.keys(metricsByStock).length > 0) {
+        createModelStockChart();
+    }
+    
+    function createModelTypeChart() {
+        const ctx = document.getElementById('modelTypeChart').getContext('2d');
+        
+        // Prepare data for Chart.js
+        const labels = Object.keys(metricsByType);
+        const rmseData = labels.map(label => metricsByType[label].rmse);
+        const maeData = labels.map(label => metricsByType[label].mae);
+        const r2Data = labels.map(label => metricsByType[label].r2);
+        
+        // Define colors for different metrics
+        const colors = {
+            rmse: 'rgba(255, 99, 132, 0.7)',
+            mae: 'rgba(54, 162, 235, 0.7)',
+            r2: 'rgba(75, 192, 192, 0.7)'
+        };
+        
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'RMSE (lower is better)',
+                        data: rmseData,
+                        backgroundColor: colors.rmse,
+                        borderColor: colors.rmse,
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'MAE (lower is better)',
+                        data: maeData,
+                        backgroundColor: colors.mae,
+                        borderColor: colors.mae,
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'R² (higher is better)',
+                        data: r2Data,
+                        backgroundColor: colors.r2,
+                        borderColor: colors.r2,
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Performance by Model Type'
+                    },
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+    
+    function createModelStockChart() {
+        const ctx = document.getElementById('modelStockChart').getContext('2d');
+        
+        // Prepare data for Chart.js
+        const labels = Object.keys(metricsByStock);
+        const rmseData = labels.map(label => metricsByStock[label].rmse);
+        const maeData = labels.map(label => metricsByStock[label].mae);
+        const r2Data = labels.map(label => metricsByStock[label].r2);
+        
+        // Define colors for different metrics
+        const colors = {
+            rmse: 'rgba(255, 99, 132, 0.7)',
+            mae: 'rgba(54, 162, 235, 0.7)',
+            r2: 'rgba(75, 192, 192, 0.7)'
+        };
+        
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'RMSE (lower is better)',
+                        data: rmseData,
+                        backgroundColor: colors.rmse,
+                        borderColor: colors.rmse,
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'MAE (lower is better)',
+                        data: maeData,
+                        backgroundColor: colors.mae,
+                        borderColor: colors.mae,
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'R² (higher is better)',
+                        data: r2Data,
+                        backgroundColor: colors.r2,
+                        borderColor: colors.r2,
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Performance by Stock'
+                    },
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

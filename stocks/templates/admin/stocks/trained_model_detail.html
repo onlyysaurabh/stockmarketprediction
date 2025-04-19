@@ -1,0 +1,292 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" type="text/css" href="{% static 'admin/css/forms.css' %}">
+  <style>
+    .module {
+      margin-bottom: 20px;
+    }
+    .info-row {
+      margin-bottom: 10px;
+      display: flex;
+    }
+    .info-label {
+      font-weight: bold;
+      width: 200px;
+    }
+    .info-value {
+      flex: 1;
+    }
+    .metrics-box {
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 5px;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 3px;
+      color: white;
+      font-weight: bold;
+    }
+    .status-completed {
+      background-color: #28a745;
+    }
+    .status-training {
+      background-color: #007bff;
+    }
+    .status-pending {
+      background-color: #ffc107;
+      color: #212529;
+    }
+    .status-failed {
+      background-color: #dc3545;
+    }
+    .progress-container {
+      background-color: #f1f1f1;
+      height: 20px;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+    .progress-bar {
+      height: 20px;
+      background-color: #4CAF50;
+      border-radius: 5px;
+      text-align: center;
+      line-height: 20px;
+      color: white;
+    }
+    .error-message {
+      color: #dc3545;
+      background-color: #f8d7da;
+      border: 1px solid #f5c6cb;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+    }
+    .actions-bar {
+      margin: 20px 0;
+    }
+  </style>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+  &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_label|capfirst }}</a>
+  &rsaquo; <a href="{% url 'admin:trained_model_list' %}">Trained Models</a>
+  &rsaquo; {{ trained_model.name }}
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <div class="actions-bar">
+    <a href="{% url 'admin:trained_model_list' %}" class="button">Back to List</a>
+    {% if trained_model.status == 'COMPLETED' %}
+      <a href="#" class="button default" id="predict-button">Make Predictions</a>
+    {% endif %}
+    {% if trained_model.status == 'FAILED' or trained_model.status == 'COMPLETED' %}
+      <form method="post" action="{% url 'admin:retrain_model' trained_model.id %}" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit" class="button">Retrain Model</button>
+      </form>
+    {% endif %}
+    <form method="post" action="{% url 'admin:delete_model' trained_model.id %}" style="display: inline;">
+      {% csrf_token %}
+      <button type="submit" class="button" onclick="return confirm('Are you sure you want to delete this model?');">Delete</button>
+    </form>
+  </div>
+
+  <h1>{{ trained_model.name }}</h1>
+
+  <div class="module">
+    <h2>Model Information</h2>
+    
+    <div class="info-row">
+      <div class="info-label">Status</div>
+      <div class="info-value">
+        <span class="status-badge status-{{ trained_model.status|lower }}">{{ trained_model.get_status_display }}</span>
+      </div>
+    </div>
+    
+    {% if trained_model.status == 'TRAINING' and training_job %}
+      <div class="info-row">
+        <div class="info-label">Progress</div>
+        <div class="info-value">
+          <div class="progress-container">
+            <div class="progress-bar" style="width: {{ training_job.progress }}%">{{ training_job.progress|floatformat:0 }}%</div>
+          </div>
+          {% if training_job.log_output %}
+            <div style="margin-top: 5px; font-size: 12px;">{{ training_job.log_output|linebreaksbr }}</div>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+    
+    {% if trained_model.error_message %}
+      <div class="error-message">
+        <strong>Error:</strong> {{ trained_model.error_message }}
+      </div>
+    {% endif %}
+    
+    <div class="info-row">
+      <div class="info-label">Stock</div>
+      <div class="info-value">{{ trained_model.stock.symbol }} - {{ trained_model.stock.name }}</div>
+    </div>
+    
+    <div class="info-row">
+      <div class="info-label">Model Type</div>
+      <div class="info-value">{{ trained_model.get_model_type_display }}</div>
+    </div>
+    
+    <div class="info-row">
+      <div class="info-label">Training Date Range</div>
+      <div class="info-value">
+        {% if trained_model.training_data_start %}
+          {{ trained_model.training_data_start|date:"Y-m-d" }} to {{ trained_model.training_data_end|date:"Y-m-d" }}
+          {% if trained_model.data_points %}
+            ({{ trained_model.data_points }} data points)
+          {% endif %}
+        {% else %}
+          Not specified
+        {% endif %}
+      </div>
+    </div>
+    
+    <div class="info-row">
+      <div class="info-label">Forecast Horizon</div>
+      <div class="info-value">{{ trained_model.forecast_horizon }} days</div>
+    </div>
+    
+    <div class="info-row">
+      <div class="info-label">Created By</div>
+      <div class="info-value">{{ trained_model.created_by.username }} ({{ trained_model.created_at|date:"Y-m-d H:i" }})</div>
+    </div>
+    
+    <div class="info-row">
+      <div class="info-label">Training Duration</div>
+      <div class="info-value">
+        {% if trained_model.training_duration %}
+          {{ trained_model.training_duration|floatformat:"0" }} seconds
+        {% else %}
+          -
+        {% endif %}
+      </div>
+    </div>
+    
+    <div class="info-row">
+      <div class="info-label">Model File</div>
+      <div class="info-value">
+        {% if trained_model.model_file_exists %}
+          <span style="color: green;">✓</span> Model file available
+        {% else %}
+          <span style="color: red;">✗</span> Model file not found
+        {% endif %}
+      </div>
+    </div>
+    
+    {% if trained_model.description %}
+      <div class="info-row">
+        <div class="info-label">Description</div>
+        <div class="info-value">{{ trained_model.description|linebreaks }}</div>
+      </div>
+    {% endif %}
+  </div>
+  
+  <div class="module">
+    <h2>Model Parameters</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Parameter</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for key, value in trained_model.parameters.items %}
+          <tr>
+            <td>{{ key }}</td>
+            <td>{{ value }}</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="2">No parameters specified (using defaults)</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  
+  {% if trained_model.status == 'COMPLETED' and trained_model.metrics %}
+    <div class="module">
+      <h2>Performance Metrics</h2>
+      <div class="metrics-box">
+        <table>
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th>Value</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for key, value in trained_model.metrics.items %}
+              <tr>
+                <td><strong>{{ key|upper }}</strong></td>
+                <td>
+                  {% if key == 'mape' or key == 'r2' %}
+                    {{ value|floatformat:2 }}%
+                  {% else %}
+                    {{ value|floatformat:4 }}
+                  {% endif %}
+                </td>
+                <td>
+                  {% if key == 'mse' %}
+                    Mean Squared Error
+                  {% elif key == 'rmse' %}
+                    Root Mean Squared Error
+                  {% elif key == 'mae' %}
+                    Mean Absolute Error
+                  {% elif key == 'mape' %}
+                    Mean Absolute Percentage Error
+                  {% elif key == 'r2' %}
+                    R-squared (coefficient of determination)
+                  {% else %}
+                    {{ key }}
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+<script>
+  // Refresh the page every 5 seconds if the model is currently training
+  {% if trained_model.status == 'TRAINING' or trained_model.status == 'PENDING' %}
+    setTimeout(function() {
+      location.reload();
+    }, 5000);
+  {% endif %}
+  
+  // Setup the prediction button
+  document.addEventListener('DOMContentLoaded', function() {
+    const predictButton = document.getElementById('predict-button');
+    if (predictButton) {
+      predictButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        // Navigate to the prediction page
+        window.location.href = '{% url "admin:predict_with_model" trained_model.id %}';
+      });
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,154 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" type="text/css" href="{% static 'admin/css/changelists.css' %}">
+  <style>
+    .status-indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 5px;
+    }
+    .status-completed {
+      background-color: #28a745;
+    }
+    .status-training {
+      background-color: #007bff;
+      animation: pulse 1.5s infinite;
+    }
+    .status-pending {
+      background-color: #ffc107;
+    }
+    .status-failed {
+      background-color: #dc3545;
+    }
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+  </style>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+  &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_label|capfirst }}</a>
+  &rsaquo; Trained Models
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <div class="module" id="changelist">
+    <div class="changelist-actions">
+      <a href="{% url 'admin:train_model' %}" class="button default">Train New Model</a>
+      
+      {% if stock_id or model_type %}
+        <a href="{% url 'admin:trained_model_list' %}" class="button">Clear Filters</a>
+      {% endif %}
+    </div>
+    
+    <div class="changelist-form-container">
+      <form method="get" id="changelist-form">
+        <div class="changelist-filter">
+          <h3>Filter By</h3>
+          <div class="filter-group">
+            <h4>Model Type</h4>
+            <ul>
+              <li {% if not model_type %}class="selected"{% endif %}>
+                <a href="{% url 'admin:trained_model_list' %}{% if stock_id %}?stock_id={{ stock_id }}{% endif %}">All</a>
+              </li>
+              <li {% if model_type == 'SARIMAX' %}class="selected"{% endif %}>
+                <a href="{% url 'admin:trained_model_list' %}?model_type=SARIMAX{% if stock_id %}&stock_id={{ stock_id }}{% endif %}">SARIMAX</a>
+              </li>
+              <li {% if model_type == 'LSTM' %}class="selected"{% endif %}>
+                <a href="{% url 'admin:trained_model_list' %}?model_type=LSTM{% if stock_id %}&stock_id={{ stock_id }}{% endif %}">LSTM</a>
+              </li>
+              <li {% if model_type == 'XGBOOST' %}class="selected"{% endif %}>
+                <a href="{% url 'admin:trained_model_list' %}?model_type=XGBOOST{% if stock_id %}&stock_id={{ stock_id }}{% endif %}">XGBoost</a>
+              </li>
+              <li {% if model_type == 'SVM' %}class="selected"{% endif %}>
+                <a href="{% url 'admin:trained_model_list' %}?model_type=SVM{% if stock_id %}&stock_id={{ stock_id }}{% endif %}">SVM</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        
+        <table id="result_list">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Stock</th>
+              <th>Model Type</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Training Duration</th>
+              <th>Performance</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for model in trained_models %}
+              <tr class="{% cycle 'row1' 'row2' %}">
+                <td>
+                  <a href="{% url 'admin:trained_model_detail' model.id %}">{{ model.name }}</a>
+                </td>
+                <td>
+                  <a href="{% url 'admin:stocks_stock_change' model.stock.id %}">{{ model.stock.symbol }}</a>
+                </td>
+                <td>{{ model.get_model_type_display }}</td>
+                <td>
+                  <span class="status-indicator status-{{ model.status|lower }}"></span>
+                  {{ model.get_status_display }}
+                </td>
+                <td>{{ model.created_at|date:"Y-m-d H:i" }}</td>
+                <td>
+                  {% if model.training_duration %}
+                    {{ model.training_duration|floatformat:"0" }} seconds
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td>
+                  {% if model.metrics %}
+                    {{ model.get_metrics_display }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="7">No trained models found.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        
+        {% if is_paginated %}
+          <div class="pagination">
+            <span class="step-links">
+              {% if page_obj.has_previous %}
+                <a href="?page=1{% if model_type %}&model_type={{ model_type }}{% endif %}{% if stock_id %}&stock_id={{ stock_id }}{% endif %}">&laquo; first</a>
+                <a href="?page={{ page_obj.previous_page_number }}{% if model_type %}&model_type={{ model_type }}{% endif %}{% if stock_id %}&stock_id={{ stock_id }}{% endif %}">previous</a>
+              {% endif %}
+              
+              <span class="current">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+              </span>
+              
+              {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if model_type %}&model_type={{ model_type }}{% endif %}{% if stock_id %}&stock_id={{ stock_id }}{% endif %}">next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}{% if model_type %}&model_type={{ model_type }}{% endif %}{% if stock_id %}&stock_id={{ stock_id }}{% endif %}">last &raquo;</a>
+              {% endif %}
+            </span>
+          </div>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
