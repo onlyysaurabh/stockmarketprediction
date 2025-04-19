@@ -203,12 +203,14 @@ JAZZMIN_SETTINGS = {
 
     # Links to put along the top menu
     "topmenu_links": [
-
         # Url that gets reversed (Permissions can be added)
-        {"name": "Home",  "url": "admin:index", "permissions": ["auth.view_user"]},
+        {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},
 
-        # Custom direct link to our news fetching interface
+        # Custom links - matching the same items as in the sidebar
         {"name": "Fetch News", "url": "admin_fetch_news_standalone", "permissions": ["auth.view_user"]},
+        {"name": "Update All Prices", "url": "admin:stocks_stock_update_all_prices", "permissions": ["auth.view_user"]},
+        {"name": "Update Commodities", "url": "admin:stocks_stock_update_commodities", "permissions": ["auth.view_user"]},
+        {"name": "Prediction Dashboard", "url": "admin_prediction_dashboard", "permissions": ["auth.view_user"]},
 
         # model admin to link to (Permissions checked against model)
         {"model": "auth.User"},
@@ -223,7 +225,10 @@ JAZZMIN_SETTINGS = {
 
     # Additional links to include in the user menu on the top right ("app" url type is not allowed)
     "usermenu_links": [
-        {"name": "Fetch Stock News", "url": "admin_fetch_news_standalone", "new_window": False},
+        {"name": "Fetch News", "url": "admin_fetch_news_standalone", "new_window": False},
+        {"name": "Update All Prices", "url": "admin:stocks_stock_update_all_prices", "new_window": False},
+        {"name": "Update Commodities", "url": "admin:stocks_stock_update_commodities", "new_window": False},
+        {"name": "Prediction Dashboard", "url": "admin_prediction_dashboard", "new_window": False},
     ],
 
     #############
