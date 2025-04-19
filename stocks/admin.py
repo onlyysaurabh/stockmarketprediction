@@ -12,12 +12,22 @@ from django.contrib.admin import SimpleListFilter
 from .forms import FetchNewsForm
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.contenttypes.models import ContentType
+from .admin_utils import fetch_stock_news_view
 import json
 
 # Register custom admin site
 class StockMarketAdminSite(admin.AdminSite):
     site_header = 'Stock Market Prediction Admin'
     site_title = 'Stock Market Prediction'
+    
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('fetch-stock-news/', 
+                 self.admin_view(lambda request: fetch_stock_news_view(request, self)),
+                 name='fetch-stock-news'),
+        ]
+        return custom_urls + urls
 
 admin_site = StockMarketAdminSite(name='stockmarket_admin')
 
@@ -99,9 +109,6 @@ class StockAdmin(admin.ModelAdmin):
         except Exception as e:
             self.message_user(request, f"Error updating prices: {str(e)}", messages.ERROR)
         return HttpResponseRedirect("../")
-
-    def fetch_news(self, request):
-        return fetch_stock_news_view(request)
 
 # Register models with custom admin site
 admin_site.register(Stock, StockAdmin)
