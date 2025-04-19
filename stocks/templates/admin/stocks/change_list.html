@@ -1,0 +1,103 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls admin_list %}
+
+{% block object-tools-items %}
+    {# Empty block to remove buttons from header #}
+{% endblock %}
+
+{% block result_list %}
+    {% if show_update_button or show_commodity_button %}
+    <div class="action-buttons" style="margin-bottom: 20px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;">
+        {% if show_update_button %}
+            <a href="{% url 'admin:stocks_stock_update_all_prices' %}" class="btn btn-primary" style="margin-right: 10px;">
+                <i class="fas fa-sync-alt"></i> {% trans "Update All Stock Prices" %}
+            </a>
+            <form id="update-selected-form" method="post" style="display: inline-block;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_selected_stock_prices">
+                <button type="submit" class="btn btn-secondary" id="update-selected-btn">
+                    <i class="fas fa-sync-alt"></i> {% trans "Update Selected Stocks" %}
+                </button>
+            </form>
+        {% endif %}
+        
+        {% if show_commodity_button %}
+            <a href="{% url 'admin:stocks_stock_update_commodities' %}" class="btn btn-info" style="margin-left: 10px;">
+                <i class="fas fa-chart-line"></i> {% trans "Update Commodity Prices" %}
+            </a>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    {# Include the result list #}
+    {{ block.super }}
+
+    <script>
+        // Add script to enable/disable the Update Selected button based on checkboxes
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkboxes = document.querySelectorAll('input[name="_selected_action"]');
+            const updateBtn = document.getElementById('update-selected-btn');
+            const form = document.getElementById('update-selected-form');
+            
+            // Add event listeners to all checkboxes
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateSelectedCount);
+            });
+            
+            // Add event listener to the select-all checkbox in the header
+            const selectAllCheckbox = document.querySelector('input[id="action-toggle"]');
+            if (selectAllCheckbox) {
+                selectAllCheckbox.addEventListener('change', updateSelectedCount);
+            }
+            
+            // Handle form submission - only submit if checkboxes are selected
+            form.addEventListener('submit', function(e) {
+                const selectedCount = document.querySelectorAll('input[name="_selected_action"]:checked').length;
+                if (selectedCount === 0) {
+                    e.preventDefault();
+                    alert('Please select at least one stock to update');
+                    return false;
+                }
+                
+                // Add selected checkboxes to the form
+                const selectedCheckboxes = document.querySelectorAll('input[name="_selected_action"]:checked');
+                selectedCheckboxes.forEach(checkbox => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = '_selected_action';
+                    input.value = checkbox.value;
+                    form.appendChild(input);
+                });
+                
+                return true;
+            });
+            
+            // Toggle button and update counter
+            function updateSelectedCount() {
+                const selectedCount = document.querySelectorAll('input[name="_selected_action"]:checked').length;
+                
+                if (selectedCount > 0) {
+                    updateBtn.classList.remove('disabled');
+                    updateBtn.innerHTML = `<i class="fas fa-sync-alt"></i> Update Selected (${selectedCount})`;
+                } else {
+                    updateBtn.classList.add('disabled'); 
+                    updateBtn.innerHTML = `<i class="fas fa-sync-alt"></i> Update Selected Stocks`;
+                }
+            }
+            
+            // Run initially to set the correct state
+            updateSelectedCount();
+        });
+    </script>
+{% endblock %}
+
+{# Hide the actions dropdown from the changelist #}
+{% block pagination %}
+    <style type="text/css">
+        /* Hide the admin actions dropdown */
+        #changelist-form .actions {
+            display: none;
+        }
+    </style>
+    {{ block.super }}
+{% endblock %}

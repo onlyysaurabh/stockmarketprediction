@@ -1,301 +1,153 @@
-import pandas as pd
-import numpy as np
-from sklearn.preprocessing import MinMaxScaler
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense, Dropout
-from tensorflow.keras.callbacks import EarlyStopping
-import logging
-from typing import Tuple, Optional, Dict, Any
-
 import numpy as np
 import pandas as pd
 import logging
 from typing import Dict, List, Optional, Tuple, Union, Any
 from datetime import datetime, timedelta
+import os
 import tensorflow as tf
 from tensorflow.keras.models import Sequential, load_model as keras_load_model
-from tensorflow.keras.layers import LSTM, Dense, Dropout
-from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
+from tensorflow.keras.layers import LSTM, Dense, Dropout, Bidirectional, BatchNormalization, MultiHeadAttention
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.losses import Huber
+from tensorflow.keras.regularizers import l1_l2
 import matplotlib.pyplot as plt
-import os
-import shap
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from sklearn.model_selection import train_test_split
 from ._base_model import save_model, load_model, MODEL_STORAGE_DIR
 
-# Assuming _base_model.py is in the same directory or accessible via Python path
-try:
-    # LSTM might use save/load from base, but needs specific handling for Keras models
-    # from ._base_model import calculate_feature_importance # Use base for importance calc (SHAP needed) - Not used currently
-    # Keras models have their own save/load methods, usually preferred over joblib
-    pass # Keep try/except structure
-except ImportError:
-    logging.warning("Could not import from _base_model.")
-    def calculate_feature_importance(*args, **kwargs): return None
-
+# Suppress TensorFlow INFO and WARNING logs for cleaner output
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 logger = logging.getLogger(__name__)
 
-# Define features and target
-TARGET_COLUMN = 'Target_Close' # Predict next day's closing price
-# Example features (adjust based on data exploration and feature engineering)
-# LSTM can potentially handle more raw features, but scaling is crucial
-FEATURES = [
-    'AAPL_Close', 'AAPL_Open', 'AAPL_High', 'AAPL_Low', 'AAPL_Volume', # Stock features
-    'GC=F_Close', 'CL=F_Close', '^GSPC_Close', # Commodity/Index prices
-    'avg_positive', 'avg_negative', 'avg_neutral', 'news_count' # Sentiment features
-]
-# Note: Feature list needs refinement based on actual data from prediction_data_service.
+# Configuration options - can be optimized per stock if needed
+DEFAULT_SEQUENCE_LENGTH = 40  # Default window of historical data to use
+TARGET_COLUMN = 'Target_Close'  # Next day's closing price
 
 def create_lstm_sequences(data: np.ndarray, sequence_length: int) -> Tuple[np.ndarray, np.ndarray]:
     """
     Creates sequences of data for LSTM training.
-    Assumes the last column in 'data' is the target variable.
-
+    
     Args:
-        data (np.ndarray): Scaled data array (features + target).
-        sequence_length (int): The number of time steps in each sequence.
-
+        data (np.ndarray): Scaled data array (features + target)
+        sequence_length (int): The number of time steps in each sequence
+        
     Returns:
-        Tuple[np.ndarray, np.ndarray]: X (sequences of features) and y (target values).
+        Tuple[np.ndarray, np.ndarray]: X (sequences of features) and y (target values)
     """
     X, y = [], []
     for i in range(len(data) - sequence_length):
         # Sequence: data from i to i + sequence_length
         seq = data[i:(i + sequence_length)]
         # Target: the target value at the end of the sequence
-        target = data[i + sequence_length, -1] # Assumes target is the last column
+        target = data[i + sequence_length, 0]  # Target assumed to be first column
         X.append(seq)
         y.append(target)
     return np.array(X), np.array(y)
 
-def train_lstm(data: pd.DataFrame, stock_symbol: str, sequence_length: int = 60) -> Tuple[Optional[Any], Optional[MinMaxScaler], Optional[Dict[str, float]]]:
+def build_lstm_model(input_shape, complexity='medium', dropout_rate=0.3, regularization_factor=0.01):
     """
-    Trains an LSTM model on the prepared data.
-
-    Args:
-        data (pd.DataFrame): DataFrame from prediction_data_service.
-        stock_symbol (str): The stock symbol.
-        sequence_length (int): Number of past time steps to use for prediction.
-
-    Returns:
-        Tuple[Optional[keras.Model], Optional[MinMaxScaler], Optional[Dict[str, float]]]:
-            - The trained Keras LSTM model.
-            - The scaler used for the target variable (needed for inverse transform).
-            - Feature importance dictionary (placeholder for LSTM, SHAP needed).
-            Returns (None, None, None) if training fails.
-    """
-    logger.info(f"Starting LSTM training for {stock_symbol}...")
-    close_col = f'{stock_symbol}_Close'
-
-    # 1. Prepare Data & Feature Selection
-    # Create target column (next day's close)
-    data = data.copy()
-    data[TARGET_COLUMN] = data[close_col].shift(-1)
-    data.dropna(inplace=True) # Drop last row with NaN target
-
-    # Select features and target
-    lstm_features = [f'{stock_symbol}_Close', f'{stock_symbol}_Open', f'{stock_symbol}_High', f'{stock_symbol}_Low', f'{stock_symbol}_Volume'] + \
-                    [col for col in data.columns if col.endswith('_Close') and not col.startswith(stock_symbol)] + \
-                    ['avg_positive', 'avg_negative', 'avg_neutral', 'news_count']
-    
-    final_features = [f for f in lstm_features if f in data.columns]
-    if not final_features:
-        logger.error("No valid features found for LSTM.")
-        return None, None, None
-        
-    if TARGET_COLUMN not in data.columns:
-        logger.error(f"Target column '{TARGET_COLUMN}' not found for LSTM.")
-        return None, None, None
-        
-    logger.info(f"Using features for LSTM: {final_features}")
-    
-    # Include target in data for scaling and sequencing
-    data_to_scale = data[final_features + [TARGET_COLUMN]].copy()
-    
-    if data_to_scale.isnull().any().any():
-        logger.warning(f"Data for LSTM contains NaNs before scaling. Filling with 0 for {stock_symbol}.")
-        data_to_scale = data_to_scale.fillna(0) # Simple imputation
-
-    if data_to_scale.empty:
-        logger.error("Data is empty before scaling for LSTM.")
-        return None, None, None
-
-    # 2. Scale Data
-    # Scale all features and target together initially
-    scaler = MinMaxScaler(feature_range=(0, 1))
-    scaled_data = scaler.fit_transform(data_to_scale)
-
-    # Separate scaler for the target variable (needed for inverse transform later)
-    target_scaler = MinMaxScaler(feature_range=(0, 1))
-    target_scaler.fit(data[[TARGET_COLUMN]]) # Fit on the original target column
-
-    # 3. Create Sequences
-    X, y = create_lstm_sequences(scaled_data, sequence_length)
-
-    if X.shape[0] == 0:
-        logger.error(f"Not enough data to create sequences of length {sequence_length} for {stock_symbol}.")
-        return None, None, None
-
-    # Reshape X for LSTM input [samples, time steps, features]
-    # X = np.reshape(X, (X.shape[0], X.shape[1], X.shape[2])) # Already in correct shape from create_lstm_sequences if data includes target
-
-    # 4. Build LSTM Model
-    model = Sequential([
-        LSTM(units=50, return_sequences=True, input_shape=(X.shape[1], X.shape[2])),
-        Dropout(0.2),
-        LSTM(units=50, return_sequences=False),
-        Dropout(0.2),
-        Dense(units=25),
-        Dense(units=1) # Output layer: 1 node for predicting the target value
-    ])
-
-    model.compile(optimizer='adam', loss='mean_squared_error')
-    logger.info("LSTM model compiled.")
-    model.summary(print_fn=logger.info)
-
-    # 5. Train Model
-    # Use early stopping to prevent overfitting
-    early_stopping = EarlyStopping(monitor='loss', patience=10, restore_best_weights=True)
-
-    try:
-        history = model.fit(
-            X, y,
-            epochs=50, # Adjust epochs
-            batch_size=32, # Adjust batch size
-            callbacks=[early_stopping],
-            verbose=0 # Set to 1 or 2 for more verbose output during training
-        )
-        logger.info(f"LSTM model trained successfully for {stock_symbol}. Final loss: {history.history['loss'][-1]}")
-    except Exception as e:
-        logger.error(f"Error during LSTM model fitting for {stock_symbol}: {e}", exc_info=True)
-        return None, None, None
-
-    # 6. Feature Importance (Placeholder - requires SHAP for LSTMs)
-    # SHAP for LSTMs (e.g., DeepExplainer) can be complex to set up correctly
-    # importance = calculate_feature_importance(model, 'LSTM', X) # Pass appropriate data for SHAP
-    importance = {"placeholder_lstm": 1.0} # Dummy importance
-
-    return model, target_scaler, importance
-
-
-def predict_lstm(model: Any, data: pd.DataFrame, stock_symbol: str, sequence_length: int, target_scaler: MinMaxScaler) -> Optional[pd.DataFrame]:
-    """
-    Makes future predictions using a trained LSTM model.
-
-    Args:
-        model: The trained Keras LSTM model.
-        data (pd.DataFrame): DataFrame with recent historical data (at least sequence_length).
-        stock_symbol (str): The stock symbol.
-        sequence_length (int): Number of past time steps used for prediction.
-        target_scaler (MinMaxScaler): Scaler fitted on the target variable.
-
-    Returns:
-        Optional[pd.DataFrame]: DataFrame with the next step prediction. Includes 'Date' and 'Prediction'.
-                                Returns None if prediction fails.
-    """
-    logger.info(f"Making predictions with LSTM for {stock_symbol}...")
-
-    # 1. Prepare Input Data
-    # close_col = f'{stock_symbol}_Close' # Unused variable
-    lstm_features = [f'{stock_symbol}_Close', f'{stock_symbol}_Open', f'{stock_symbol}_High', f'{stock_symbol}_Low', f'{stock_symbol}_Volume'] + \
-                    [col for col in data.columns if col.endswith('_Close') and not col.startswith(stock_symbol)] + \
-                    ['avg_positive', 'avg_negative', 'avg_neutral', 'news_count']
-    
-    final_features = [f for f in lstm_features if f in data.columns]
-    if not final_features:
-        logger.error("No valid features found for LSTM prediction.")
-        return None
-
-    # Select the last 'sequence_length' data points for prediction input
-    # Need features + a placeholder for the target column for scaling consistency
-    input_data = data[final_features].iloc[-sequence_length:].copy()
-    
-    # Add a temporary target column (its value doesn't matter for scaling input features)
-    input_data['Target_Placeholder'] = 0 
-    
-    if input_data.isnull().any().any():
-        logger.warning(f"Prediction input data for LSTM contains NaNs. Filling with 0 for {stock_symbol}.")
-        input_data = input_data.fillna(0)
-
-    if len(input_data) < sequence_length:
-        logger.error(f"Not enough data ({len(input_data)}) to form prediction sequence of length {sequence_length}.")
-        return None
-
-    # 2. Scale Input Data
-    # Use the same scaler used during training (fit on features + target)
-    # Recreate the scaler based on training data distribution (or save/load the scaler)
-    # For simplicity, assume we refit the scaler here - THIS IS NOT IDEAL FOR PRODUCTION
-    # Ideally, save the scaler used in training and load it here.
-    scaler = MinMaxScaler(feature_range=(0, 1))
-    # Fit scaler on the historical data used for training (or a representative sample)
-    # This requires access to the original training data or saving the scaler state.
-    # Simplified approach (less accurate): fit on the available recent data + placeholder target
-    scaled_input_data = scaler.fit_transform(input_data)
-
-    # Remove the placeholder target column after scaling
-    scaled_input_sequence = scaled_input_data[:, :-1] 
-
-    # Reshape for LSTM [1, time steps, features]
-    X_pred = np.reshape(scaled_input_sequence, (1, sequence_length, len(final_features)))
-
-    # 3. Make Prediction
-    try:
-        predicted_scaled = model.predict(X_pred, verbose=0)
-        
-        # 4. Inverse Transform the Prediction
-        # Use the scaler that was specifically fit on the TARGET variable during training
-        predicted_value = target_scaler.inverse_transform(predicted_scaled)
-
-        # Create DataFrame for the result
-        # Predict for the next business day after the last date in the input data
-        last_date = data.index[-1]
-        prediction_date = last_date + pd.Timedelta(days=1)
-        # Adjust for weekends/holidays if necessary, e.g., using pandas BDay
-        # prediction_date = last_date + pd.offsets.BDay(1) 
-
-        results_df = pd.DataFrame({'Prediction': predicted_value[0]}, index=[prediction_date])
-        results_df.index.name = 'Date'
-
-        logger.info(f"LSTM prediction generated successfully for {stock_symbol} for date {prediction_date.date()}.")
-        return results_df
-
-    except Exception as e:
-        logger.error(f"Error during LSTM prediction for {stock_symbol}: {e}", exc_info=True)
-        return None
-
-# Note: Saving/Loading Keras models
-# model.save('lstm_model.h5') # Saves architecture, weights, optimizer state
-# from tensorflow.keras.models import load_model
-# loaded_model = load_model('lstm_model.h5')
-# Need to handle saving/loading scalers separately (e.g., using joblib)
-
-# Suppress TensorFlow INFO and WARNING logs
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-
-def create_sequences(data: np.ndarray, seq_length: int) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    Create input sequences and targets for LSTM training.
+    Build an LSTM model with customizable architecture complexity.
     
     Args:
-        data: Input data array
-        seq_length: Length of input sequences
+        input_shape: Shape of input data (sequence_length, features)
+        complexity: Model complexity - 'simple', 'medium', or 'complex'
+        dropout_rate: Rate of dropout for regularization
+        regularization_factor: L1L2 regularization factor
         
     Returns:
-        Tuple of (X, y) where X is the input sequences and y is the target values
+        Compiled Keras model
     """
-    X, y = [], []
-    for i in range(len(data) - seq_length):
-        X.append(data[i:i + seq_length])
-        y.append(data[i + seq_length, 0])  # Target is the first column (price)
-    return np.array(X), np.array(y)
+    reg = l1_l2(l1=regularization_factor, l2=regularization_factor)
+    
+    if complexity == 'simple':
+        model = Sequential([
+            LSTM(units=50, return_sequences=False, input_shape=input_shape, 
+                 kernel_regularizer=reg, recurrent_regularizer=reg),
+            Dropout(dropout_rate),
+            Dense(units=1)
+        ])
+    elif complexity == 'medium':
+        model = Sequential([
+            LSTM(units=64, return_sequences=True, input_shape=input_shape, 
+                 kernel_regularizer=reg, recurrent_regularizer=reg),
+            Dropout(dropout_rate),
+            LSTM(units=64, return_sequences=False, 
+                 kernel_regularizer=reg, recurrent_regularizer=reg),
+            Dropout(dropout_rate),
+            Dense(units=32, activation='relu'),
+            Dense(units=1)
+        ])
+    else:  # complex
+        model = Sequential([
+            Bidirectional(LSTM(units=64, return_sequences=True, input_shape=input_shape, 
+                              kernel_regularizer=reg, recurrent_regularizer=reg)),
+            Dropout(dropout_rate),
+            BatchNormalization(),
+            Bidirectional(LSTM(units=64, return_sequences=False, 
+                              kernel_regularizer=reg, recurrent_regularizer=reg)),
+            Dropout(dropout_rate),
+            BatchNormalization(),
+            Dense(units=32, activation='relu'),
+            Dense(units=1)
+        ])
+    
+    # Use Huber loss for robustness to outliers
+    model.compile(optimizer=Adam(learning_rate=0.001), loss=Huber())
+    return model
+
+def build_attention_lstm_model(input_shape, units=64, dropout_rate=0.2, regularization_factor=0.01):
+    """
+    Build an LSTM model with attention mechanism.
+    
+    Args:
+        input_shape: Shape of input data (sequence_length, features)
+        units: Number of units in LSTM layers
+        dropout_rate: Rate of dropout for regularization
+        regularization_factor: L1L2 regularization factor
+        
+    Returns:
+        Compiled Keras model
+    """
+    reg = l1_l2(l1=regularization_factor, l2=regularization_factor)
+    
+    # Input layer
+    inputs = tf.keras.Input(shape=input_shape)
+    
+    # LSTM layer
+    lstm_out = LSTM(units=units, return_sequences=True, 
+                   kernel_regularizer=reg, recurrent_regularizer=reg)(inputs)
+    lstm_out = Dropout(dropout_rate)(lstm_out)
+    
+    # Multi-head attention layer
+    attention_output = MultiHeadAttention(num_heads=4, key_dim=units//4)(lstm_out, lstm_out)
+    attention_output = Dropout(dropout_rate)(attention_output)
+    
+    # Add & Normalize
+    normalized = BatchNormalization()(attention_output + lstm_out)
+    
+    # Another LSTM layer
+    lstm_out2 = LSTM(units=units, return_sequences=False)(normalized)
+    lstm_out2 = Dropout(dropout_rate)(lstm_out2)
+    
+    # Dense layers
+    dense = Dense(units=32, activation='relu')(lstm_out2)
+    output = Dense(units=1)(dense)
+    
+    # Create model
+    model = tf.keras.Model(inputs=inputs, outputs=output)
+    
+    # Use Huber loss for robustness to outliers
+    model.compile(optimizer=Adam(learning_rate=0.001), loss=Huber())
+    return model
 
 def train_lstm_model(stock_symbol: str, data: pd.DataFrame, target_column: str = None,
-                    feature_columns: List[str] = None, test_size: float = 0.2,
-                    sequence_length: int = 30) -> Dict:
+                   feature_columns: List[str] = None, test_size: float = 0.2,
+                   val_size: float = 0.1, sequence_length: int = None) -> Dict:
     """
-    Train an LSTM model for stock price prediction.
+    Train an LSTM model for stock price prediction with improved architecture and training.
     
     Args:
         stock_symbol: Stock symbol for the model
@@ -303,6 +155,7 @@ def train_lstm_model(stock_symbol: str, data: pd.DataFrame, target_column: str =
         target_column: Column to predict (default: stock's Close price)
         feature_columns: List of feature column names to include
         test_size: Proportion of data to use for testing
+        val_size: Proportion of training data to use for validation
         sequence_length: Number of time steps to use for each prediction
         
     Returns:
@@ -313,17 +166,27 @@ def train_lstm_model(stock_symbol: str, data: pd.DataFrame, target_column: str =
         if target_column is None:
             target_column = f"{stock_symbol}_Close"
         
+        # Set default sequence length if not provided
+        if sequence_length is None:
+            sequence_length = DEFAULT_SEQUENCE_LENGTH
+        
         # Ensure data is sorted by date
         data = data.sort_index()
         
         # Set default feature columns if not provided
         if feature_columns is None:
-            # For LSTM, we often want to include price-related columns of the target stock
+            # For LSTM, include relevant price and volume data
             feature_columns = [col for col in data.columns 
-                               if any(price_type in col for price_type in 
-                                      ['Open', 'High', 'Low', 'Close', 'Volume'])]
+                              if any(price_type in col for price_type in 
+                                   ['Open', 'High', 'Low', 'Close', 'Volume'])]
+            
+            # Also include sentiment features if available
+            sentiment_features = ['avg_positive', 'avg_negative', 'avg_neutral', 'news_count']
+            for feat in sentiment_features:
+                if feat in data.columns:
+                    feature_columns.append(feat)
         
-        logger.info(f"Training LSTM model for {stock_symbol} with {len(feature_columns)} features.")
+        logger.info(f"Training LSTM model for {stock_symbol} with {len(feature_columns)} features")
         
         # Check if target column exists in features, if not, add it
         if target_column not in feature_columns:
@@ -331,10 +194,10 @@ def train_lstm_model(stock_symbol: str, data: pd.DataFrame, target_column: str =
         
         # Extract features and ensure target column is the first column
         feature_columns.remove(target_column)
-        feature_columns = [target_column] + feature_columns  # Target is first
+        selected_columns = [target_column] + feature_columns  # Target is first for easier sequence creation
         
         # Extract selected features
-        dataset = data[feature_columns].values
+        dataset = data[selected_columns].values
         
         # Scale the data
         scaler = MinMaxScaler(feature_range=(0, 1))
@@ -346,104 +209,187 @@ def train_lstm_model(stock_symbol: str, data: pd.DataFrame, target_column: str =
         target_scaler.fit(target_data)
         
         # Create sequences
-        X, y = create_sequences(scaled_data, sequence_length)
+        X, y = create_lstm_sequences(scaled_data, sequence_length)
         
-        # Split into training and testing sets
-        train_size = int(len(X) * (1 - test_size))
-        X_train, X_test = X[:train_size], X[train_size:]
-        y_train, y_test = y[:train_size], y[train_size:]
+        if len(X) < 100:  # Minimum data required
+            logger.error(f"Not enough data for LSTM training. Need at least {100+sequence_length} data points.")
+            return None
         
-        # Build the LSTM model
-        model = Sequential([
-            LSTM(units=50, return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])),
-            Dropout(0.2),
-            LSTM(units=50, return_sequences=False),
-            Dropout(0.2),
-            Dense(units=25),
-            Dense(units=1)
-        ])
+        # Split into training, validation and testing sets
+        # First split out test set
+        X_train_val, X_test, y_train_val, y_test = train_test_split(
+            X, y, test_size=test_size, shuffle=False  # Keep chronological order
+        )
+        
+        # Then split training set into training and validation
+        X_train, X_val, y_train, y_val = train_test_split(
+            X_train_val, y_train_val, test_size=val_size/(1-test_size), shuffle=False
+        )
         
         # Create a directory for model checkpoints and diagnostics
         model_dir = os.path.join(MODEL_STORAGE_DIR, 'keras_models', stock_symbol)
         os.makedirs(model_dir, exist_ok=True)
         
-        # Compile the model
-        model.compile(optimizer=Adam(learning_rate=0.001), loss='mean_squared_error')
+        # Try different model architectures (simple, medium, complex) based on data size
+        if len(X_train) < 500:
+            model_complexity = 'simple'
+            batch_size = 16
+            epochs = 150
+        elif len(X_train) < 2000:
+            model_complexity = 'medium'
+            batch_size = 32
+            epochs = 200
+        else:
+            model_complexity = 'complex'
+            batch_size = 64
+            epochs = 300
         
-        # Callbacks for training
+        logger.info(f"Using {model_complexity} LSTM architecture with {len(X_train)} training samples")
+        
+        # Define callbacks for training
         callbacks = [
-            EarlyStopping(patience=10, monitor='val_loss', restore_best_weights=True),
+            EarlyStopping(
+                monitor='val_loss',
+                patience=30,
+                restore_best_weights=True,
+                verbose=1
+            ),
             ModelCheckpoint(
                 filepath=os.path.join(model_dir, f"{stock_symbol}_lstm_checkpoint.h5"),
                 save_best_only=True,
-                monitor='val_loss'
+                monitor='val_loss',
+                verbose=0
+            ),
+            ReduceLROnPlateau(
+                monitor='val_loss',
+                factor=0.5,
+                patience=10,
+                min_lr=0.0001,
+                verbose=1
             )
         ]
         
-        # Train the model
-        history = model.fit(
-            X_train, y_train,
-            epochs=100,
-            batch_size=32,
-            validation_split=0.1,
-            callbacks=callbacks,
-            verbose=1
-        )
+        # Build and train the model
+        input_shape = (X_train.shape[1], X_train.shape[2])
+        
+        # Try both standard LSTM and attention LSTM models
+        models_to_try = {
+            'standard': build_lstm_model(input_shape, complexity=model_complexity),
+            'attention': build_attention_lstm_model(input_shape)
+        }
+        
+        best_val_loss = float('inf')
+        best_model_type = None
+        best_model = None
+        best_history = None
+        
+        # Train each model type and select the best one
+        for model_type, model in models_to_try.items():
+            logger.info(f"Training {model_type} LSTM model...")
+            
+            history = model.fit(
+                X_train, y_train,
+                epochs=epochs,
+                batch_size=batch_size,
+                validation_data=(X_val, y_val),
+                callbacks=callbacks,
+                verbose=1
+            )
+            
+            # Check if this model is better than previous ones
+            val_loss = min(history.history['val_loss'])
+            if val_loss < best_val_loss:
+                best_val_loss = val_loss
+                best_model_type = model_type
+                best_model = model
+                best_history = history
+        
+        logger.info(f"Selected {best_model_type} LSTM model with validation loss: {best_val_loss:.6f}")
         
         # Save training history plot
         plt.figure(figsize=(12, 6))
-        plt.plot(history.history['loss'], label='Training Loss')
-        plt.plot(history.history['val_loss'], label='Validation Loss')
-        plt.title(f'LSTM Training History for {stock_symbol}')
+        plt.plot(best_history.history['loss'], label='Training Loss')
+        plt.plot(best_history.history['val_loss'], label='Validation Loss')
+        plt.title(f'LSTM Training History for {stock_symbol} ({best_model_type})')
         plt.xlabel('Epochs')
-        plt.ylabel('Loss (MSE)')
+        plt.ylabel('Loss (Huber)')
         plt.legend()
         plt.savefig(os.path.join(model_dir, f'{stock_symbol}_lstm_training.png'))
         plt.close()
         
         # Make predictions
-        train_predict = model.predict(X_train)
-        test_predict = model.predict(X_test)
+        train_predict = best_model.predict(X_train)
+        val_predict = best_model.predict(X_val)
+        test_predict = best_model.predict(X_test)
         
         # Inverse transform to get actual prices
-        train_predict_actual = np.zeros((train_predict.shape[0], dataset.shape[1]))
-        train_predict_actual[:, 0] = train_predict.flatten()
-        train_predict_actual = scaler.inverse_transform(train_predict_actual)[:, 0]
+        # Create dummy arrays with the right shape for inverse_transform
+        train_predict_dummy = np.zeros((len(train_predict), len(selected_columns)))
+        train_predict_dummy[:, 0] = train_predict.flatten()
+        train_predict_actual = scaler.inverse_transform(train_predict_dummy)[:, 0]
         
-        test_predict_actual = np.zeros((test_predict.shape[0], dataset.shape[1]))
-        test_predict_actual[:, 0] = test_predict.flatten()
-        test_predict_actual = scaler.inverse_transform(test_predict_actual)[:, 0]
+        val_predict_dummy = np.zeros((len(val_predict), len(selected_columns)))
+        val_predict_dummy[:, 0] = val_predict.flatten()
+        val_predict_actual = scaler.inverse_transform(val_predict_dummy)[:, 0]
+        
+        test_predict_dummy = np.zeros((len(test_predict), len(selected_columns)))
+        test_predict_dummy[:, 0] = test_predict.flatten()
+        test_predict_actual = scaler.inverse_transform(test_predict_dummy)[:, 0]
         
         # Get actual target values
-        y_train_actual = np.zeros((y_train.shape[0], dataset.shape[1]))
-        y_train_actual[:, 0] = y_train
-        y_train_actual = scaler.inverse_transform(y_train_actual)[:, 0]
+        y_train_dummy = np.zeros((len(y_train), len(selected_columns)))
+        y_train_dummy[:, 0] = y_train
+        y_train_actual = scaler.inverse_transform(y_train_dummy)[:, 0]
         
-        y_test_actual = np.zeros((y_test.shape[0], dataset.shape[1]))
-        y_test_actual[:, 0] = y_test
-        y_test_actual = scaler.inverse_transform(y_test_actual)[:, 0]
+        y_val_dummy = np.zeros((len(y_val), len(selected_columns)))
+        y_val_dummy[:, 0] = y_val
+        y_val_actual = scaler.inverse_transform(y_val_dummy)[:, 0]
+        
+        y_test_dummy = np.zeros((len(y_test), len(selected_columns)))
+        y_test_dummy[:, 0] = y_test
+        y_test_actual = scaler.inverse_transform(y_test_dummy)[:, 0]
         
         # Calculate performance metrics
         train_mse = mean_squared_error(y_train_actual, train_predict_actual)
+        val_mse = mean_squared_error(y_val_actual, val_predict_actual)
         test_mse = mean_squared_error(y_test_actual, test_predict_actual)
+        
         train_mae = mean_absolute_error(y_train_actual, train_predict_actual)
+        val_mae = mean_absolute_error(y_val_actual, val_predict_actual)
         test_mae = mean_absolute_error(y_test_actual, test_predict_actual)
+        
         train_r2 = r2_score(y_train_actual, train_predict_actual)
+        val_r2 = r2_score(y_val_actual, val_predict_actual)
         test_r2 = r2_score(y_test_actual, test_predict_actual)
         
         logger.info(f"Training MSE: {train_mse:.4f}, MAE: {train_mae:.4f}, R²: {train_r2:.4f}")
+        logger.info(f"Validation MSE: {val_mse:.4f}, MAE: {val_mae:.4f}, R²: {val_r2:.4f}")
         logger.info(f"Testing MSE: {test_mse:.4f}, MAE: {test_mae:.4f}, R²: {test_r2:.4f}")
         
+        # Save the Keras model separately (for easier loading)
+        keras_model_path = os.path.join(model_dir, f"{stock_symbol}_lstm_model.h5")
+        best_model.save(keras_model_path)
+        
+        # Calculate feature importance using permutation importance
+        feature_importance = calculate_lstm_feature_importance(best_model, X_test, selected_columns)
+        
         # Plot predictions vs actual
-        plt.figure(figsize=(12, 6))
+        # Get dates aligned with predictions
         offset = sequence_length
+        train_offset = offset
+        val_offset = train_offset + len(train_predict_actual)
+        test_offset = val_offset + len(val_predict_actual)
         
         # Get the original dates for plotting
-        train_dates = data.index[offset:offset + len(train_predict_actual)]
-        test_dates = data.index[offset + len(train_predict_actual):offset + len(train_predict_actual) + len(test_predict_actual)]
+        train_dates = data.index[train_offset:train_offset + len(train_predict_actual)]
+        val_dates = data.index[val_offset:val_offset + len(val_predict_actual)]
+        test_dates = data.index[test_offset:test_offset + len(test_predict_actual)]
         
-        plt.plot(train_dates, y_train_actual, label='Training Actual')
-        plt.plot(train_dates, train_predict_actual, label='Training Predicted')
+        plt.figure(figsize=(12, 6))
+        plt.plot(train_dates, y_train_actual, label='Training Actual', alpha=0.7)
+        plt.plot(train_dates, train_predict_actual, label='Training Predicted', alpha=0.7)
+        plt.plot(val_dates, y_val_actual, label='Validation Actual', alpha=0.7)
+        plt.plot(val_dates, val_predict_actual, label='Validation Predicted', alpha=0.7)
         plt.plot(test_dates, y_test_actual, label='Testing Actual')
         plt.plot(test_dates, test_predict_actual, label='Testing Predicted')
         plt.title(f'LSTM Predictions vs Actual for {stock_symbol}')
@@ -454,29 +400,26 @@ def train_lstm_model(stock_symbol: str, data: pd.DataFrame, target_column: str =
         plt.savefig(os.path.join(model_dir, f'{stock_symbol}_lstm_predictions.png'))
         plt.close()
         
-        # Save the Keras model separately (for easier loading)
-        keras_model_path = os.path.join(model_dir, f"{stock_symbol}_lstm_model.h5")
-        model.save(keras_model_path)
-        
-        # Create a dictionary of feature importance using SHAP
-        # Note: SHAP for LSTM is more complex, so we'll use a simplified version
-        feature_importance = calculate_lstm_feature_importance(model, X_test, feature_columns)
-        
         # Create a complete model dict for saving
         model_dict = {
             'model': None,  # We don't save the Keras model directly with joblib
             'keras_model_path': keras_model_path,
+            'model_type': best_model_type,
             'sequence_length': sequence_length,
             'feature_columns': feature_columns,
             'target_column': target_column,
+            'selected_columns': selected_columns,  # All columns including target
             'scaler': scaler,
             'target_scaler': target_scaler,
             'performance': {
                 'train_mse': float(train_mse),
+                'val_mse': float(val_mse),
                 'test_mse': float(test_mse),
                 'train_mae': float(train_mae),
+                'val_mae': float(val_mae),
                 'test_mae': float(test_mae),
                 'train_r2': float(train_r2),
+                'val_r2': float(val_r2),
                 'test_r2': float(test_r2)
             },
             'feature_importance': feature_importance,
@@ -495,12 +438,12 @@ def train_lstm_model(stock_symbol: str, data: pd.DataFrame, target_column: str =
         return model_dict
     
     except Exception as e:
-        logger.error(f"Error training LSTM model for {stock_symbol}: {str(e)}")
+        logger.error(f"Error training LSTM model for {stock_symbol}: {str(e)}", exc_info=True)
         return None
 
 def calculate_lstm_feature_importance(model: Any, X: np.ndarray, feature_names: List[str]) -> Dict[str, float]:
     """
-    Calculate feature importance for LSTM models using a permutation importance approach.
+    Calculate feature importance for LSTM models using permutation importance.
     
     Args:
         model: Trained LSTM model
@@ -511,24 +454,30 @@ def calculate_lstm_feature_importance(model: Any, X: np.ndarray, feature_names: 
         Dictionary of feature importance scores
     """
     try:
-        # Basic permutation importance
+        # Basic permutation importance approach
         # For each feature, we permute its values and measure the increase in error
-        base_prediction = model.predict(X)
-        base_error = np.mean((base_prediction.flatten() - X[:, -1, 0])**2)
+        
+        # First, get baseline predictions
+        baseline_preds = model.predict(X)
+        baseline_error = np.mean(np.square(baseline_preds.flatten() - X[:, -1, 0]))
         
         importance = {}
+        
+        # For each feature, permute its values and calculate importance
         for i in range(X.shape[2]):  # For each feature
+            # Make a copy of the input data
             X_permuted = X.copy()
+            
             # Permute the feature across all sequences and time steps
             for t in range(X.shape[1]):  # For each time step
                 np.random.shuffle(X_permuted[:, t, i])
             
-            # Make prediction with permuted feature
-            perm_prediction = model.predict(X_permuted)
-            perm_error = np.mean((perm_prediction.flatten() - X[:, -1, 0])**2)
+            # Make predictions with permuted feature
+            perm_preds = model.predict(X_permuted)
+            perm_error = np.mean(np.square(perm_preds.flatten() - X[:, -1, 0]))
             
-            # Importance is the increase in error
-            feature_importance = max(0, perm_error - base_error)
+            # Importance is the increase in error (can't be negative)
+            feature_importance = max(0, perm_error - baseline_error)
             importance[feature_names[i]] = float(feature_importance)
         
         # Normalize to sum to 1.0
@@ -545,7 +494,7 @@ def calculate_lstm_feature_importance(model: Any, X: np.ndarray, feature_names: 
 
 def predict_next_day(model_path: str, latest_data: pd.DataFrame) -> Optional[float]:
     """
-    Make a prediction for the next day's price.
+    Make a prediction for the next day's stock price.
     
     Args:
         model_path: Path to the saved model
@@ -564,9 +513,14 @@ def predict_next_day(model_path: str, latest_data: pd.DataFrame) -> Optional[flo
         # Extract components
         keras_model_path = model_dict['keras_model_path']
         sequence_length = model_dict['sequence_length']
+        selected_columns = model_dict.get('selected_columns')
         feature_columns = model_dict['feature_columns']
+        target_column = model_dict['target_column']
         scaler = model_dict['scaler']
-        target_scaler = model_dict['target_scaler']
+        
+        # Handle case where we don't have selected_columns (older models)
+        if selected_columns is None:
+            selected_columns = [target_column] + feature_columns
         
         # Load the Keras model
         model = keras_load_model(keras_model_path)
@@ -577,32 +531,43 @@ def predict_next_day(model_path: str, latest_data: pd.DataFrame) -> Optional[flo
             logger.error(f"Missing features for prediction: {missing_features}")
             return None
         
-        # Prepare the sequence
-        # We need the last 'sequence_length' data points
+        # Check if we have enough data for the sequence
         if len(latest_data) < sequence_length:
-            logger.error(f"Not enough data points. Need at least {sequence_length}")
+            logger.error(f"Not enough data for prediction. Need at least {sequence_length} samples.")
             return None
         
-        # Extract and scale the data
-        input_data = latest_data[feature_columns].values[-sequence_length:]
+        # Prepare input data - need both features and target in same order as training
+        input_df = latest_data[feature_columns].copy()
+        
+        # Add target column (value doesn't matter, will be scaled and discarded)
+        if target_column not in input_df.columns:
+            input_df[target_column] = input_df[feature_columns[0]]  # Placeholder
+        
+        # Reorder columns to match training data
+        input_df = input_df[[target_column] + feature_columns]
+        
+        # Get the last sequence_length data points
+        input_data = input_df.values[-sequence_length:]
+        
+        # Scale the data
         scaled_data = scaler.transform(input_data)
         
-        # Reshape to match LSTM input shape (1, sequence_length, n_features)
-        X = scaled_data.reshape(1, sequence_length, len(feature_columns))
+        # Reshape to match LSTM input shape [1, sequence_length, features]
+        X = scaled_data.reshape(1, sequence_length, len(selected_columns))
         
         # Make prediction
         scaled_prediction = model.predict(X)[0, 0]
         
-        # Inverse transform to get the actual price
-        # We need to create a dummy array with the right shape
-        dummy = np.zeros((1, len(feature_columns)))
+        # Inverse transform to get actual price
+        # Create dummy array with the right shape
+        dummy = np.zeros((1, len(selected_columns)))
         dummy[0, 0] = scaled_prediction
         prediction = scaler.inverse_transform(dummy)[0, 0]
         
         return float(prediction)
     
     except Exception as e:
-        logger.error(f"Error predicting with LSTM model: {str(e)}")
+        logger.error(f"Error predicting with LSTM model: {str(e)}", exc_info=True)
         return None
 
 def predict_future(model_path: str, latest_data: pd.DataFrame, days: int = 7) -> Optional[List[float]]:
@@ -627,61 +592,77 @@ def predict_future(model_path: str, latest_data: pd.DataFrame, days: int = 7) ->
         # Extract components
         keras_model_path = model_dict['keras_model_path']
         sequence_length = model_dict['sequence_length']
+        selected_columns = model_dict.get('selected_columns')
         feature_columns = model_dict['feature_columns']
         target_column = model_dict['target_column']
         scaler = model_dict['scaler']
-        target_scaler = model_dict['target_scaler']
+        
+        # Handle case where we don't have selected_columns (older models)
+        if selected_columns is None:
+            selected_columns = [target_column] + feature_columns
         
         # Load the Keras model
         model = keras_load_model(keras_model_path)
         
-        # Verify that all required features are present
+        # Verify required features
         missing_features = [f for f in feature_columns if f not in latest_data.columns]
         if missing_features:
             logger.error(f"Missing features for prediction: {missing_features}")
             return None
         
-        # Start with the last 'sequence_length' points from the data
+        # Check if we have enough data
         if len(latest_data) < sequence_length:
-            logger.error(f"Not enough data points. Need at least {sequence_length}")
+            logger.error(f"Not enough data for prediction. Need at least {sequence_length} samples.")
             return None
         
-        # Make a copy of the latest data to avoid modifying the original
-        current_data = latest_data.copy()
+        # Make a copy of the data to extend with predictions
+        working_df = latest_data.copy()
         predictions = []
         
         for _ in range(days):
-            # Get the last sequence_length data points
-            input_data = current_data[feature_columns].values[-sequence_length:]
+            # Prepare input data
+            input_df = working_df[feature_columns].copy()
+            
+            # Add target column (value doesn't matter for input)
+            if target_column not in input_df.columns:
+                input_df[target_column] = input_df[feature_columns[0]]  # Placeholder
+            
+            # Reorder columns
+            input_df = input_df[[target_column] + feature_columns]
+            
+            # Get latest sequence
+            input_data = input_df.values[-sequence_length:]
+            
+            # Scale the data
             scaled_data = scaler.transform(input_data)
             
-            # Reshape for prediction
-            X = scaled_data.reshape(1, sequence_length, len(feature_columns))
+            # Reshape for LSTM
+            X = scaled_data.reshape(1, sequence_length, len(selected_columns))
             
             # Make prediction
             scaled_prediction = model.predict(X)[0, 0]
             
             # Inverse transform
-            dummy = np.zeros((1, len(feature_columns)))
+            dummy = np.zeros((1, len(selected_columns)))
             dummy[0, 0] = scaled_prediction
-            prediction = scaler.inverse_transform(dummy)[0, 0]
-            predictions.append(float(prediction))
+            prediction = float(scaler.inverse_transform(dummy)[0, 0])
+            predictions.append(prediction)
             
-            # Create a new row for the next prediction
-            new_row = current_data.iloc[-1:].copy()
-            new_row.index = [new_row.index[0] + timedelta(days=1)]
+            # Create a new row with prediction
+            new_row = pd.DataFrame(index=[working_df.index[-1] + timedelta(days=1)])
             
-            # Update with prediction
+            # For features, use the last known values (simplistic approach)
+            for col in feature_columns:
+                new_row[col] = working_df[col].iloc[-1]
+            
+            # Update target column with prediction
             new_row[target_column] = prediction
             
-            # For other features, use the last known values (simplification)
-            # In a real-world scenario, we might have more sophisticated ways to project other features
-            
-            # Append to current data
-            current_data = pd.concat([current_data, new_row])
+            # Add to working data
+            working_df = pd.concat([working_df, new_row])
         
         return predictions
     
     except Exception as e:
-        logger.error(f"Error making future predictions with LSTM model: {str(e)}")
+        logger.error(f"Error making future predictions with LSTM model: {str(e)}", exc_info=True)
         return None

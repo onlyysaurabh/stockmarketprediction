@@ -1,0 +1,545 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block extrastyle %}{{ block.super }}
+    {# Include form media CSS if any #}
+    {{ media.css }}
+    <link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}">
+    <link rel="stylesheet" type="text/css" href="{% static "admin/css/changelists.css" %}">
+    <style>
+        /* Custom styles for the fetch news form */
+        .stock-selection-container {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .filter-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+        }
+        
+        .filter-option {
+            display: flex;
+            align-items: center;
+        }
+        
+        .filter-option label {
+            margin-right: 5px;
+            font-weight: bold;
+        }
+        
+        .stock-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background-color: #fff;
+        }
+        
+        .stock-item {
+            display: flex;
+            align-items: center;
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .stock-item:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .stock-item input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        
+        .stock-item .stock-info {
+            flex-grow: 1;
+        }
+        
+        .stock-item .stock-symbol {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .stock-item .stock-name {
+            color: #666;
+        }
+        
+        .stock-item .stock-industry,
+        .stock-item .stock-sector {
+            color: #888;
+            font-size: 0.9em;
+        }
+        
+        .select-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .select-actions button {
+            padding: 5px 10px;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        .select-actions button:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .date-range-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .date-range-container .form-row {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .results-count {
+            font-weight: bold;
+            margin-top: 10px;
+            padding: 5px;
+            background-color: #e8f5e9;
+            border-radius: 3px;
+            text-align: center;
+        }
+        
+        .flex-container {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        /* Show selected stocks in a more compact list */
+        .selected-stocks {
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 10px;
+            margin-top: 10px;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        /* Preselected stocks message */
+        .preselected-message {
+            padding: 10px;
+            background-color: #e3f2fd;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+
+        /* News stats display */
+        .news-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            flex: 1;
+            min-width: 150px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1976d2;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #555;
+        }
+
+        /* Custom action buttons */
+        .custom-submit-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .custom-submit-row input[type="submit"] {
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+
+        .submit-continue {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+        }
+
+        .submit-view {
+            background-color: #2196f3;
+            color: white;
+            border: none;
+        }
+
+        /* Quick actions section */
+        .quick-actions {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f1f8e9;
+            border: 1px solid #c5e1a5;
+            border-radius: 4px;
+        }
+
+        .quick-actions h3 {
+            margin-top: 0;
+            color: #558b2f;
+        }
+
+        .quick-action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .quick-action-button {
+            padding: 8px 12px;
+            background-color: #8bc34a;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .quick-action-button:hover {
+            background-color: #7cb342;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 20px;
+        }
+    </style>
+{% endblock %}
+
+{% block extrahead %}{{ block.super }}
+    {# Include form media JS if any (for date picker etc.) #}
+    {{ media.js }}
+    <script src="{% url 'admin:jsi18n' %}"></script> {# Required for admin date widget #}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Function to filter stocks based on sector and industry selectors
+            function filterStocks() {
+                const sectorFilter = document.getElementById('sector-filter').value;
+                const industryFilter = document.getElementById('industry-filter').value;
+                const searchFilter = document.getElementById('search-filter').value.toLowerCase();
+                const stockItems = document.querySelectorAll('.stock-item');
+                let visibleCount = 0;
+                
+                stockItems.forEach(function(item) {
+                    const sector = item.getAttribute('data-sector') || '';
+                    const industry = item.getAttribute('data-industry') || '';
+                    const symbol = item.querySelector('.stock-symbol').innerText.toLowerCase();
+                    const name = (item.querySelector('.stock-name')?.innerText || '').toLowerCase();
+                    
+                    const matchesSector = sectorFilter === '' || sector === sectorFilter;
+                    const matchesIndustry = industryFilter === '' || industry === industryFilter;
+                    const matchesSearch = searchFilter === '' || 
+                                         symbol.includes(searchFilter) || 
+                                         name.includes(searchFilter);
+                    
+                    if (matchesSector && matchesIndustry && matchesSearch) {
+                        item.style.display = '';
+                        visibleCount++;
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+                
+                // Update visible count
+                document.getElementById('visible-count').innerText = visibleCount;
+                document.getElementById('total-count').innerText = stockItems.length;
+            }
+            
+            // Attach event listeners to filters
+            document.getElementById('sector-filter')?.addEventListener('change', filterStocks);
+            document.getElementById('industry-filter')?.addEventListener('change', filterStocks);
+            document.getElementById('search-filter')?.addEventListener('input', filterStocks);
+            
+            // Select/Deselect all visible stocks
+            document.getElementById('select-all-visible')?.addEventListener('click', function() {
+                const visibleItems = document.querySelectorAll('.stock-item:not([style*="display: none"]) input[type="checkbox"]');
+                visibleItems.forEach(checkbox => checkbox.checked = true);
+                updateSelectedCount();
+            });
+            
+            document.getElementById('deselect-all')?.addEventListener('click', function() {
+                const checkboxes = document.querySelectorAll('.stock-item input[type="checkbox"]');
+                checkboxes.forEach(checkbox => checkbox.checked = false);
+                updateSelectedCount();
+            });
+
+            // Quick actions
+            document.getElementById('select-tech')?.addEventListener('click', function() {
+                document.getElementById('sector-filter').value = 'Technology';
+                filterStocks();
+                document.getElementById('select-all-visible').click();
+            });
+            
+            document.getElementById('select-finance')?.addEventListener('click', function() {
+                document.getElementById('sector-filter').value = 'Financial Services';
+                filterStocks();
+                document.getElementById('select-all-visible').click();
+            });
+            
+            document.getElementById('select-healthcare')?.addEventListener('click', function() {
+                document.getElementById('sector-filter').value = 'Healthcare';
+                filterStocks();
+                document.getElementById('select-all-visible').click();
+            });
+            
+            document.getElementById('select-top-50')?.addEventListener('click', function() {
+                const stockItems = document.querySelectorAll('.stock-item');
+                const limit = Math.min(50, stockItems.length);
+                
+                // First uncheck all
+                stockItems.forEach(item => {
+                    const checkbox = item.querySelector('input[type="checkbox"]');
+                    checkbox.checked = false;
+                });
+                
+                // Then check the first 50
+                for(let i = 0; i < limit; i++) {
+                    const checkbox = stockItems[i].querySelector('input[type="checkbox"]');
+                    checkbox.checked = true;
+                }
+                
+                updateSelectedCount();
+            });
+            
+            // Function to update the selected count
+            function updateSelectedCount() {
+                const selectedCount = document.querySelectorAll('.stock-item input[type="checkbox"]:checked').length;
+                document.getElementById('selected-count').innerText = selectedCount;
+            }
+            
+            // Add change event to all checkboxes
+            document.querySelectorAll('.stock-item input[type="checkbox"]').forEach(function(checkbox) {
+                checkbox?.addEventListener('change', updateSelectedCount);
+            });
+            
+            // Initialize filters and counts
+            filterStocks();
+            updateSelectedCount();
+
+            // Handle date quick selection buttons
+            document.getElementById('last-week')?.addEventListener('click', function() {
+                const today = new Date();
+                const lastWeek = new Date();
+                lastWeek.setDate(today.getDate() - 7);
+                
+                document.getElementById('id_start_date').value = formatDate(lastWeek);
+                document.getElementById('id_end_date').value = formatDate(today);
+            });
+            
+            document.getElementById('last-month')?.addEventListener('click', function() {
+                const today = new Date();
+                const lastMonth = new Date();
+                lastMonth.setDate(today.getDate() - 30);
+                
+                document.getElementById('id_start_date').value = formatDate(lastMonth);
+                document.getElementById('id_end_date').value = formatDate(today);
+            });
+            
+            document.getElementById('year-to-date')?.addEventListener('click', function() {
+                const today = new Date();
+                const startOfYear = new Date(today.getFullYear(), 0, 1);
+                
+                document.getElementById('id_start_date').value = formatDate(startOfYear);
+                document.getElementById('id_end_date').value = formatDate(today);
+            });
+            
+            function formatDate(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+        });
+    </script>
+{% endblock %}
+
+{% block coltype %}colM{% endblock %}
+
+{% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }} change-form{% endblock %}
+
+{% if not is_popup %}
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+&rsaquo; <a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+&rsaquo; {% translate 'Fetch News' %}
+</div>
+{% endblock %}
+{% endif %}
+
+{% block content %}
+<div id="content-main">
+    <form method="post" id="fetch-news-form">
+        {% csrf_token %}
+        
+        <h1>{{ title }}</h1>
+        
+        {% if subtitle %}
+        <p class="subtitle">{{ subtitle }}</p>
+        {% endif %}
+
+        {% if is_standalone and news_stats %}
+        <div class="news-stats">
+            <div class="stat-box">
+                <div class="stat-number">{{ news_stats.total_news }}</div>
+                <div class="stat-label">Total News Articles</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">{{ news_stats.recent_news }}</div>
+                <div class="stat-label">Articles From Last 7 Days</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">{{ news_stats.stock_count }}</div>
+                <div class="stat-label">Stocks With News</div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if selected_stocks and selected_stocks.count < stock_symbols|length %}
+        <div class="preselected-message">
+            <p><i class="fas fa-info-circle"></i> You've pre-selected {{ selected_stocks.count }} stocks from the stock list. 
+            You can modify your selection below or <a href="{% url 'admin_fetch_news_standalone' %}">click here</a> to view all stocks.</p>
+        </div>
+        {% endif %}
+
+        <!-- Quick Actions for Date Selection -->
+        <div class="quick-actions">
+            <h3>Quick Date Selection</h3>
+            <div class="quick-action-buttons">
+                <button type="button" id="last-week" class="quick-action-button">Last 7 Days</button>
+                <button type="button" id="last-month" class="quick-action-button">Last 30 Days</button>
+                <button type="button" id="year-to-date" class="quick-action-button">Year to Date</button>
+            </div>
+        </div>
+
+        <!-- Date Range Selection -->
+        <fieldset class="module aligned">
+            <h2>Date Range</h2>
+            <div class="date-range-container">
+                {% for field in form %}
+                    <div class="form-row field-{{ field.name }}">
+                        {{ field.errors }}
+                        <div class="flex-container">
+                             <label class="required" for="{{ field.id_for_label }}">{{ field.label }}:</label>
+                             {{ field }}
+                        </div>
+                        {% if field.help_text %}
+                            <div class="help">{{ field.help_text|safe }}</div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        </fieldset>
+        
+        <!-- Quick Actions for Stock Selection -->
+        <div class="quick-actions">
+            <h3>Quick Stock Selection</h3>
+            <div class="quick-action-buttons">
+                <button type="button" id="select-tech" class="quick-action-button">All Technology</button>
+                <button type="button" id="select-finance" class="quick-action-button">All Financial</button>
+                <button type="button" id="select-healthcare" class="quick-action-button">All Healthcare</button>
+                <button type="button" id="select-top-50" class="quick-action-button">Top 50 Stocks</button>
+            </div>
+        </div>
+        
+        <!-- Stock Selection -->
+        <fieldset class="module aligned stock-selection-container">
+            <h2>Select Stocks</h2>
+            
+            <div class="filter-options">
+                <div class="filter-option">
+                    <label for="search-filter">Search:</label>
+                    <input type="text" id="search-filter" placeholder="Symbol or name...">
+                </div>
+                <div class="filter-option">
+                    <label for="sector-filter">Sector:</label>
+                    <select id="sector-filter">
+                        <option value="">All Sectors</option>
+                        {% for sector in sectors %}
+                            <option value="{{ sector }}">{{ sector }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-option">
+                    <label for="industry-filter">Industry:</label>
+                    <select id="industry-filter">
+                        <option value="">All Industries</option>
+                        {% for industry in industries %}
+                            <option value="{{ industry }}">{{ industry }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="results-count">
+                Showing <span id="visible-count">0</span> of <span id="total-count">0</span> stocks 
+                (<span id="selected-count">0</span> selected)
+            </div>
+            
+            <div class="select-actions">
+                <button type="button" id="select-all-visible">Select All Visible</button>
+                <button type="button" id="deselect-all">Deselect All</button>
+            </div>
+            
+            <div class="stock-list">
+                {% for stock in all_stocks %}
+                <div class="stock-item" data-sector="{{ stock.sector|default:'' }}" data-industry="{{ stock.industry|default:'' }}">
+                    <input type="checkbox" name="selected_stocks" value="{{ stock.pk }}" id="stock_{{ stock.pk }}"
+                           {% if stock.pk|stringformat:"s" in preselected_ids %}checked{% endif %}>
+                    <label for="stock_{{ stock.pk }}" class="stock-info">
+                        <span class="stock-symbol">{{ stock.symbol }}</span>
+                        <span class="stock-name">{{ stock.name }}</span>
+                        {% if stock.sector or stock.industry %}
+                        <div>
+                            {% if stock.sector %}<span class="stock-sector">{{ stock.sector }}</span>{% endif %}
+                            {% if stock.sector and stock.industry %} | {% endif %}
+                            {% if stock.industry %}<span class="stock-industry">{{ stock.industry }}</span>{% endif %}
+                        </div>
+                        {% endif %}
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+        </fieldset>
+
+        <div class="submit-row custom-submit-row">
+            <input type="submit" name="fetch_news" value="Fetch News" class="default">
+            {% comment %}
+            Additional buttons removed for simplicity, keeping only the main fetch button
+            {% endcomment %}
+        </div>
+    </form>
+</div>
+{% endblock %}

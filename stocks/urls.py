@@ -1,11 +1,13 @@
 from django.urls import path, re_path
-from . import views
-# Removed admin_views import as we're now registering these URLs at the project level
-# Removed unused: from django.contrib.auth.views import LogoutView
+from . import views, admin_views
 
 # Define URL patterns for the stocks app
 # Use 'name' for easy URL reversing in templates and views
 urlpatterns = [
+    # Admin views
+    path('admin/predictions/', admin_views.prediction_dashboard, name='admin_prediction_dashboard'),
+    path('admin/fetch-news-standalone/', admin_views.fetch_news_standalone_view, name='admin_fetch_news_standalone'),
+    
     # Example: / (Homepage with search)
     path('', views.home, name='home'),
 
@@ -33,6 +35,4 @@ urlpatterns = [
 
     # Example: /AAPL/ (Stock detail page)
     path('<str:symbol>/', views.stock_detail, name='stock_detail'),
-
-    # Removed custom admin URLs as they're now registered at the project level
 ]

@@ -1,0 +1,740 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #3a8ffe 0%, #1a5dca 100%);
+        --secondary-gradient: linear-gradient(135deg, #2c3e50 0%, #1a2530 100%);
+        --success-gradient: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+        --warning-gradient: linear-gradient(135deg, #ffc107 0%, #d39e00 100%);
+        --danger-gradient: linear-gradient(135deg, #dc3545 0%, #bd2130 100%);
+        --card-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        --hover-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
+        --primary-color: #3a8ffe;
+        --primary-dark: #1a5dca;
+        --background-color: #f8f9fa;
+        --gray-light: #f1f3f5;
+        --gray-lighter: #f8fafc;
+        --gray-medium: #dce0e6;
+    }
+    
+    body {
+        background: var(--background-color);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    }
+    
+    /* Card styles */
+    .card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .card:hover {
+        box-shadow: var(--hover-shadow);
+    }
+    
+    .card-header {
+        background: var(--secondary-gradient);
+        color: white;
+        border-bottom: none;
+        padding: 15px 20px;
+    }
+    
+    .prediction-card {
+        transition: transform .3s ease, box-shadow .3s ease;
+        margin-bottom: 25px;
+    }
+    
+    .prediction-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .prediction-card .card-header {
+        background: var(--primary-gradient);
+    }
+    
+    /* Model badges */
+    .model-badge {
+        font-size: 0.8em;
+        padding: 6px 12px;
+        margin-right: 0.5em;
+        border-radius: 20px;
+        background-color: rgba(255, 255, 255, 0.2);
+        color: white;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+    
+    /* Metrics table styling */
+    .metrics-table {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .metrics-table td {
+        padding: 10px;
+        border-color: #f0f0f0;
+    }
+    
+    .metrics-table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    /* Custom Search Bar Styling */
+    .stock-search-container {
+        position: relative;
+    }
+    
+    .stock-search-container .form-control {
+        min-height: 48px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        background: white;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        transition: all 0.2s ease;
+    }
+    
+    .stock-search-container .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(58, 143, 254, 0.15);
+    }
+    
+    .stock-search-input {
+        display: block;
+        width: 100%;
+        padding: 8px 12px;
+        margin-bottom: 10px;
+        font-size: 15px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+    }
+    
+    .stock-options-container {
+        max-height: 240px;
+        overflow-y: auto;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        background: white;
+    }
+    
+    .stock-option {
+        padding: 8px 12px;
+        cursor: pointer;
+        border-bottom: 1px solid #f0f0f0;
+        display: flex;
+        align-items: center;
+    }
+    
+    .stock-option:hover {
+        background-color: #f5f8ff;
+    }
+    
+    .stock-option-checkbox {
+        margin-right: 10px;
+    }
+    
+    .stock-option-label {
+        flex-grow: 1;
+        display: flex;
+        justify-content: space-between;
+    }
+    
+    .selected-stocks-container {
+        margin-top: 15px;
+        padding: 10px;
+        background-color: #f8fafc;
+        border-radius: 8px;
+    }
+    
+    .selected-stock-badge {
+        display: inline-flex;
+        align-items: center;
+        margin: 5px;
+        padding: 5px 10px;
+        background: var(--primary-gradient);
+        color: white;
+        border-radius: 15px;
+        font-size: 14px;
+    }
+    
+    .remove-stock {
+        margin-left: 8px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    
+    /* Custom Checkbox Styling */
+    .custom-checkbox-container {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .custom-checkbox-item {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        overflow: hidden;
+        min-height: 56px;
+        transition: all 0.2s ease;
+    }
+    
+    .custom-checkbox-item:hover {
+        box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+    }
+    
+    .custom-checkbox-label {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        margin: 0;
+        cursor: pointer;
+    }
+    
+    .custom-checkbox-input {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    
+    .custom-checkbox-box {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 56px;
+        min-width: 56px;
+        height: 56px;
+        background: var(--gray-light);
+        color: #94a3b8;
+        transition: all 0.2s ease;
+    }
+    
+    .custom-checkbox-input:checked + .custom-checkbox-box {
+        background: var(--primary-gradient);
+        color: white;
+    }
+    
+    .custom-checkbox-box i {
+        font-size: 18px;
+    }
+    
+    .custom-checkbox-text {
+        flex: 1;
+        padding: 12px 16px;
+        font-size: 15px;
+        font-weight: 500;
+        color: #333;
+    }
+    
+    /* Dropdown styling */
+    .styled-select {
+        position: relative;
+        display: block;
+        width: 100%;
+    }
+    
+    .styled-select select {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        width: 100%;
+        height: 48px;
+        padding: 10px 40px 10px 15px;
+        font-size: 15px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        background-color: white;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        color: #333;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .styled-select select:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(58, 143, 254, 0.15);
+    }
+    
+    .styled-select::after {
+        content: '\f107';
+        font-family: 'Font Awesome 5 Free';
+        font-weight: 900;
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        pointer-events: none;
+    }
+    
+    /* Form header styling */
+    .form-header {
+        color: #333;
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+    
+    .form-help {
+        color: #6c757d;
+        font-size: 13px;
+        margin-top: 6px;
+    }
+    
+    /* Button styling */
+    .action-button {
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 12px 24px;
+        font-size: 15px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        box-shadow: 0 4px 10px rgba(0, 123, 255, 0.25);
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+    
+    .action-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(0, 123, 255, 0.35);
+    }
+    
+    .action-button:active {
+        transform: translateY(0);
+    }
+    
+    .action-button i {
+        font-size: 18px;
+    }
+    
+    /* Performance metrics styling */
+    .performance-indicator {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        color: white;
+        font-weight: bold;
+        font-size: 0.9em;
+        margin-left: 8px;
+        box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+    }
+    
+    .performance-good {
+        background: var(--success-gradient);
+    }
+    
+    .performance-medium {
+        background: var(--warning-gradient);
+        color: #212529;
+    }
+    
+    .performance-poor {
+        background: var(--danger-gradient);
+    }
+    
+    /* Prediction value styling */
+    .prediction-value {
+        font-weight: bold;
+        font-size: 1.8em;
+        color: #1a5dca;
+        margin-bottom: 5px;
+        padding: 15px 0;
+        position: relative;
+    }
+    
+    .prediction-value:after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 50px;
+        height: 3px;
+        background: var(--primary-gradient);
+        border-radius: 3px;
+    }
+    
+    .prediction-date {
+        font-size: 0.85em;
+        color: #6c757d;
+        margin-top: 8px;
+    }
+    
+    /* Section headers */
+    .section-header {
+        margin-bottom: 20px;
+        position: relative;
+        padding-left: 15px;
+        border-left: 4px solid #3a8ffe;
+    }
+    
+    .section-title {
+        font-size: 1.8rem;
+        margin-bottom: 0;
+    }
+    
+    /* Animation classes */
+    .fade-in {
+        animation: fadeIn 0.5s ease-in;
+    }
+    
+    .slide-up {
+        animation: slideInUp 0.5s ease-out;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .model-checkbox-container {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content py-4">
+    <div class="container-fluid">
+        <!-- Header -->
+        <div class="section-header slide-up mb-4">
+            <h2 class="section-title">Stock Market Prediction Dashboard</h2>
+            <p class="text-muted mt-2">Train models and analyze market predictions with AI</p>
+        </div>
+        
+        <!-- Training Form Card -->
+        <div class="card fade-in mb-5">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="card-title mb-0">
+                    <i class="fas fa-brain mr-2"></i> Train Prediction Models
+                </h3>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" class="form">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-header">Stocks</div>
+                            <div class="stock-search-container mb-2">
+                                <input type="text" id="stock-search" class="stock-search-input" placeholder="Type to search stocks...">
+                                <div class="stock-options-container">
+                                    {{ form.stocks }}
+                                </div>
+                                <div class="selected-stocks-container" id="selected-stocks">
+                                    <!-- Selected stocks will appear here -->
+                                </div>
+                            </div>
+                            <div class="form-help">Search and select one or more stocks for prediction</div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <div class="form-header">Duration</div>
+                                <div class="styled-select mb-2">
+                                    {{ form.duration }}
+                                </div>
+                                <div class="form-help">Select the training data duration</div>
+                            </div>
+                            <div class="form-group mt-4">
+                                <div class="form-header">Sequence length</div>
+                                <div class="styled-select mb-2">
+                                    {{ form.sequence_length }}
+                                </div>
+                                <div class="form-help">Number of past days to use for sequence models (LSTM)</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-header">Models</div>
+                            <div class="custom-checkbox-container">
+                                {% for checkbox in form.models %}
+                                <div class="custom-checkbox-item">
+                                    <label class="custom-checkbox-label">
+                                        <input type="checkbox" name="{{ checkbox.name }}" value="{{ checkbox.choice_value }}" class="custom-checkbox-input" {% if checkbox.is_checked %}checked{% endif %}>
+                                        <div class="custom-checkbox-box">
+                                            <i class="fas fa-check"></i>
+                                        </div>
+                                        <div class="custom-checkbox-text">
+                                            {{ checkbox.choice_label }}
+                                        </div>
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <div class="form-help mt-2">Select one or more models to train</div>
+                        </div>
+                    </div>
+                    <div class="mt-4 text-center">
+                        <button type="submit" class="action-button">
+                            <i class="fas fa-cogs"></i> Train Models
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        {% if results %}
+        <div class="section-header slide-up mt-5 mb-4">
+            <h2 class="section-title">Prediction Results</h2>
+            <p class="text-muted mt-2">Analysis and performance metrics for your trained models</p>
+        </div>
+        <div class="row">
+            {% for symbol, models in results.items %}
+            <div class="col-12 fade-in">
+                <div class="card prediction-card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h3 class="card-title mb-0">
+                            <i class="fas fa-chart-line mr-2"></i> {{ symbol }} - Predictions & Performance
+                        </h3>
+                    </div>
+                    <div class="card-body py-4">
+                        <div class="row">
+                            {% for model_type, data in models.items %}
+                            <div class="col-md-6 col-lg-3 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header">
+                                        <span class="badge model-badge">{{ model_type }}</span>
+                                        <span class="performance-indicator performance-{{ data.performance_class }}">
+                                            {% if data.performance_class == 'good' %}✓{% elif data.performance_class == 'medium' %}!{% else %}✗{% endif %}
+                                        </span>
+                                        <div class="mt-2">
+                                            <small class="text-muted"><i class="far fa-calendar mr-1"></i> {{ data.training_date }}</small>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if data.next_day_prediction %}
+                                        <div class="text-center mb-4">
+                                            <div class="prediction-value">${{ data.next_day_prediction|floatformat:2 }}</div>
+                                            <div class="prediction-date">
+                                                <i class="far fa-clock mr-1"></i> Next trading day
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        <table class="table table-sm metrics-table">
+                                            <tr>
+                                                <td><strong>Test MSE:</strong></td>
+                                                <td>{{ data.performance.test_mse|floatformat:4 }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Test MAE:</strong></td>
+                                                <td>{{ data.performance.test_mae|floatformat:4 }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Test R²:</strong></td>
+                                                <td>{{ data.performance.test_r2|floatformat:4 }}</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Existing Models Section -->
+        {% if trained_models %}
+        <div class="section-header slide-up mt-5 mb-4">
+            <h2 class="section-title">Available Models</h2>
+            <p class="text-muted mt-2">Previously trained prediction models in your system</p>
+        </div>
+        <div class="card fade-in mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="card-title mb-0">
+                    <i class="fas fa-database mr-2"></i> Existing Trained Models
+                </h3>
+            </div>
+            <div class="card-body py-4">
+                <div class="row">
+                    {% for symbol, models in trained_models.items %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h4 class="card-title mb-0">
+                                    <i class="fas fa-tag mr-2"></i> {{ symbol }}
+                                </h4>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-unstyled">
+                                    {% for model in models %}
+                                    <li class="mb-3 p-2 border-bottom">
+                                        <span class="badge badge-info model-badge">{{ model.type }}</span>
+                                        <small class="text-muted d-block mt-2">
+                                            <i class="far fa-calendar-alt mr-1"></i> {{ model.date }}
+                                        </small>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extrajs %}
+{{ block.super }}
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+<script>
+    $(document).ready(function() {
+        // Custom stock search and selection functionality
+        const stockSearch = $('#stock-search');
+        const stockOptions = $('.stock-options-container select option');
+        const stockSelect = $('.stock-options-container select');
+        const selectedStocksContainer = $('#selected-stocks');
+        
+        // Hide the original select element
+        $('.stock-options-container select').css('display', 'none');
+        
+        // Create the stock options list
+        let stockOptionsList = $('<div id="stock-options-list"></div>');
+        $('.stock-options-container').append(stockOptionsList);
+        
+        // Generate stock options
+        stockOptions.each(function() {
+            let option = $(this);
+            let stockId = option.val();
+            let stockName = option.text();
+            
+            let stockOption = $('<div class="stock-option" data-id="' + stockId + '">' +
+                                '<input type="checkbox" class="stock-option-checkbox" id="stock-' + stockId + '" ' +
+                                (option.is(':selected') ? 'checked' : '') + '>' +
+                                '<label class="stock-option-label" for="stock-' + stockId + '">' + 
+                                stockName + '</label></div>');
+            
+            stockOptionsList.append(stockOption);
+            
+            // Add to selected stocks if initially selected
+            if (option.is(':selected')) {
+                addSelectedStockBadge(stockId, stockName);
+            }
+        });
+        
+        // Filter stock options when typing
+        stockSearch.on('input', function() {
+            let searchTerm = $(this).val().toLowerCase();
+            
+            $('.stock-option').each(function() {
+                let stockText = $(this).find('.stock-option-label').text().toLowerCase();
+                if (stockText.includes(searchTerm)) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        });
+        
+        // Handle stock option click
+        $(document).on('click', '.stock-option', function(e) {
+            let stockId = $(this).data('id');
+            let stockName = $(this).find('.stock-option-label').text();
+            let checkbox = $(this).find('.stock-option-checkbox');
+            
+            // Toggle checkbox
+            checkbox.prop('checked', !checkbox.prop('checked'));
+            
+            // Update the actual select element
+            if (checkbox.prop('checked')) {
+                stockSelect.find('option[value="' + stockId + '"]').prop('selected', true);
+                addSelectedStockBadge(stockId, stockName);
+            } else {
+                stockSelect.find('option[value="' + stockId + '"]').prop('selected', false);
+                removeSelectedStockBadge(stockId);
+            }
+            
+            // Prevent checkbox click from triggering twice
+            e.preventDefault();
+        });
+        
+        // Handle remove stock badge click
+        $(document).on('click', '.remove-stock', function() {
+            let stockId = $(this).data('id');
+            
+            // Update checkbox in the options list
+            $('#stock-' + stockId).prop('checked', false);
+            
+            // Update the actual select element
+            stockSelect.find('option[value="' + stockId + '"]').prop('selected', false);
+            
+            // Remove the badge
+            $(this).parent().remove();
+        });
+        
+        // Helper function to add a selected stock badge
+        function addSelectedStockBadge(stockId, stockName) {
+            // Check if badge already exists
+            if (selectedStocksContainer.find('[data-id="' + stockId + '"]').length === 0) {
+                let badge = $('<span class="selected-stock-badge" data-id="' + stockId + '">' + 
+                              stockName + 
+                              '<span class="remove-stock" data-id="' + stockId + '">×</span></span>');
+                selectedStocksContainer.append(badge);
+            }
+        }
+        
+        // Helper function to remove a selected stock badge
+        function removeSelectedStockBadge(stockId) {
+            selectedStocksContainer.find('.selected-stock-badge[data-id="' + stockId + '"]').remove();
+        }
+        
+        // Handle custom checkbox styling and behavior
+        $('.custom-checkbox-input').change(function() {
+            if($(this).is(':checked')) {
+                $(this).closest('.custom-checkbox-item').addClass('active');
+            } else {
+                $(this).closest('.custom-checkbox-item').removeClass('active');
+            }
+        });
+        
+        // Check initial state of checkboxes
+        $('.custom-checkbox-input').each(function() {
+            if($(this).is(':checked')) {
+                $(this).closest('.custom-checkbox-item').addClass('active');
+            }
+        });
+        
+        // Add animation classes to cards as they come into view
+        function animateOnScroll() {
+            $('.card:not(.animated)').each(function() {
+                var position = $(this).offset().top;
+                var scroll = $(window).scrollTop();
+                var windowHeight = $(window).height();
+                if (scroll + windowHeight > position + 100) {
+                    $(this).addClass('animated');
+                    $(this).addClass('animate__animated animate__fadeInUp');
+                }
+            });
+        }
+        
+        // Initialize animations
+        $(window).scroll(animateOnScroll);
+        animateOnScroll(); // Run once on page load
+    });
+</script>
+{% endblock %}

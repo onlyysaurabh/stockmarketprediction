@@ -25,9 +25,13 @@ def save_model(model: Any, stock_symbol: str, model_type: str) -> Optional[str]:
         Optional[str]: The absolute path to the saved model file, or None if saving failed.
     """
     try:
+        # Create a directory for this stock if it doesn't exist
+        stock_dir = os.path.join(MODEL_STORAGE_DIR, stock_symbol)
+        os.makedirs(stock_dir, exist_ok=True)
+        
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"{stock_symbol}_{model_type}_{timestamp}.joblib"
-        filepath = os.path.join(MODEL_STORAGE_DIR, filename)
+        filepath = os.path.join(stock_dir, filename)
 
         # Use joblib for efficient saving of scikit-learn models and others
         joblib.dump(model, filepath)

@@ -14,24 +14,15 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include # Import include
-from stocks import admin_views  # Import admin_views for direct URL registration
+from django.urls import path, include
+from stocks import admin_views
+from stocks.admin import admin_site
 
-# Register custom admin URLs before including the default admin URLs
 urlpatterns = [
-    # Custom admin views must be defined before the admin site URLs
-    path('admin/fetch-news/', admin_views.fetch_news_standalone_view, name='admin_fetch_news_standalone'),
-    path('admin/stocks/stock/fetch-news/', admin_views.fetch_stock_news_view, name='admin_fetch_stock_news'),
-    
-    # Prediction model management URLs
-    path('admin/predictions/', admin_views.admin_prediction_dashboard, name='admin_prediction_dashboard'),
-    path('admin/predictions/train/', admin_views.admin_train_model, name='admin_train_model'),
-    path('admin/predictions/model/<int:model_id>/', admin_views.admin_model_detail, name='admin_model_detail'),
-    path('admin/predictions/stock/<int:stock_id>/', admin_views.admin_stock_predictions, name='admin_stock_predictions'),
-    path('admin/predictions/model/<int:model_id>/delete/', admin_views.admin_delete_model, name='admin_delete_model'),
-    
-    # Standard admin URLs
-    path('admin/', admin.site.urls),
-    path('accounts/', include('django.contrib.auth.urls')),  # Django auth URLs
-    path('', include('stocks.urls')), # Include URLs from the stocks app
+    path('admin/predictions/', admin_views.prediction_dashboard, name='admin_prediction_dashboard'),
+    path('admin/stocks/update-all-prices/', admin_views.update_all_stock_prices, name='admin:stocks_stock_update_all_prices'),
+    path('admin/stocks/update-commodities/', admin_views.update_commodities, name='admin:stocks_stock_update_commodities'),
+    path('admin/', admin_site.urls),  # Use our custom admin site
+    path('accounts/', include('django.contrib.auth.urls')),  # Add Django authentication URLs
+    path('', include('stocks.urls')),
 ]

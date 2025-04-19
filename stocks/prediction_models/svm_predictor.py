@@ -3,8 +3,9 @@ import pandas as pd
 import logging
 from sklearn.svm import SVR
 from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from sklearn.feature_selection import SelectKBest, mutual_info_regression, f_regression
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime, timedelta
 import shap
@@ -46,40 +47,92 @@ def train_svm_model(stock_symbol: str, data: pd.DataFrame, target_column: str = 
         logger.error(f"Data preparation failed for {stock_symbol}.")
         return None
     
-    # Create training and testing datasets
+    # Create training and testing datasets (validation set for hyperparameter tuning)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, shuffle=False)
     
-    # Standardize features
+    # Standardize features (crucial for SVM performance)
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
     
-    # Hyperparameter optimization using grid search
-    param_grid = {
-        'C': [0.1, 1, 10, 100],
-        'gamma': ['scale', 'auto', 0.1, 0.01],
-        'kernel': ['rbf', 'linear']
-    }
+    # Feature selection using mutual information or F-statistic
+    # This helps reduce dimensionality and improve SVM performance
+    n_features = min(max(5, int(X_train.shape[1] * 0.5)), X_train.shape[1])  # Select 50% of features or at least 5
+    
+    # Try both selection methods and choose the one with better cross-validation performance
+    selector_mi = SelectKBest(mutual_info_regression, k=n_features)
+    X_train_mi = selector_mi.fit_transform(X_train_scaled, y_train)
+    
+    selector_f = SelectKBest(f_regression, k=n_features)
+    X_train_f = selector_f.fit_transform(X_train_scaled, y_train)
+    
+    # Quick test of both feature selection methods using a simple SVM
+    svm_test = SVR(kernel='rbf', C=10, gamma='scale')
+    score_mi = np.mean(cross_val_score(svm_test, X_train_mi, y_train, cv=3, scoring='neg_mean_squared_error'))
+    score_f = np.mean(cross_val_score(svm_test, X_train_f, y_train, cv=3, scoring='neg_mean_squared_error'))
+    
+    # Choose the better selector
+    if score_mi >= score_f:
+        selector = selector_mi
+        logger.info(f"Using mutual information for feature selection, score: {score_mi:.6f}")
+        X_train_selected = X_train_mi
+    else:
+        selector = selector_f
+        logger.info(f"Using F-test for feature selection, score: {score_f:.6f}")
+        X_train_selected = X_train_f
+    
+    # Apply the selected feature selection to the test set
+    X_test_selected = selector.transform(X_test_scaled)
+    
+    # Get selected feature indices
+    selected_indices = selector.get_support()
+    selected_features = [feature for i, feature in enumerate(X.columns) if selected_indices[i]]
+    logger.info(f"Selected {len(selected_features)} features for SVM model")
+    
+    # Adapt hyperparameter grid based on data size (larger datasets = more complex models)
+    data_size = len(X_train)
+    
+    if data_size < 500:  # For small datasets
+        param_grid = {
+            'C': [0.1, 1, 10],
+            'gamma': ['scale', 'auto', 0.1],
+            'kernel': ['rbf', 'linear']
+        }
+    elif data_size < 2000:  # For medium datasets
+        param_grid = {
+            'C': [0.1, 1, 10, 100],
+            'gamma': ['scale', 'auto', 0.1, 0.01],
+            'kernel': ['rbf', 'linear', 'poly'],
+            'degree': [2, 3]  # Only used by poly kernel
+        }
+    else:  # For large datasets
+        param_grid = {
+            'C': [0.1, 1, 10, 100, 1000],
+            'gamma': ['scale', 'auto', 0.1, 0.01, 0.001],
+            'kernel': ['rbf', 'linear', 'poly', 'sigmoid'],
+            'degree': [2, 3, 4],  # Only used by poly kernel
+            'coef0': [0.0, 0.1, 0.5]  # Used by poly and sigmoid
+        }
     
     logger.info("Performing grid search for SVM hyperparameters...")
     grid_search = GridSearchCV(
         SVR(),
         param_grid,
-        cv=3,
+        cv=min(5, max(3, int(data_size/100))),  # Adaptive CV based on data size
         scoring='neg_mean_squared_error',
         n_jobs=-1,
         verbose=1
     )
     
-    grid_search.fit(X_train_scaled, y_train)
+    grid_search.fit(X_train_selected, y_train)
     
     # Get best model from grid search
     best_model = grid_search.best_estimator_
     logger.info(f"Best SVM parameters: {grid_search.best_params_}")
     
     # Make predictions
-    y_train_pred = best_model.predict(X_train_scaled)
-    y_test_pred = best_model.predict(X_test_scaled)
+    y_train_pred = best_model.predict(X_train_selected)
+    y_test_pred = best_model.predict(X_test_selected)
     
     # Evaluate model
     train_mse = mean_squared_error(y_train, y_train_pred)
@@ -93,13 +146,15 @@ def train_svm_model(stock_symbol: str, data: pd.DataFrame, target_column: str = 
     logger.info(f"Testing MSE: {test_mse:.4f}, MAE: {test_mae:.4f}, R²: {test_r2:.4f}")
     
     # Calculate feature importance using SHAP
-    shap_values, feature_importance = calculate_svm_shap_importance(best_model, X_test_scaled, X.columns)
+    shap_values, feature_importance = calculate_svm_shap_importance(best_model, X_test_selected, selected_features)
     
     # Create a complete model dict with scaler for future predictions
     model_dict = {
         'model': best_model,
         'scaler': scaler,
-        'feature_columns': feature_columns,
+        'feature_selector': selector,
+        'original_features': feature_columns,
+        'selected_features': selected_features,
         'target_column': target_column,
         'performance': {
             'train_mse': float(train_mse),
@@ -137,10 +192,19 @@ def calculate_svm_shap_importance(model, X_scaled, feature_names) -> Tuple[np.nd
     """
     try:
         # Create a SHAP explainer
-        explainer = shap.KernelExplainer(model.predict, X_scaled[:100])  # Using a subset for performance
+        # For larger datasets, use a smaller subset for SHAP analysis
+        sample_size = min(500, X_scaled.shape[0])
+        if sample_size < X_scaled.shape[0]:
+            # Use stratified sampling if possible
+            sample_indices = np.random.choice(X_scaled.shape[0], size=sample_size, replace=False)
+            X_sample = X_scaled[sample_indices]
+        else:
+            X_sample = X_scaled
+            
+        explainer = shap.KernelExplainer(model.predict, shap.sample(X_sample, 100))  # Using a subset for performance
         
-        # Calculate SHAP values
-        shap_values = explainer.shap_values(X_scaled[:100])
+        # Calculate SHAP values (with higher precision for SVM)
+        shap_values = explainer.shap_values(X_sample, nsamples=200)  # More samples for better accuracy
         
         # Calculate mean absolute SHAP value per feature
         mean_shap = np.abs(shap_values).mean(axis=0)
@@ -183,20 +247,29 @@ def predict_next_day(model_path: str, latest_data: pd.DataFrame) -> Optional[flo
         # Extract components from the model dict
         model = model_dict['model']
         scaler = model_dict['scaler']
-        feature_columns = model_dict['feature_columns']
+        feature_selector = model_dict.get('feature_selector')
+        original_features = model_dict.get('original_features', model_dict.get('feature_columns', []))
         
         # Verify that all required features are present
-        missing_features = [f for f in feature_columns if f not in latest_data.columns]
+        missing_features = [f for f in original_features if f not in latest_data.columns]
         if missing_features:
             logger.error(f"Missing features for prediction: {missing_features}")
             return None
         
         # Prepare features for prediction
-        X = latest_data[feature_columns].values.reshape(1, -1)
+        X = latest_data[original_features].values.reshape(1, -1)
+        
+        # Scale features
         X_scaled = scaler.transform(X)
         
+        # Apply feature selection if available
+        if feature_selector:
+            X_selected = feature_selector.transform(X_scaled)
+        else:
+            X_selected = X_scaled
+        
         # Make prediction
-        prediction = model.predict(X_scaled)[0]
+        prediction = model.predict(X_selected)[0]
         
         return float(prediction)
     
@@ -226,7 +299,8 @@ def predict_future(model_path: str, latest_data: pd.DataFrame, days: int = 7) ->
         # Extract components
         model = model_dict['model']
         scaler = model_dict['scaler']
-        feature_columns = model_dict['feature_columns']
+        feature_selector = model_dict.get('feature_selector')
+        original_features = model_dict.get('original_features', model_dict.get('feature_columns', []))
         target_column = model_dict['target_column']
         
         predictions = []
@@ -234,11 +308,19 @@ def predict_future(model_path: str, latest_data: pd.DataFrame, days: int = 7) ->
         
         for _ in range(days):
             # Prepare features for prediction
-            X = current_data[feature_columns].iloc[-1:].values
+            X = current_data[original_features].iloc[-1:].values
+            
+            # Scale features
             X_scaled = scaler.transform(X)
             
+            # Apply feature selection if available
+            if feature_selector:
+                X_selected = feature_selector.transform(X_scaled)
+            else:
+                X_selected = X_scaled
+            
             # Make prediction
-            prediction = float(model.predict(X_scaled)[0])
+            prediction = float(model.predict(X_selected)[0])
             predictions.append(prediction)
             
             # Update data with the new prediction for next iteration

@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required
 # from django.utils import timezone # Removed as unused
 from django.db import IntegrityError
 # from . import services # Removed as unused
-from .models import Watchlist, WatchlistItem # Stock removed as unused here
+from .models import Watchlist, WatchlistItem, Stock, StockNews, TrainedPredictionModel  # Added TrainedPredictionModel
 from .forms import WatchlistItemForm
 # Import specific functions needed from services
 from .services import get_stock_data, get_stock_historical_data, get_commodity_historical_data, process_news_for_stock
@@ -22,7 +22,6 @@ from django.contrib.auth.forms import UserCreationForm, PasswordChangeForm # Add
 from django.contrib.auth import login, update_session_auth_hash, logout
 from django.utils import timezone # Import timezone for date calculations
 from .forms import WatchlistItemForm, UserUpdateForm
-from .models import Stock, StockNews # Import Stock and StockNews
 from .news_service import fetch_stock_news
 
 logger = logging.getLogger(__name__)

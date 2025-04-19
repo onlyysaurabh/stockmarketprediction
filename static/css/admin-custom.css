@@ -22,3 +22,24 @@ footer span:contains("Jazzmin"),
 footer .text-center p {
     margin-bottom: 0 !important;
 }
+
+/* Ensure search suggestions appear above other elements */
+.select2-container--default .select2-dropdown,
+.select2-container--default .select2-results,
+.select2-container--default .select2-search--dropdown,
+.select2-container--default .select2-results__options {
+    z-index: 9999 !important;
+}
+
+.select2-container--default {
+    z-index: 9999 !important;
+}
+
+.select2-search__field {
+    z-index: 10000 !important;
+}
+
+/* Fix for modal dialogs if they exist */
+.modal-dialog {
+    z-index: 1050;
+}

@@ -13,7 +13,6 @@ import os
 from dotenv import load_dotenv
 from pathlib import Path
 import django_heroku
-import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -86,27 +85,28 @@ WSGI_APPLICATION = 'stockmarketprediction.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
-# Use a hybrid approach - SQLite for auth, MongoDB for stock data
+# Use SQLite for Django models, direct pymongo for MongoDB data
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     },
-    'mongodb': {
-        'ENGINE': 'djongo',
-        'NAME': os.getenv('MONGO_DB_NAME', 'stock_data'),
-        'CLIENT': {
-            'host': os.getenv('MONGO_URI', 'mongodb://localhost:27017/'),
-            'port': 27017,
-        }
-    }
+    # Commented out djongo configuration as it's not compatible with newer Django
+    # 'mongodb': {
+    #     'ENGINE': 'djongo',
+    #     'NAME': os.getenv('MONGO_DB_NAME', 'stock_data'),
+    #     'CLIENT': {
+    #         'host': os.getenv('MONGO_URI', 'mongodb://localhost:27017/'),
+    #         'port': 27017,
+    #     }
+    # }
 }
 
-# Database routers
-DATABASE_ROUTERS = ['stockmarketprediction.mongodb_router.MongoDBRouter']
+# Comment out database routers since we're not using djongo
+# DATABASE_ROUTERS = ['stockmarketprediction.mongodb_router.MongoDBRouter']
 
-# MongoDB connection for direct pymongo access
+# MongoDB connection for direct pymongo access - we'll use this instead of djongo
 MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost:27017/')
 MONGO_DB_NAME = os.getenv('MONGO_DB_NAME', 'stock_data')
 
@@ -158,29 +158,14 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Jazzmin Settings (Basic Example)
 JAZZMIN_SETTINGS = {
-    # title of the window (Will default to current_admin_site.site_title if absent or None)
+    # title of the window
     "site_title": "StockWise Admin",
 
-    # Title on the login screen (19 chars max) (defaults to current_admin_site.site_header if absent or None)
+    # Title on the login screen
     "site_header": "StockWise",
 
-    # Title on the brand (19 chars max) (defaults to current_admin_site.site_header if absent or None)
+    # Title on the brand
     "site_brand": "StockWise",
-
-    # Logo to use for your site, must be present in static files, used for brand on top left
-    # "site_logo": "books/img/logo.png",
-
-    # Logo to use for your site, must be present in static files, used for login form logo (defaults to site_logo)
-    # "login_logo": None,
-
-    # Logo to use for login form in dark themes (defaults to login_logo)
-    # "login_logo_dark": None,
-
-    # CSS classes that are applied to the logo above
-    # "site_logo_classes": "img-circle",
-
-    # Relative path to a favicon for your site, will default to site_logo if absent (ideally 32x32 px)
-    # "site_icon": None,
 
     # Welcome text on the login screen
     "welcome_sign": "Welcome to the StockWise Admin",
@@ -188,34 +173,31 @@ JAZZMIN_SETTINGS = {
     # Copyright on the footer
     "copyright": "StockWise Ltd",
     
-    # The model admin to search from the search bar, search bar omitted if excluded
-    # "search_model": "auth.User",
-    
     # Set to false to remove the Jazzmin version footer text
     "show_footer": False,
 
-    # Field name on user model that contains avatar ImageField/URLField/Charfield or a callable that receives the user
-    # "user_avatar": None,
+    # Disable model search completely
+    "search_model": None,
 
+    # Don't show User in sidebar or top menu
+    "hide_models": ["auth.User", "auth.Group"],
+    
     ############
     # Top Menu #
     ############
 
-    # Links to put along the top menu
+    # Links to put along the top menu - simplified with direct URLs only
     "topmenu_links": [
-        # Url that gets reversed (Permissions can be added)
-        {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},
+        # Direct URL to admin index - no name/permission logic
+        {"name": "Home", "url": "/admin/"},
 
-        # Custom links - matching the same items as in the sidebar
-        {"name": "Fetch News", "url": "admin_fetch_news_standalone", "permissions": ["auth.view_user"]},
-        {"name": "Update All Prices", "url": "admin:stocks_stock_update_all_prices", "permissions": ["auth.view_user"]},
-        {"name": "Update Commodities", "url": "admin:stocks_stock_update_commodities", "permissions": ["auth.view_user"]},
-        {"name": "Prediction Dashboard", "url": "admin_prediction_dashboard", "permissions": ["auth.view_user"]},
-
-        # model admin to link to (Permissions checked against model)
-        {"model": "auth.User"},
-
-        # App with dropdown menu to all its models pages (Permissions checked against models)
+        # Direct URLs for custom views - no permissions logic
+        {"name": "Fetch News", "url": "/admin/stocks/fetch-news/"},
+        {"name": "Update All Prices", "url": "/admin/stocks/update-all-prices/"},
+        {"name": "Update Commodities", "url": "/admin/stocks/update-commodities/"},
+        {"name": "Prediction Dashboard", "url": "/admin/predictions/"},
+        
+        # Simple app link instead of model
         {"app": "stocks"},
     ],
 
@@ -223,12 +205,12 @@ JAZZMIN_SETTINGS = {
     # User Menu #
     #############
 
-    # Additional links to include in the user menu on the top right ("app" url type is not allowed)
+    # Additional links to include in the user menu on the top right
     "usermenu_links": [
-        {"name": "Fetch News", "url": "admin_fetch_news_standalone", "new_window": False},
-        {"name": "Update All Prices", "url": "admin:stocks_stock_update_all_prices", "new_window": False},
-        {"name": "Update Commodities", "url": "admin:stocks_stock_update_commodities", "new_window": False},
-        {"name": "Prediction Dashboard", "url": "admin_prediction_dashboard", "new_window": False},
+        {"name": "Fetch News", "url": "/admin/stocks/fetch-news/", "new_window": False},
+        {"name": "Update All Prices", "url": "/admin/stocks/update-all-prices/", "new_window": False},
+        {"name": "Update Commodities", "url": "/admin/stocks/update-commodities/", "new_window": False},
+        {"name": "Prediction Dashboard", "url": "/admin/predictions/", "new_window": False},
     ],
 
     #############
@@ -238,65 +220,37 @@ JAZZMIN_SETTINGS = {
     # Whether to display the side menu
     "show_sidebar": True,
 
-    # Whether to aut expand the menu
+    # Whether to auto expand the menu
     "navigation_expanded": True,
 
-    # Hide these apps when generating side menu e.g (auth)
-    "hide_apps": [],
+    # Hide these apps when generating side menu
+    "hide_apps": ["auth"],
 
-    # Hide these models when generating side menu (e.g auth.user)
-    "hide_models": [],
-
-    # List of apps (and/or models) to base side menu ordering off of (does not need to contain all apps/models)
-    "order_with_respect_to": ["auth", "stocks"],
-    
     # Custom links to append to app groups, keyed on app name
     "custom_links": {
         "stocks": [{
             "name": "Fetch News", 
-            "url": "admin_fetch_news_standalone", 
+            "url": "/admin/stocks/fetch-news/", 
             "icon": "fas fa-newspaper",
-            # "permissions": ["stocks.view_stocknews"]
         }, {
             "name": "Update All Prices", 
-            "url": "admin:stocks_stock_update_all_prices", 
+            "url": "/admin/stocks/update-all-prices/", 
             "icon": "fas fa-sync",
-            # "permissions": ["stocks.view_stock"]
         }, {
             "name": "Update Commodities", 
-            "url": "admin:stocks_stock_update_commodities", 
+            "url": "/admin/stocks/update-commodities/", 
             "icon": "fas fa-chart-line",
-            # "permissions": ["stocks.view_stock"]
         }, {
             "name": "Prediction Dashboard", 
-            "url": "admin_prediction_dashboard", 
+            "url": "/admin/predictions/", 
             "icon": "fas fa-brain",
-            # "permissions": ["stocks.view_stock"]
         }]
     },
 
-    #############
-    # UI Tweaks #
-    #############
-    # Whether to show the UI customizer on the sidebar
-    # "show_ui_builder": False,
-
-    ###############
-    # Change view #
-    ###############
-    # Render out the change view as a single form, or in tabs, current options are
-    # - single
-    # - horizontal_tabs (default)
-    # - vertical_tabs
-    # - collapsible
-    # - carousel
+    # Render out the change view as a single form, or in tabs
     "changeform_format": "horizontal_tabs",
-    # override change forms on a per modeladmin basis
-    # "changeform_format_overrides": {"auth.user": "collapsible", "auth.group": "vertical_tabs"},
-    # Add a language dropdown into the admin
-    # "language_chooser": True,
     
-    # Icons for models in the side menu (where possible)
+    # Icons for models in the side menu
     "icons": {
         "auth": "fas fa-users-cog",
         "auth.user": "fas fa-user",

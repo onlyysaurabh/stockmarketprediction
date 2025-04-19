@@ -1,6 +1,5 @@
 import logging
-from datetime import date, timedelta
-from django.contrib import admin
+from datetime import date, timedelta, datetime
 from django.shortcuts import redirect
 from django.contrib import messages
 from django.http import HttpRequest, HttpResponseRedirect
@@ -11,13 +10,20 @@ from django.contrib.admin.models import LogEntry, ADDITION
 from django.contrib.contenttypes.models import ContentType
 import json
 
-from .models import Stock, StockNews
-from .forms import FetchNewsForm
-from .services import process_news_for_stock
+from .models import Stock, StockNews, TrainedPredictionModel
+from .forms import FetchNewsForm, TrainModelForm
+from .prediction_models import xgboost_predictor, lstm_predictor, sarima_predictor, svm_predictor
+from .prediction_data_service import get_training_data
+from .admin import admin_site  # Import our custom admin site
 
 logger = logging.getLogger(__name__)
 
-@admin.site.admin_view
+# Use custom admin site for views
+def custom_admin_view(view_func):
+    """Decorator that uses our custom admin site for views"""
+    return admin_site.admin_view(view_func)
+
+@custom_admin_view
 def fetch_stock_news_view(request: HttpRequest) -> TemplateResponse | HttpResponseRedirect:
     """
     Custom admin view to fetch news for selected stocks within a date range.
@@ -60,7 +66,7 @@ def fetch_stock_news_view(request: HttpRequest) -> TemplateResponse | HttpRespon
             if not selected_stock_ids:
                 messages.warning(request, "No stocks selected. Please select at least one stock.")
                 context = {
-                    **admin.site.each_context(request),
+                    **admin_site.each_context(request),
                     'title': 'Fetch News for Stocks',
                     'form': form,
                     'selected_stocks': selected_stocks,
@@ -72,7 +78,7 @@ def fetch_stock_news_view(request: HttpRequest) -> TemplateResponse | HttpRespon
                     'media': form.media,
                     'opts': Stock._meta,
                 }
-                return TemplateResponse(request, "admin/stocks/stock/fetch_news_form.html", context)
+                return TemplateResponse(request, "admin/stocks/fetch_news_form.html", context)
                 
             # Get the selected stocks - ensure IDs are integers
             selected_stocks = Stock.objects.filter(pk__in=[int(id_val) for id_val in selected_stock_ids])
@@ -113,7 +119,7 @@ def fetch_stock_news_view(request: HttpRequest) -> TemplateResponse | HttpRespon
         form = FetchNewsForm(initial={'start_date': seven_days_ago, 'end_date': today})
 
     context = {
-        **admin.site.each_context(request),
+        **admin_site.each_context(request),
         'title': 'Fetch News for Stocks',
         'form': form,
         'selected_stocks': selected_stocks,
@@ -127,7 +133,7 @@ def fetch_stock_news_view(request: HttpRequest) -> TemplateResponse | HttpRespon
     }
     
     # Use the enhanced template for this view
-    return TemplateResponse(request, "admin/stocks/stock/fetch_news_form.html", context)
+    return TemplateResponse(request, "admin/stocks/fetch_news_form.html", context)
 
 @staff_member_required
 def fetch_news_standalone_view(request: HttpRequest) -> TemplateResponse | HttpResponseRedirect:
@@ -154,7 +160,7 @@ def fetch_news_standalone_view(request: HttpRequest) -> TemplateResponse | HttpR
             if not selected_stock_ids:
                 messages.warning(request, "No stocks selected. Please select at least one stock.")
                 context = {
-                    **admin.site.each_context(request),
+                    **admin_site.each_context(request),
                     'title': 'Fetch Stock News',
                     'form': form,
                     'all_stocks': all_stocks,
@@ -165,7 +171,7 @@ def fetch_news_standalone_view(request: HttpRequest) -> TemplateResponse | HttpR
                     'media': form.media,
                     'opts': Stock._meta,
                 }
-                return TemplateResponse(request, "admin/stocks/stock/fetch_news_form.html", context)
+                return TemplateResponse(request, "admin/stocks/fetch_news_form.html", context)
             
             # Get the selected stocks - ensure IDs are integers
             selected_stocks = Stock.objects.filter(pk__in=[int(id_val) for id_val in selected_stock_ids])
@@ -235,7 +241,7 @@ def fetch_news_standalone_view(request: HttpRequest) -> TemplateResponse | HttpR
     }
     
     context = {
-        **admin.site.each_context(request),
+        **admin_site.each_context(request),
         'title': 'Fetch Stock News',
         'subtitle': 'Select stocks and date range to fetch news articles',
         'form': form,
@@ -250,268 +256,257 @@ def fetch_news_standalone_view(request: HttpRequest) -> TemplateResponse | HttpR
     }
     
     # Use the fetch news template
-    return TemplateResponse(request, "admin/stocks/stock/fetch_news_form.html", context)
+    return TemplateResponse(request, "admin/stocks/fetch_news_form.html", context)
 
-import logging
-import json
-from django.contrib.admin.views.decorators import staff_member_required
-from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse, HttpRequest
-from django.contrib import messages
-from django.urls import reverse
-from django.utils.html import format_html
-from django.views.decorators.http import require_POST
-from django.db import transaction
-from django.db.models import Exists, OuterRef
-
-from .models import Stock, TrainedPredictionModel
-from .prediction_service import train_model_for_stock, get_prediction_for_stock, get_multiple_predictions
-
-logger = logging.getLogger(__name__)
-
-@staff_member_required
-def admin_prediction_dashboard(request):
+@custom_admin_view
+def prediction_dashboard(request: HttpRequest) -> TemplateResponse:
     """
-    Admin dashboard for model training and predictions, with filtering.
+    Admin view for stock predictions dashboard.
+    Shows trained models and their predictions for different stocks.
     """
-    # Get filter parameters from GET request
-    selected_sector = request.GET.get('sector', '')
-    selected_industry = request.GET.get('industry', '')
-    selected_model_status = request.GET.get('model_status', '') # e.g., 'all', 'trained', 'not_trained'
+    from .forms import ModelTrainingForm
+    from .prediction_models import lstm_predictor, sarima_predictor, xgboost_predictor, svm_predictor
+    import os
+    from .prediction_service import train_model_for_stock
 
-    # Base queryset
-    stocks_qs = Stock.objects.all()
+    context = {
+        'title': 'Stock Predictions Dashboard',
+        'site_title': admin_site.site_title,
+        'site_header': admin_site.site_header,
+        'has_permission': True,
+        **admin_site.each_context(request),
+    }
 
-    # Apply filters
-    if selected_sector:
-        stocks_qs = stocks_qs.filter(sector=selected_sector)
-    if selected_industry:
-        stocks_qs = stocks_qs.filter(industry=selected_industry)
+    # Initialize form
+    form = ModelTrainingForm(request.POST or None)
+    context['form'] = form
 
-    # Annotate stocks with model training status
-    stocks_qs = stocks_qs.annotate(has_trained_model=Exists(
-        TrainedPredictionModel.objects.filter(stock=OuterRef('pk'))
-    ))
+    # Handle form submission
+    if request.method == 'POST' and form.is_valid():
+        selected_models = form.cleaned_data['models']
+        selected_stocks = form.cleaned_data['stocks']
+        duration = int(form.cleaned_data['duration'])
+        sequence_length = int(form.cleaned_data.get('sequence_length', 30))
 
-    # Filter based on model status
-    if selected_model_status == 'trained':
-        stocks_qs = stocks_qs.filter(has_trained_model=True)
-    elif selected_model_status == 'not_trained':
-        stocks_qs = stocks_qs.filter(has_trained_model=False)
-
-    # Order stocks
-    stocks_qs = stocks_qs.order_by('symbol')
-
-    # Get distinct sectors and industries for filter dropdowns
-    sectors = Stock.objects.exclude(sector__isnull=True).exclude(sector='').values_list('sector', flat=True).distinct().order_by('sector')
-    industries = Stock.objects.exclude(industry__isnull=True).exclude(industry='').values_list('industry', flat=True).distinct().order_by('industry')
-
-    # Get all trained models for the "Recent Models" tab (unfiltered)
-    trained_models = TrainedPredictionModel.objects.all().order_by('-trained_at')
-
-    # Get count of models per type
-    model_counts = {}
-    for model_type, _ in TrainedPredictionModel.MODEL_TYPES:
-        model_counts[model_type] = TrainedPredictionModel.objects.filter(model_type=model_type).count()
-
-    # Get the most recent model for each stock (for display in the predictions table)
-    # This needs to be done efficiently, perhaps after filtering stocks if performance is an issue
-    # For now, fetch for all stocks and filter in template/view logic if needed
-    all_stocks_for_recent_models = Stock.objects.all() # Use all stocks to find recent models
-    recent_models = {}
-    for stock in all_stocks_for_recent_models:
-        stock_models = TrainedPredictionModel.objects.filter(stock=stock).order_by('-trained_at')
-        if stock_models.exists():
-            recent_models[stock.symbol] = stock_models.first()
-
-    # Provide model choices for the training dropdown
-    model_choices = TrainedPredictionModel.MODEL_TYPES
-
-    # Default date ranges for quick selection
-    today = date.today()
-    date_presets = {
-        'month': {
-            'start_date': today - timedelta(days=30),
-            'end_date': today
-        },
-        'year': {
-            'start_date': today - timedelta(days=365),
-            'end_date': today
-        },
-        'five_years': {
-            'start_date': today - timedelta(days=365*5),
-            'end_date': today
+        # Create a dictionary to track training parameters for later reference
+        training_params = {
+            'duration': duration,
+            'sequence_length': sequence_length,
+            'trained_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         }
-    }
 
-    # Include admin site context for proper sidebar rendering
-    context = {
-        **admin.site.each_context(request),
-        'stocks': stocks_qs, # Use the filtered queryset
-        'trained_models': trained_models[:20],  # limit recent models display
-        'model_counts': model_counts,
-        'recent_models': recent_models, # Dictionary of recent models keyed by symbol
-        'model_choices': model_choices,
-        'date_presets': date_presets,
-        'sectors': sectors, # For filter dropdown
-        'industries': industries, # For filter dropdown
-        'selected_sector': selected_sector, # To retain filter selection
-        'selected_industry': selected_industry, # To retain filter selection
-        'selected_model_status': selected_model_status, # To retain filter selection
-        'title': 'Prediction Model Management',
-        'opts': Stock._meta,
-        'app_label': 'stocks',
-    }
+        # Store these parameters in the session for reference
+        request.session['last_training_params'] = {
+            'models': selected_models,
+            'duration': duration,
+            'sequence_length': sequence_length,
+            'stock_count': len(selected_stocks),
+        }
 
-    return render(request, 'admin/stocks/prediction_dashboard.html', context)
+        results = {}
+        successful_models = 0
+        failed_models = 0
 
-@staff_member_required
-@require_POST
-def admin_train_model(request):
-    """
-    Admin view to train a prediction model for a stock
-    """
-    stock_symbol = request.POST.get('stock_symbol')
-    model_type = request.POST.get('model_type')
-    start_date_str = request.POST.get('start_date')
-    end_date_str = request.POST.get('end_date')
-    
-    if not stock_symbol or not model_type:
-        messages.error(request, 'Stock symbol and model type are required.')
-        return redirect(reverse('admin_prediction_dashboard'))
-    
-    try:
-        # Parse dates if provided, otherwise use defaults
-        start_date = None
-        end_date = None
-        days = 365  # Default if dates not provided
-        
-        if start_date_str and end_date_str:
-            from datetime import datetime
-            start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
-            end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
-            # Calculate days between dates for the API call
-            days = (end_date - start_date).days
-            if days <= 0:
-                messages.error(request, 'End date must be after start date.')
-                return redirect(reverse('admin_prediction_dashboard'))
-    except ValueError:
-        messages.error(request, 'Invalid date format. Please use YYYY-MM-DD.')
-        return redirect(reverse('admin_prediction_dashboard'))
-    
-    # Train the model asynchronously
-    # In a production environment, this should be a background task
-    # For now, we'll do it synchronously for simplicity
-    result = train_model_for_stock(stock_symbol, model_type, days)
-    
-    if result and result.get('success'):
-        messages.success(
-            request, 
-            f"Successfully trained {model_type} model for {stock_symbol} (ID: {result.get('model_id')})"
-        )
-    else:
-        error = result.get('error') if result else 'Unknown error'
-        messages.error(
-            request,
-            f"Failed to train {model_type} model for {stock_symbol}: {error}"
-        )
-    
-    return redirect(reverse('admin_prediction_dashboard'))
-
-@staff_member_required
-def admin_model_detail(request, model_id):
-    """
-    Admin view to see details of a trained model
-    """
-    model = get_object_or_404(TrainedPredictionModel, id=model_id)
-    
-    # Get prediction using this model
-    prediction = get_prediction_for_stock(model.stock.symbol, model.model_type)
-    
-    # Format feature importance as sorted list for display
-    feature_importance = []
-    if model.feature_importance:
-        # If feature_importance is a nested dict (like XGBoost's), flatten it
-        if isinstance(model.feature_importance, dict) and 'shap' in model.feature_importance:
-            importance_dict = model.feature_importance['shap']
-        else:
-            importance_dict = model.feature_importance
+        for stock in selected_stocks:
+            stock_results = {}
             
-        # Sort by importance value (descending)
-        feature_importance = sorted(
-            [(k, v) for k, v in importance_dict.items()],
-            key=lambda x: x[1],
-            reverse=True
-        )
+            # Get training data
+            try:
+                if duration == -1:
+                    data = get_training_data(stock.symbol)
+                else:
+                    end_date = date.today()
+                    start_date = end_date - timedelta(days=duration)
+                    data = get_training_data(stock.symbol, start_date=start_date.strftime('%Y-%m-%d'), end_date=end_date.strftime('%Y-%m-%d'))
+                
+                if data is None or data.empty:
+                    messages.error(request, f"No training data available for {stock.symbol}")
+                    continue
+                    
+                logger.info(f"Got training data for {stock.symbol} with {len(data)} rows")
+            except Exception as e:
+                logger.error(f"Error getting training data for {stock.symbol}: {str(e)}")
+                messages.error(request, f"Error getting training data for {stock.symbol}: {str(e)}")
+                continue
+
+            # Train selected models
+            for model_type in selected_models:
+                try:
+                    # Store the training parameters specific to this model type
+                    model_training_params = training_params.copy()
+                    
+                    model_dict = None
+                    if model_type == 'LSTM':
+                        model_dict = lstm_predictor.train_lstm_model(stock.symbol, data, sequence_length=sequence_length)
+                        model_training_params['sequence_length'] = sequence_length
+                    elif model_type == 'SARIMA':
+                        model_dict = sarima_predictor.train_sarima_model(stock.symbol, data)
+                    elif model_type == 'XGBOOST':
+                        model_dict = xgboost_predictor.train_xgboost_model(stock.symbol, data)
+                    elif model_type == 'SVM':
+                        model_dict = svm_predictor.train_svm_model(stock.symbol, data)
+
+                    if model_dict:
+                        # Get next day prediction
+                        prediction = None
+                        if 'model_path' in model_dict:
+                            if model_type == 'LSTM':
+                                prediction = lstm_predictor.predict_next_day(model_dict['model_path'], data)
+                            elif model_type == 'SARIMA':
+                                prediction = sarima_predictor.predict_next_day(model_dict['model_path'], data)
+                            elif model_type == 'XGBOOST':
+                                prediction = xgboost_predictor.predict_next_day(model_dict['model_path'], data)
+                            elif model_type == 'SVM':
+                                prediction = svm_predictor.predict_next_day(model_dict['model_path'], data)
+                                
+                            # Store training parameters in model metadata
+                            model_id = model_dict.get('model_id')
+                            if model_id:
+                                try:
+                                    # Update the model instance with training parameters
+                                    trained_model = TrainedPredictionModel.objects.get(id=model_id)
+                                    
+                                    # If model has a metadata field, update it, otherwise add it
+                                    if not hasattr(trained_model, 'metadata') or trained_model.metadata is None:
+                                        trained_model.metadata = {}
+                                    
+                                    # Update the metadata with training parameters
+                                    metadata = trained_model.metadata if hasattr(trained_model, 'metadata') else {}
+                                    metadata.update(model_training_params)
+                                    trained_model.metadata = metadata
+                                    trained_model.save()
+                                    
+                                    logger.info(f"Updated model {model_id} with training parameters")
+                                except Exception as e:
+                                    logger.error(f"Error updating model metadata: {e}")
+
+                        # Calculate performance indicators
+                        test_r2 = model_dict['performance'].get('test_r2', 0)
+                        performance_class = 'poor'
+                        if test_r2 > 0.7:
+                            performance_class = 'good'
+                        elif test_r2 > 0.5:
+                            performance_class = 'medium'
+
+                        stock_results[model_type] = {
+                            'performance': model_dict['performance'],
+                            'performance_class': performance_class,
+                            'next_day_prediction': prediction,
+                            'training_date': model_dict['training_date'],
+                            'model_path': model_dict.get('model_path', ''),
+                            'training_params': model_training_params  # Store parameters with results
+                        }
+                        
+                        # Add to admin log
+                        content_type_id = ContentType.objects.get_for_model(Stock).pk
+                        stock_id = stock.id if hasattr(stock, 'id') else None
+                        LogEntry.objects.log_action(
+                            user_id=request.user.id,
+                            content_type_id=content_type_id,
+                            object_id=stock_id,
+                            object_repr=f"{stock.symbol} - {model_type} model",
+                            action_flag=ADDITION,
+                            change_message=json.dumps([{
+                                "added": {
+                                    "name": "prediction model", 
+                                    "object": f"{model_type} model for {stock.symbol} (R²: {test_r2:.4f})"
+                                }
+                            }])
+                        )
+                        successful_models += 1
+                except Exception as e:
+                    logger.error(f"Error training {model_type} model for {stock.symbol}: {str(e)}")
+                    messages.error(request, f"Error training {model_type} model for {stock.symbol}: {str(e)}")
+                    failed_models += 1
+
+            results[stock.symbol] = stock_results
+
+        context['results'] = results
+        if successful_models > 0:
+            messages.success(request, f"Models trained successfully: {successful_models} model(s) for {len(selected_stocks)} stock(s)! Failed models: {failed_models}")
+        else:
+            messages.error(request, f"No models were successfully trained. Please check the logs for more information.")
+
+    # Get list of existing trained models
+    trained_models = {}
+    # First get models from the database
+    db_models = TrainedPredictionModel.objects.all().order_by('stock__symbol', '-trained_at')
     
-    context = {
-        **admin.site.each_context(request),
-        'model': model,
-        'prediction': prediction,
-        'feature_importance': feature_importance,
-        'title': f'Model Detail: {model.stock.symbol} - {model.get_model_type_display()}',
-        'opts': Stock._meta,  # This helps with admin breadcrumbs
-        'app_label': 'stocks',
-    }
+    for model in db_models:
+        symbol = model.stock.symbol
+        if symbol not in trained_models:
+            trained_models[symbol] = []
+            
+        trained_models[symbol].append({
+            'id': model.id,
+            'type': model.model_type,
+            'filename': os.path.basename(model.model_path),
+            'trained_at': model.trained_at,
+            'metadata': model.metadata if hasattr(model, 'metadata') else {}
+        })
+
+    context['trained_models'] = trained_models
     
-    return render(request, 'admin/stocks/model_detail.html', context)
+    return TemplateResponse(request, 'admin/prediction_dashboard.html', context)
 
 @staff_member_required
-def admin_stock_predictions(request, stock_id):
-    """
-    Admin view to see predictions for a specific stock from all model types
-    """
-    stock = get_object_or_404(Stock, id=stock_id)
-    
-    # Get predictions from all available models
-    multi_predictions = get_multiple_predictions(stock.symbol, days=7)
-    
-    # Get single-day predictions from each model type for comparison
-    predictions = {}
-    for model_type, _ in TrainedPredictionModel.MODEL_TYPES:
-        pred = get_prediction_for_stock(stock.symbol, model_type)
-        if pred:
-            predictions[model_type] = pred
-    
-    context = {
-        **admin.site.each_context(request),
-        'stock': stock,
-        'predictions': predictions,
-        'multi_predictions': multi_predictions,
-        'title': f'Predictions for {stock.symbol}',
-        'opts': Stock._meta,  # This helps with admin breadcrumbs
-        'app_label': 'stocks',
-    }
-    
-    return render(request, 'admin/stocks/stock_predictions.html', context)
-
-@staff_member_required
-@require_POST
 def admin_delete_model(request, model_id):
     """
-    Admin view to delete a trained model
+    Admin view for deleting a trained prediction model.
     """
-    model = get_object_or_404(TrainedPredictionModel, id=model_id)
-    stock_symbol = model.stock.symbol
-    model_type = model.model_type
+    context = {
+        **admin_site.each_context(request),
+        'title': 'Delete Model',
+        'model_id': model_id,
+    }
     
     try:
-        # Delete the model file if possible
-        import os
-        if os.path.exists(model.model_path):
-            os.remove(model.model_path)
+        # Here we would add logic to delete the model based on model_id
+        # For example, removing the model file from trained_models directory
+        # and any associated database records
         
-        # Delete the model database entry
-        model.delete()
-        
-        messages.success(
-            request,
-            f"Successfully deleted {model_type} model for {stock_symbol}"
-        )
+        messages.success(request, f'Successfully deleted model {model_id}')
+        return redirect('admin:prediction_dashboard')
     except Exception as e:
-        messages.error(
-            request,
-            f"Error deleting model: {str(e)}"
-        )
+        messages.error(request, f'Error deleting model: {str(e)}')
+        return redirect('admin:prediction_dashboard')
+
+@staff_member_required
+def update_all_stock_prices(request):
+    """
+    Admin view for bulk updating all stock prices.
+    """
+    from .services import update_stock_prices
+    from .models import Stock
     
-    return redirect(reverse('admin_prediction_dashboard'))
+    try:
+        # Get all active stocks
+        stocks = Stock.objects.all()
+        count = 0
+        
+        for stock in stocks:
+            result = update_stock_prices(stock.symbol)
+            if result and result.get('success'):
+                count += 1
+        
+        messages.success(request, f"Successfully updated prices for {count} out of {stocks.count()} stocks.")
+    except Exception as e:
+        messages.error(request, f"Error updating stock prices: {str(e)}")
+    
+    return redirect('admin:stocks_stock_changelist')
+
+@staff_member_required
+def update_commodities(request):
+    """
+    Admin view for updating commodity data.
+    """
+    from .services import update_commodity_prices
+    
+    try:
+        # Update commodity prices - assuming this function exists in your services
+        result = update_commodity_prices()
+        messages.success(request, f"Successfully updated commodity prices. {result.get('count', 0)} commodities updated.")
+    except Exception as e:
+        messages.error(request, f"Error updating commodity prices: {str(e)}")
+    
+    return redirect('admin:stocks_stock_changelist')

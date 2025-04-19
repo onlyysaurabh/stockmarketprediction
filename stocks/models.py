@@ -106,7 +106,8 @@ class WatchlistItem(models.Model):
     def percent_change(self):
         """Calculate the percentage change from purchase price to current price."""
         if self.purchase_price and self.last_price and self.purchase_price > 0:
-            return ((self.last_price - self.purchase_price) / self.purchase_price) * 100
+            from decimal import Decimal
+            return float(((self.last_price - self.purchase_price) / self.purchase_price) * Decimal('100'))
         return None
     
     def save(self, *args, **kwargs):
@@ -158,6 +159,8 @@ class TrainedPredictionModel(models.Model):
     trained_at = models.DateTimeField(auto_now_add=True)
     model_path = models.CharField(max_length=512) # Path where the model file is saved
     feature_importance = models.JSONField(null=True, blank=True) # Store feature importance as JSON
+    # Store training parameters like duration, sequence_length, etc.
+    metadata = models.JSONField(null=True, blank=True) 
     # Optional: Add fields for performance metrics like RMSE, MAE etc.
     # performance_metrics = models.JSONField(null=True, blank=True)
 
