@@ -13,12 +13,67 @@ from pymongo import MongoClient
 import pickle
 import os
 import sys
+import argparse
 from tqdm import tqdm  # Import tqdm for progress bar
 from datetime import datetime, timezone
 
 # Add parent directory to path to import mongo_utils
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from stocks.mongo_utils import get_mongo_db, STOCK_PRICES_COLLECTION
+
+# --- Parse Command Line Arguments ---
+def parse_args():
+    """Parse command line arguments for training parameters."""
+    parser = argparse.ArgumentParser(description='Train ARIMA model for stock price prediction')
+    
+    # Stock selection
+    stock_group = parser.add_mutually_exclusive_group()
+    stock_group.add_argument('--symbol', type=str, help='Single stock symbol to train on (e.g., AAPL)')
+    stock_group.add_argument('--symbols', type=str, help='Comma-separated list of stock symbols to train on (e.g., AAPL,MSFT,GOOGL)')
+    
+    # Date range
+    parser.add_argument('--start-date', type=str, default="2020-02-25", 
+                      help='Start date for training data (YYYY-MM-DD format)')
+    parser.add_argument('--end-date', type=str, default="2025-02-25",
+                      help='End date for training data (YYYY-MM-DD format)')
+    
+    # Model parameters
+    parser.add_argument('--price-field', type=str, default="close",
+                      help='Price field to predict (default: close)')
+    parser.add_argument('--max-p', type=int, default=3,
+                      help='Maximum p value for ARIMA (default: 3)')
+    parser.add_argument('--max-q', type=int, default=3,
+                      help='Maximum q value for ARIMA (default: 3)')
+    parser.add_argument('--auto-diff', action='store_true',
+                      help='Automatically determine differencing order')
+    parser.add_argument('--diff-order', type=int, default=1,
+                      help='Differencing order if auto-diff is False (default: 1)')
+    parser.add_argument('--test-size', type=float, default=0.2,
+                      help='Test size as fraction of data (default: 0.2)')
+    parser.add_argument('--skip-feature-engineering', action='store_true',
+                      help='Skip feature engineering step')
+                      
+    return parser.parse_args()
+
+# --- Helper function to get stock symbols ---
+def get_stock_symbols(args):
+    """Get stock symbols from arguments or CSV file."""
+    if args.symbol:
+        return [args.symbol.upper()]
+    elif args.symbols:
+        return [symbol.strip().upper() for symbol in args.symbols.split(',')]
+    else:
+        # Default: load from CSV
+        stocks_file = "stock_symbols.csv"
+        try:
+            stocks_df = pd.read_csv(stocks_file)
+            return stocks_df['Symbol'].tolist()
+        except FileNotFoundError:
+            print(f"Error: {stocks_file} not found.")
+            sys.exit(1)
+        except KeyError:
+            print(f"Error: 'Symbol' column not found in {stocks_file}.")
+            sys.exit(1)
 
 # --- Feature Engineering Functions ---
 def calculate_moving_average(series, window=10):
@@ -322,33 +377,42 @@ def evaluate_model(model_fit, train_series, test_series, original_series, diff_o
 
 # --- Main Program ---
 if __name__ == "__main__":
+    # Parse command-line arguments
+    args = parse_args()
+    
     # --- MongoDB Connection Details ---
     mongo_uri = "mongodb://localhost:27017/"
     db_name = "stock_market_db"
-    evaluation_collection_name = "arima_evaluation_results" # Collection to store evaluation results
+    evaluation_collection_name = "arima_evaluation_results"
 
-    price_field_to_use = 'close'
+    # --- Model Parameters ---
+    price_field_to_use = args.price_field
+    feature_engineering = not args.skip_feature_engineering
+    max_p = args.max_p
+    max_q = args.max_q
+    test_size = args.test_size
+    
+    print(f"ARIMA parameters: price_field={price_field_to_use}, feature_engineering={feature_engineering}")
+    print(f"max_p={max_p}, max_q={max_q}, test_size={test_size}")
 
     # --- Date Range for Training and Prediction ---
-    start_date_str = "2020-02-25"  # Original start date
-    end_date_str = "2025-02-25"   # Modified end date to reduce compute
-
-    start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
-    end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
-
-    # --- Load Stock Symbols from CSV ---
-    stocks_file = "stock_symbols.csv" # Ensure stock_symbols.csv is in the same directory or provide full path
+    start_date_str = args.start_date
+    end_date_str = args.end_date
     try:
-        stocks_df = pd.read_csv(stocks_file)
-        stock_symbols = stocks_df['Symbol'].tolist()
-    except FileNotFoundError:
-        print(f"Error: {stocks_file} not found. Please make sure it exists in the same directory.")
-        exit()
-    except KeyError:
-        print(f"Error: 'Symbol' column not found in {stocks_file}. Please check the CSV file format.")
-        exit()
+        start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
+        end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
+    except ValueError as e:
+        print(f"Error parsing dates: {e}")
+        print("Please use YYYY-MM-DD format for dates.")
+        sys.exit(1)
+        
+    print(f"Training with date range: {start_date} to {end_date}")
 
-    client = None # Initialize client outside the loop
+    # --- Load Stock Symbols ---
+    stock_symbols = get_stock_symbols(args)
+    print(f"Training ARIMA model for {len(stock_symbols)} stock(s): {', '.join(stock_symbols) if len(stock_symbols) < 5 else ', '.join(stock_symbols[:5]) + '...'}")
+
+    client = None
     try:
         client = MongoClient(mongo_uri)
         db = client[db_name]
@@ -359,21 +423,32 @@ if __name__ == "__main__":
 
             try:
                 # 1. Load Data from MongoDB with Date Range and Feature Engineering
-                stock_series, feature_df = load_data_from_mongodb(mongo_uri, db_name, stock_symbol_to_predict, price_field_to_use, start_date, end_date, feature_engineering=True)
+                stock_series, feature_df = load_data_from_mongodb(
+                    mongo_uri, db_name, stock_symbol_to_predict, 
+                    price_field_to_use, start_date, end_date, 
+                    feature_engineering=feature_engineering
+                )
 
-                # 2. Handle Stationarity (using 'Close' price series)
-                stationary_series, diff_order = make_stationary(stock_series.copy())
-                if stationary_series is None:
-                    print("Failed to make series stationary. Skipping stock.")
-                    continue # Skip to the next stock symbol
+                # 2. Handle Stationarity (using price series)
+                if args.auto_diff:
+                    stationary_series, diff_order = make_stationary(stock_series.copy())
+                    if stationary_series is None:
+                        print("Failed to make series stationary. Skipping stock.")
+                        continue
+                else:
+                    # Use fixed differencing order
+                    diff_order = args.diff_order
+                    stationary_series = stock_series.diff(diff_order).dropna()
 
-                # 3. Split Data (split the feature DataFrame as well to keep features aligned with target 'Close' price)
-                train_data, test_data = train_test_split(stationary_series)
-                original_train, original_test = train_test_split(stock_series) # Keep original_train, original_test although not directly used.
-                feature_train_df, feature_test_df = train_test_split(feature_df) # Split feature-rich DataFrame
+                # 3. Split Data
+                train_data, test_data = train_test_split(stationary_series, test_size=test_size)
+                original_train, original_test = train_test_split(stock_series, test_size=test_size)
+                
+                if feature_engineering:
+                    feature_train_df, feature_test_df = train_test_split(feature_df, test_size=test_size)
 
-                # 4. Automatically Set ARIMA Parameters (using AIC for stationary series)
-                best_order = get_auto_arima_params(train_data, max_p=3, max_q=3) # You can adjust max_p and max_q
+                # 4. Automatically Set ARIMA Parameters
+                best_order = get_auto_arima_params(train_data, max_p=max_p, max_q=max_q)
 
                 # 5. Train ARIMA Model
                 arima_model_fit = train_arima_model(train_data, best_order)

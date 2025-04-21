@@ -188,15 +188,157 @@ The application uses a hybrid database approach:
 - Market indicators
 - Commodity prices
 
+# Appending Documentation for Model Training Functionality
+
+I'll add comprehensive documentation about the model training functionality to the README file. Here's the content to add:
+
+```markdown
+## 🧠 Model Training
+
+StockWise includes a powerful model training system that allows you to train and evaluate multiple predictive models on various stock symbols efficiently.
+
+### Training Models
+
+The training system is located in the `train-model` directory and supports multiple machine learning approaches:
+
+- **XGBoost**: Gradient boosting for regression tasks
+- **SVM**: Support Vector Machines for regression
+- **LSTM**: Long Short-Term Memory neural networks for sequence prediction
+- **ARIMA**: Auto-Regressive Integrated Moving Average for time series forecasting
+
+### Parallel Training Execution
+
+The main training script (`train.py`) orchestrates parallel training jobs with configurable concurrency:
+
+```bash
+# Basic usage - train a single model for a single stock
+python train-model/train.py --model xgboost --symbol AAPL
+
+# Train multiple model types for a single stock
+python train-model/train.py --models xgboost,lstm,arima --symbol MSFT
+
+# Train one model type for multiple stocks
+python train-model/train.py --model lstm --symbols AAPL,MSFT,GOOGL
+
+# Train all supported models for multiple stocks
+python train-model/train.py --all-models --symbols AAPL,MSFT,GOOGL,AMZN
+
+# Load stock symbols from a file (one symbol per line)
+python train-model/train.py --all-models --symbols-file tech_stocks.txt
+```
+
+### Training Job Configuration
+
+Control the training process with various command-line options:
+
+| Option | Description |
+|--------|-------------|
+| `--max-workers` | Maximum number of concurrent training jobs (default: 4) |
+| `--model` | Single model type to train (xgboost, svm, lstm, arima) |
+| `--models` | Comma-separated list of model types |
+| `--all-models` | Train all available model types |
+| `--symbol` | Single stock symbol to train on |
+| `--symbols` | Comma-separated list of stock symbols |
+| `--symbols-file` | Path to a file containing stock symbols (one per line) |
+| `--start-date` | Start date for training data (YYYY-MM-DD format) |
+| `--end-date` | End date for training data (YYYY-MM-DD format) |
+| `--config` | Path to JSON configuration file for batch training jobs |
+
+Additional arguments are passed through to the individual model training scripts.
+
+### Batch Training with JSON Configuration
+
+For complex training scenarios, create a JSON configuration file:
+
+```json
+{
+  "max_workers": 6,
+  "start_date": "2020-01-01",
+  "end_date": "2023-12-31",
+  "jobs": [
+    {
+      "model": "xgboost",
+      "symbols": ["AAPL", "MSFT", "GOOGL"],
+      "extra_args": ["--n-estimators", "300"]
+    },
+    {
+      "model": "lstm",
+      "symbols_file": "finance_stocks.txt",
+      "extra_args": ["--epochs", "100"]
+    },
+    {
+      "model": "arima",
+      "symbol": "TSLA",
+      "start_date": "2019-01-01"
+    }
+  ]
+}
+```
+
+Run the batch job with:
+
+```bash
+python train-model/train.py --config training_jobs.json
+```
+
+### Model-Specific Parameters
+
+Each model type supports specific parameters that can be passed as additional arguments:
+
+**XGBoost:**
+```bash
+python train-model/train.py --model xgboost --symbol AAPL --look-back 60 --features 30 --n-estimators "100,200,300" --max-depth "3,4,5" --learning-rate "0.01,0.1,0.2"
+```
+
+**SVM:**
+```bash
+python train-model/train.py --model svm --symbol MSFT --look-back 60 --features 30 --kernel rbf --c-values "0.1,1,10,100" --gamma-values "scale,auto,0.1,1,10"
+```
+
+**LSTM:**
+```bash
+python train-model/train.py --model lstm --symbol GOOGL --seq-length 60 --lstm-units 60 --dropout-rate 0.2 --epochs 75 --batch-size 32
+```
+
+**ARIMA:**
+```bash
+python train-model/train.py --model arima --symbol AMZN --price-field close --max-p 3 --max-q 3 --auto-diff
+```
+
+### Scheduling Training Jobs
+
+You can schedule regular training jobs using cron (Linux/Mac) or Task Scheduler (Windows):
+
+**Linux/Mac cron example (weekly training):**
+```bash
+0 2 * * 0 cd /path/to/stockmarketprediction && /path/to/venv/bin/python train-model/train.py --config weekly_training.json >> cron_training.log 2>&1
+```
+
+**Monitoring Training Jobs**
+
+Training progress and results are logged to:
+- Console output 
+- `train_jobs.log` file
+- MongoDB evaluation collections (model-specific results)
+
+### Trained Model Storage
+
+Trained models are saved in the following directory structure:
+```
+train-model/
+└── [SYMBOL]/
+    └── [MODEL_TYPE]-[TIMESTAMP]/
+        ├── model.pkl
+        ├── close_scaler.pkl
+        ├── other_scaler.pkl
+        ├── target_scaler.pkl
+        └── selected_features.pkl
+
+
+
 ## 📝 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 👥 Contributors
-
-- Lead Developer: Your Name
-- Data Scientist: Contributor Name
-- UX/UI Designer: Designer Name
 
 ## 🙏 Acknowledgements
 

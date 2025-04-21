@@ -11,6 +11,7 @@ import pickle
 import os
 import sys
 import numpy as np
+import argparse
 from datetime import datetime
 from sklearn.feature_selection import SelectKBest, f_regression
 
@@ -150,14 +151,86 @@ def prepare_data_for_svm(df, look_back=60, num_features_to_select=30):
             other_scaler if other_features else None, target_scaler, selected_features)
 
 
-# --- 3. Train SVM Model ---
-def train_svm_model(X_train, y_train, kernel='rbf'):
+# --- Parse Command Line Arguments ---
+def parse_args():
+    """Parse command line arguments for training parameters."""
+    parser = argparse.ArgumentParser(description='Train SVM model for stock price prediction')
+    
+    # Stock selection
+    stock_group = parser.add_mutually_exclusive_group()
+    stock_group.add_argument('--symbol', type=str, help='Single stock symbol to train on (e.g., AAPL)')
+    stock_group.add_argument('--symbols', type=str, help='Comma-separated list of stock symbols to train on (e.g., AAPL,MSFT,GOOGL)')
+    
+    # Date range
+    parser.add_argument('--start-date', type=str, default="2020-02-25", 
+                      help='Start date for training data (YYYY-MM-DD format)')
+    parser.add_argument('--end-date', type=str, default="2025-02-25",
+                      help='End date for training data (YYYY-MM-DD format)')
+    
+    # Model parameters
+    parser.add_argument('--look-back', type=int, default=60,
+                      help='Look-back period for time series features (default: 60)')
+    parser.add_argument('--features', type=int, default=30,
+                      help='Number of features to select (default: 30)')
+    parser.add_argument('--kernel', type=str, default='rbf',
+                      choices=['linear', 'poly', 'rbf', 'sigmoid'],
+                      help='SVM kernel type (default: rbf)')
+    parser.add_argument('--c-values', type=str, default="0.1,1,10,100",
+                      help='Comma-separated list of C values to try (default: 0.1,1,10,100)')
+    parser.add_argument('--gamma-values', type=str, default="scale,auto,0.1,1,10",
+                      help='Comma-separated list of gamma values to try (default: scale,auto,0.1,1,10)')
+                      
+    return parser.parse_args()
+
+# --- Helper function to get stock symbols ---
+def get_stock_symbols(args):
+    """Get stock symbols from arguments or CSV file."""
+    if args.symbol:
+        return [args.symbol.upper()]
+    elif args.symbols:
+        return [symbol.strip().upper() for symbol in args.symbols.split(',')]
+    else:
+        # Default: load from CSV
+        stocks_file = "stock_symbols.csv"
+        try:
+            stocks_df = pd.read_csv(stocks_file)
+            return stocks_df['Symbol'].tolist()
+        except FileNotFoundError:
+            print(f"Error: {stocks_file} not found.")
+            sys.exit(1)
+        except KeyError:
+            print(f"Error: 'Symbol' column not found in {stocks_file}.")
+            sys.exit(1)
+
+# --- 3. Train SVM Model with Custom Parameters ---
+def train_svm_model(X_train, y_train, kernel='rbf', c_values=None, gamma_values=None):
     """Trains SVM model with hyperparameter tuning (GridSearchCV)."""
+    # Parse C values from string if provided
+    if isinstance(c_values, str):
+        try:
+            c_values = [float(x) if x.replace('.', '', 1).isdigit() else x for x in c_values.split(',')]
+        except ValueError:
+            c_values = [0.1, 1, 10, 100]  # Default if parsing fails
+    
+    # Parse gamma values from string if provided
+    if isinstance(gamma_values, str):
+        # Handle both numeric and string values like 'scale', 'auto'
+        gamma_list = []
+        for g in gamma_values.split(','):
+            if g in ['scale', 'auto']:
+                gamma_list.append(g)
+            else:
+                try:
+                    gamma_list.append(float(g))
+                except ValueError:
+                    pass  # Skip invalid values
+        gamma_values = gamma_list if gamma_list else ['scale', 'auto', 0.1, 1, 10]
+    
     param_grid = {
-        'C': [0.1, 1, 10, 100],
-        'gamma': ['scale', 'auto', 0.1, 1, 10],
+        'C': c_values if c_values else [0.1, 1, 10, 100],
+        'gamma': gamma_values if gamma_values else ['scale', 'auto', 0.1, 1, 10],
         'epsilon': [0.01, 0.1, 1],
-        'kernel': [kernel]  # Keep kernel option
+        'kernel': [kernel]  # Fixed kernel from parameter
     }
 
     model = SVR()
@@ -296,28 +369,36 @@ def save_model(model, stock_symbol, close_scaler, other_scaler, target_scaler, s
 
 # --- Main Program ---
 if __name__ == "__main__":
+    # Parse command-line arguments
+    args = parse_args()
+    
     # --- MongoDB Connection Details ---
     mongo_uri = "mongodb://localhost:27017/"
     db_name = "stock_market_db"
     evaluation_collection_name = "svm_evaluation_results"
 
     # --- Date Range ---
-    start_date_str = "2020-02-25"
-    end_date_str = "2025-02-25"
-    start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
-    end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
+    start_date_str = args.start_date
+    end_date_str = args.end_date
+    try:
+        start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
+        end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
+    except ValueError as e:
+        print(f"Error parsing dates: {e}")
+        print("Please use YYYY-MM-DD format for dates.")
+        sys.exit(1)
+        
+    print(f"Training with date range: {start_date} to {end_date}")
 
     # --- Load Stock Symbols ---
-    stocks_file = "stock_symbols.csv"
-    try:
-        stocks_df = pd.read_csv(stocks_file)
-        stock_symbols = stocks_df['Symbol'].tolist()
-    except FileNotFoundError:
-        print(f"Error: {stocks_file} not found.")
-        exit()
-    except KeyError:
-        print(f"Error: 'Symbol' column not found in {stocks_file}.")
-        exit()
+    stock_symbols = get_stock_symbols(args)
+    print(f"Training SVM model for {len(stock_symbols)} stock(s): {', '.join(stock_symbols) if len(stock_symbols) < 5 else ', '.join(stock_symbols[:5]) + '...'}")
+
+    # --- Model Parameters ---
+    look_back = args.look_back
+    num_features = args.features
+    print(f"Using look_back={look_back}, num_features={num_features}")
+    print(f"Using kernel={args.kernel}, C values={args.c_values}, gamma values={args.gamma_values}")
 
     client = None
     try:
@@ -335,17 +416,15 @@ if __name__ == "__main__":
                 )
 
                 # 2. Prepare Data
-                look_back = 60
-                num_features = 30
                 (X_train, X_test, y_train_scaled, y_test_scaled,
                  close_scaler, other_scaler, target_scaler, selected_features) = prepare_data_for_svm(
                     df, look_back=look_back,
                     num_features_to_select=num_features
                 )
 
-
-                # 3. Train Model
-                svm_model = train_svm_model(X_train, y_train_scaled)
+                # 3. Train Model with custom parameters
+                svm_model = train_svm_model(X_train, y_train_scaled, 
+                                          args.kernel, args.c_values, args.gamma_values)
 
                 # 4. Evaluate and Store Results
                 evaluate_model(svm_model, X_test, y_test_scaled, close_scaler,
