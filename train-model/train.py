@@ -243,6 +243,12 @@ def execute_job(job):
             text=True
         )
         
+        # Log stdout and stderr even on success
+        if process.stdout:
+            logger.info(f"Job stdout: model={model}, symbol={symbol}\n{process.stdout.strip()}")
+        if process.stderr:
+            logger.warning(f"Job stderr: model={model}, symbol={symbol}\n{process.stderr.strip()}")
+            
         logger.info(f"Job completed: model={model}, symbol={symbol}")
         
         end_time = time.time()
@@ -254,7 +260,12 @@ def execute_job(job):
         }
     except subprocess.CalledProcessError as e:
         logger.error(f"Error in job model={model}, symbol={symbol}: {e}")
-        
+        # Log stdout and stderr on error
+        if e.stdout:
+            logger.error(f"Job stdout on error: model={model}, symbol={symbol}\n{e.stdout.strip()}")
+        if e.stderr:
+            logger.error(f"Job stderr on error: model={model}, symbol={symbol}\n{e.stderr.strip()}")
+            
         end_time = time.time()
         return {
             'status': 'failed',

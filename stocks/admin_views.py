@@ -260,7 +260,7 @@ def fetch_news_standalone_view(request: HttpRequest) -> TemplateResponse | HttpR
 @staff_member_required
 def train_models_view(request: HttpRequest) -> TemplateResponse | HttpResponseRedirect:
     """View for training stock prediction models through the admin interface."""
-    # Get all unique sectors and industries for the filters (same pattern as fetch_news)
+    # Get all unique sectors and industries for the filters
     sectors = Stock.objects.exclude(sector__isnull=True).exclude(sector='').values_list('sector', flat=True).distinct().order_by('sector')
     industries = Stock.objects.exclude(industry__isnull=True).exclude(industry='').values_list('industry', flat=True).distinct().order_by('industry')
     
@@ -311,8 +311,7 @@ def train_models_view(request: HttpRequest) -> TemplateResponse | HttpResponseRe
                     # Create job entry for each model with all selected stocks
                     jobs.append({
                         "model": model_type,
-                        "symbols": selected_symbols,
-                        "extra_args": []
+                        "symbols": selected_symbols
                     })
                 
                 # Create the complete config
@@ -323,8 +322,12 @@ def train_models_view(request: HttpRequest) -> TemplateResponse | HttpResponseRe
                     "jobs": jobs
                 }
                 
-                # Write JSON to temp file
+                # Write JSON to temp file - ensure it's actually written
                 json.dump(config, temp_config, indent=2)
+                temp_config.flush()
+                os.fsync(temp_config.fileno())
+                logger.info(f"Created training configuration at: {config_path}")
+                logger.info(f"Configuration: {json.dumps(config, indent=2)}")
             
             # Construct the path to the train.py script
             base_dir = Path(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -334,21 +337,25 @@ def train_models_view(request: HttpRequest) -> TemplateResponse | HttpResponseRe
             if not train_script.exists():
                 os.unlink(config_path)  # Clean up temp file
                 messages.error(request, f"Training script not found: {train_script}")
-                return redirect('admin:index')
+                logger.error(f"Training script not found at: {train_script}")
+                return redirect('admin_train_models')
             
             # Start the training process
-            # We'll use subprocess.Popen to run it in the background
             try:
+                logger.info(f"Starting training process with script: {train_script}")
+                
+                # Build command with explicit configuration
                 cmd = [sys.executable, str(train_script), '--config', config_path]
+                logger.info(f"Running command: {' '.join(cmd)}")
+                
+                # Use subprocess.Popen to run it in the background
                 process = subprocess.Popen(
                     cmd,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
-                    text=True
+                    text=True,
+                    cwd=base_dir  # Set working directory to ensure proper path resolution
                 )
-                
-                # We're not waiting for it to complete since it may take a while
-                # The train.py script handles its own logging
                 
                 # Add to admin log
                 content_type_id = ContentType.objects.get_for_model(Stock).pk
@@ -378,11 +385,12 @@ def train_models_view(request: HttpRequest) -> TemplateResponse | HttpResponseRe
                 
             except Exception as e:
                 os.unlink(config_path)  # Clean up temp file
-                messages.error(request, f"Error starting training process: {str(e)}")
-                logger.error(f"Training process error: {str(e)}")
+                error_message = f"Error starting training process: {str(e)}"
+                messages.error(request, error_message)
+                logger.error(error_message)
             
-                # Redirect back to the train models view to stay on the same page
-                return redirect('admin_train_models')
+            # Redirect back to the train models view to stay on the same page
+            return redirect('admin_train_models')
         else:
             # Form is invalid, show errors
             messages.error(request, "Please correct the errors below.")
@@ -392,10 +400,23 @@ def train_models_view(request: HttpRequest) -> TemplateResponse | HttpResponseRe
         three_years_ago = today.replace(year=today.year - 3)
         form = TrainModelForm(initial={'start_date': three_years_ago, 'end_date': today})
     
-    # Get stats about trained models (could be extended)
+    # Try to get stats about previously trained models by checking log
     model_stats = {
-        'total_trained': 0,  # Placeholder for stats
+        'total_trained': 0
     }
+    
+    try:
+        # Check if train_jobs.log exists and try to count successful jobs
+        log_path = Path(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) / 'train_jobs.log'
+        if log_path.exists():
+            with open(log_path, 'r') as log_file:
+                log_content = log_file.read()
+                # Count successful training jobs
+                successful_count = log_content.count("status': 'success")
+                if successful_count > 0:
+                    model_stats['total_trained'] = successful_count
+    except Exception as e:
+        logger.error(f"Error getting training stats: {str(e)}")
     
     context = {
         **admin.site.each_context(request),
