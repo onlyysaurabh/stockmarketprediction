@@ -32,47 +32,65 @@ def load_data_from_mongodb(mongo_uri, db_name, stock_symbol,
         db = client[db_name]
         collection = db[STOCK_PRICES_COLLECTION]
 
-        query = {"symbol": stock_symbol}
+        # Find the single document for the stock symbol
+        stock_doc = collection.find_one({"symbol": stock_symbol})
+
+        if not stock_doc:
+            raise ValueError(
+                f"No document found for symbol '{stock_symbol}' in MongoDB "
+                f"collection '{STOCK_PRICES_COLLECTION}'."
+            )
+
+        historical_data = stock_doc.get("historical_data", [])
+        if not historical_data:
+             raise ValueError(
+                f"No 'historical_data' found for symbol '{stock_symbol}'."
+            )
+
+        # Convert to DataFrame and filter by date
+        df = pd.DataFrame(historical_data)
+
+        if 'date' not in df.columns:
+             raise ValueError(
+                f"Required field 'date' not found in 'historical_data'."
+            )
+            
+        # Ensure 'date' is datetime
+        df['date'] = pd.to_datetime(df['date'])
+
+        # Filter by date range if provided
         if start_date and end_date:
-            query["date"] = {
-                "$gte": datetime.combine(start_date, datetime.min.time()),
-                "$lte": datetime.combine(end_date, datetime.max.time())
-            }
+            start_dt = datetime.combine(start_date, datetime.min.time())
+            end_dt = datetime.combine(end_date, datetime.max.time())
+            df = df[(df['date'] >= start_dt) & (df['date'] <= end_dt)]
 
-        projection = {"date": 1, "close": 1, "volume": 1, "open": 1, "high": 1,
-                      "low": 1, "_id": 0}  # Include OHLC
-        sort = [("date", pymongo.ASCENDING)]
-
-        cursor = collection.find(query, projection=projection).sort(sort)
-        data_list = list(cursor)
-
-        if not data_list:
+        if df.empty:
             raise ValueError(
-                f"No data found for symbol '{stock_symbol}' in MongoDB "
-                f"collection '{STOCK_PRICES_COLLECTION}' within the specified date "
-                f"range."
+                f"No historical data found for symbol '{stock_symbol}' "
+                f"within the specified date range ({start_date} to {end_date})."
             )
 
-        df = pd.DataFrame(data_list)
-
-        if 'date' not in df.columns or 'close' not in df.columns:
+        # Check for required columns after filtering
+        required_cols = ['date', 'close', 'volume', 'open', 'high', 'low']
+        missing_cols = [col for col in required_cols if col not in df.columns]
+        if missing_cols:
             raise ValueError(
-                f"Required fields 'date' and 'close' not found in MongoDB "
-                f"data."
+                f"Missing required columns in historical_data: {', '.join(missing_cols)}"
             )
 
-        # Convert column names to match expected format
+        # Rename columns to match expected format
         df.rename(columns={
             'date': 'Date',
-            'close': 'Close', 
+            'close': 'Close',
             'volume': 'Volume',
             'open': 'Open',
             'high': 'High',
             'low': 'Low'
         }, inplace=True)
-        
-        df['Date'] = pd.to_datetime(df['Date'])
+
+        # Set Date as index
         df.set_index('Date', inplace=True)
+        df.sort_index(inplace=True) # Ensure data is sorted by date
 
         return df
 
@@ -376,8 +394,10 @@ if __name__ == "__main__":
     args = parse_args()
     
     # --- MongoDB Connection Details ---
-    mongo_uri = "mongodb://localhost:27017/"
-    db_name = "stock_market_db"
+    # Fix the database name to match what's used in the services.py file
+    import os
+    mongo_uri = os.getenv('MONGO_URI', 'mongodb://localhost:27017/')
+    db_name = os.getenv('MONGO_DB_NAME', 'stock_data')
     evaluation_collection_name = "xgboost_evaluation_results"
 
     # --- Date Range ---

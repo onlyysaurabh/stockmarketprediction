@@ -23,6 +23,7 @@ urlpatterns = [
     path('admin/fetch-news/', admin_views.fetch_news_standalone_view, name='admin_fetch_news_standalone'),
     path('admin/stocks/stock/fetch-news/', admin_views.fetch_stock_news_view, name='admin_fetch_stock_news'),
     path('admin/train-models/', admin_views.train_models_view, name='admin_train_models'),
+    path('admin/update-selected-stocks/', admin_views.update_selected_stocks_view, name='admin_update_selected_stocks'),
     
     # Standard admin URLs
     path('admin/', admin.site.urls),

@@ -301,7 +301,11 @@ def train_models_view(request: HttpRequest) -> TemplateResponse | HttpResponseRe
             selected_symbols = list(selected_stocks.values_list('symbol', flat=True))
             stock_count = len(selected_symbols)
             
-            # Create a temporary JSON configuration file for the training job
+            # Skip the data update step - we'll rely on the train.py script to use 
+            # the existing MongoDB data, just like the stock_detail.html page does
+            # This avoids redundant data fetching and makes the process faster
+            
+            # Continue with training process as before
             with tempfile.NamedTemporaryFile(suffix='.json', mode='w+', delete=False) as temp_config:
                 config_path = temp_config.name
                 
@@ -435,3 +439,47 @@ def train_models_view(request: HttpRequest) -> TemplateResponse | HttpResponseRe
     
     # Use template
     return TemplateResponse(request, "admin/stocks/stock/train_models_form.html", context)
+
+@staff_member_required
+def update_selected_stocks_view(request: HttpRequest) -> HttpResponseRedirect:
+    """View for updating selected stock prices before training."""
+    if request.method == 'POST':
+        # Get selected stocks from the form
+        selected_stock_ids = request.POST.getlist('selected_stocks')
+        
+        if not selected_stock_ids:
+            messages.warning(request, "No stocks selected. Please select at least one stock to update.")
+            return redirect('admin_train_models')
+        
+        # Get the selected stocks
+        selected_stocks = Stock.objects.filter(pk__in=[int(id_val) for id_val in selected_stock_ids])
+        selected_symbols = list(selected_stocks.values_list('symbol', flat=True))
+        stock_count = len(selected_symbols)
+        
+        # Use the update_stock_prices function from services.py to update the selected stocks
+        from .services import update_stock_prices
+        
+        messages.info(request, f"Updating price data for {stock_count} selected stocks. This may take a moment...")
+        
+        # Update only the selected stocks with a faster delay since we're doing it synchronously
+        update_results = update_stock_prices(
+            symbols=selected_symbols,
+            delay=0.5,
+            update_django_model=True
+        )
+        
+        # Show results
+        if update_results['failed'] > 0 or update_results['not_found'] > 0:
+            messages.warning(
+                request, 
+                f"Could not update data for {update_results['failed'] + update_results['not_found']} "
+                f"out of {stock_count} stocks."
+            )
+        
+        messages.success(
+            request, 
+            f"Successfully updated data for {update_results['success']} out of {stock_count} stocks."
+        )
+    
+    # Redirect back to the train models page
+    return redirect('admin_train_models')
