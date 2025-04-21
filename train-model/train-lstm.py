@@ -1,6 +1,5 @@
 # train-lstm.py
 
-import yfinance as yf
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
@@ -10,9 +9,64 @@ from tensorflow.keras.layers import LSTM, Dense, Dropout
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, accuracy_score, confusion_matrix, classification_report, recall_score
 import os
+import sys
 import datetime
 import pymongo
 from pymongo import MongoClient
+
+# Add parent directory to path to import mongo_utils
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from stocks.mongo_utils import get_mongo_db, STOCK_PRICES_COLLECTION
+
+def load_data_from_mongodb(mongo_uri, db_name, stock_symbol, 
+                          start_date=None, end_date=None):
+    """Load stock data from MongoDB using the proper collection and field names"""
+    client = None
+    try:
+        client = MongoClient(mongo_uri)
+        db = client[db_name]
+        collection = db[STOCK_PRICES_COLLECTION]
+        
+        query = {"symbol": stock_symbol}
+        if start_date and end_date:
+            query["date"] = {
+                "$gte": datetime.datetime.strptime(start_date, "%Y-%m-%d"),
+                "$lte": datetime.datetime.strptime(end_date, "%Y-%m-%d")
+            }
+        
+        projection = {"date": 1, "close": 1, "high": 1, "low": 1, "open": 1, 
+                      "volume": 1, "_id": 0}
+        sort = [("date", pymongo.ASCENDING)]
+        
+        cursor = collection.find(query, projection=projection).sort(sort)
+        data_list = list(cursor)
+        
+        if not data_list:
+            raise ValueError(f"No data found for {stock_symbol}")
+            
+        df = pd.DataFrame(data_list)
+        
+        # Convert MongoDB field names to what LSTM code expects
+        df.rename(columns={
+            'date': 'Date',
+            'close': 'Close',
+            'high': 'High',
+            'low': 'Low',
+            'open': 'Open',
+            'volume': 'Volume'
+        }, inplace=True)
+        
+        df['Date'] = pd.to_datetime(df['Date'])
+        df.set_index('Date', inplace=True)
+        
+        return df
+    
+    except Exception as e:
+        print(f"Error loading data: {e}")
+        return None
+    finally:
+        if client:
+            client.close()
 
 def calculate_technical_indicators(df, short_window=20, long_window=50, lag_days=1):
     """
@@ -156,8 +210,12 @@ def train_lstm_model(symbol, start_date, end_date, evaluation_results_collection
 
     # --- 1. Data Fetching and Preprocessing ---
     try:
-        data = yf.download(symbol, start=start_date, end=end_date)
-        if data.empty:
+        # Use MongoDB data instead of yfinance
+        mongo_uri = "mongodb://localhost:27017/"
+        db_name = "stock_market_db"
+        data = load_data_from_mongodb(mongo_uri, db_name, symbol, start_date, end_date)
+        
+        if data is None or data.empty:
             print(f"No data found for {symbol} between {start_date} and {end_date}.")
             return None # Indicate failure
     except Exception as e:
@@ -202,13 +260,13 @@ def train_lstm_model(symbol, start_date, end_date, evaluation_results_collection
     model_reg.compile(optimizer='adam', loss='mse')
 
     # --- 5. Train Regression Model with Callbacks ---
-    model_dir = f"./models/{symbol}" # Modified model directory to store in /models/{symbol}
+    timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    model_dir = f"/home/skylap/Downloads/stockmarketprediction/train-model/{symbol}/lstm-{timestamp}"
     os.makedirs(model_dir, exist_ok=True)
 
     # Callbacks for early stopping and saving best models
     early_stopping = EarlyStopping(monitor='val_loss', patience=patience, restore_best_weights=True)
-    checkpoint_reg = ModelCheckpoint(os.path.join(model_dir, f"lstm.h5"), monitor='val_loss', save_best_only=True) # Modified model save path to /models/{symbol}/lstm.h5
-
+    checkpoint_reg = ModelCheckpoint(os.path.join(model_dir, "model.h5"), monitor='val_loss', save_best_only=True)
 
     print(f"Training Regression Model for {symbol}...")
     history_reg = model_reg.fit(X_train, y_train_reg, epochs=epochs, batch_size=batch_size, validation_split=0.1, callbacks=[early_stopping, checkpoint_reg], verbose=0) # Reduced verbosity
@@ -217,7 +275,7 @@ def train_lstm_model(symbol, start_date, end_date, evaluation_results_collection
     # --- 6. Evaluate Models ---
     print(f"\n--- Evaluation for {symbol} ---")
     # Regression Evaluation
-    model_reg.load_weights(os.path.join(model_dir, f"lstm.h5")) # Load best weights
+    model_reg.load_weights(os.path.join(model_dir, "model.h5")) # Load best weights
     y_pred_reg = model_reg.predict(X_test, verbose=0) # Reduced verbosity during prediction
     # Inverse transform to get original scale
     y_pred_reg_orig = scaler.inverse_transform(np.hstack([y_pred_reg, np.zeros((y_pred_reg.shape[0], scaled_data.shape[1]-1))]))[:, 0]
@@ -242,7 +300,7 @@ def train_lstm_model(symbol, start_date, end_date, evaluation_results_collection
     print(conf_matrix) # Print Confusion Matrix
 
     # --- 7. Save Regression Model (already handled by ModelCheckpoint callback) ---
-    print(f"\nRegression model saved to: {os.path.join(model_dir, f'lstm.h5')}") # Inform user about save path
+    print(f"\nRegression model saved to: {os.path.join(model_dir, 'model.h5')}") # Inform user about save path
 
     # --- 8. Store Evaluation Results in MongoDB ---
     evaluation_metrics = {
@@ -282,11 +340,12 @@ def train_lstm_model(symbol, start_date, end_date, evaluation_results_collection
 
 
 
+# --- Main Program ---
 if __name__ == '__main__':
     # --- MongoDB Connection Details ---
-    mongo_uri = "mongodb://localhost:27017/"  # Replace with your MongoDB URI if needed
-    db_name = "stock_market_db" # Database name to store evaluation results
-    evaluation_collection_name = "lstm_evaluation_results" # Collection name for LSTM results
+    mongo_uri = "mongodb://localhost:27017/"
+    db_name = "stock_market_db"
+    evaluation_collection_name = "lstm_evaluation_results"
 
     # --- Date Range for Training and Prediction ---
     start_date_str = "2020-02-25" # Original start date
@@ -309,7 +368,7 @@ if __name__ == '__main__':
 
 
     # --- Load Stock Symbols from CSV ---
-    stocks_file = "stocks.csv" # Ensure stocks.csv is in the same directory
+    stocks_file = "stock_symbols.csv" # Ensure stock_symbols.csv is in the same directory
     try:
         stocks_df = pd.read_csv(stocks_file)
         stock_symbols = stocks_df['Symbol'].tolist()
@@ -321,7 +380,7 @@ if __name__ == '__main__':
         exit()
 
 
-    client = None # Initialize client outside the loop
+    client = None
     try:
         client = MongoClient(mongo_uri)
         db = client[db_name]

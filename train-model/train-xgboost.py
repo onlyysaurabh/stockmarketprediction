@@ -12,30 +12,35 @@ from pymongo import MongoClient
 import pickle
 import os
 import numpy as np
+import sys
 from datetime import datetime
 from sklearn.feature_selection import SelectKBest, f_regression
 
+# Add parent directory to path to import mongo_utils
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from stocks.mongo_utils import get_mongo_db, STOCK_PRICES_COLLECTION
+
 
 # --- 1. Load Stock Price Data from MongoDB ---
-def load_data_from_mongodb(mongo_uri, db_name, collection_name, stock_symbol,
+def load_data_from_mongodb(mongo_uri, db_name, stock_symbol,
                            start_date=None, end_date=None):
     """Loads stock data from MongoDB, with optional date range."""
     client = None
     try:
         client = MongoClient(mongo_uri)
         db = client[db_name]
-        collection = db[collection_name]
+        collection = db[STOCK_PRICES_COLLECTION]
 
-        query = {"Symbol": stock_symbol}
+        query = {"symbol": stock_symbol}
         if start_date and end_date:
-            query["Date"] = {
+            query["date"] = {
                 "$gte": datetime.combine(start_date, datetime.min.time()),
                 "$lte": datetime.combine(end_date, datetime.max.time())
             }
 
-        projection = {"Date": 1, "Close": 1, "Volume": 1, "Open": 1, "High": 1,
-                      "Low": 1, "_id": 0}  # Include OHLC
-        sort = [("Date", pymongo.ASCENDING)]
+        projection = {"date": 1, "close": 1, "volume": 1, "open": 1, "high": 1,
+                      "low": 1, "_id": 0}  # Include OHLC
+        sort = [("date", pymongo.ASCENDING)]
 
         cursor = collection.find(query, projection=projection).sort(sort)
         data_list = list(cursor)
@@ -43,18 +48,28 @@ def load_data_from_mongodb(mongo_uri, db_name, collection_name, stock_symbol,
         if not data_list:
             raise ValueError(
                 f"No data found for symbol '{stock_symbol}' in MongoDB "
-                f"collection '{collection_name}' within the specified date "
+                f"collection '{STOCK_PRICES_COLLECTION}' within the specified date "
                 f"range."
             )
 
         df = pd.DataFrame(data_list)
 
-        if 'Date' not in df.columns or 'Close' not in df.columns:
+        if 'date' not in df.columns or 'close' not in df.columns:
             raise ValueError(
-                f"Required fields 'Date' and 'Close' not found in MongoDB "
+                f"Required fields 'date' and 'close' not found in MongoDB "
                 f"data."
             )
 
+        # Convert column names to match expected format
+        df.rename(columns={
+            'date': 'Date',
+            'close': 'Close', 
+            'volume': 'Volume',
+            'open': 'Open',
+            'high': 'High',
+            'low': 'Low'
+        }, inplace=True)
+        
         df['Date'] = pd.to_datetime(df['Date'])
         df.set_index('Date', inplace=True)
 
@@ -235,11 +250,12 @@ def evaluate_model(model, X_test, y_test, close_scaler, other_scaler, target_sca
 
 
 # --- 5. Save Trained Model ---
-def save_model(model, stock_symbol, close_scaler, other_scaler, target_scaler, selected_features, model_name="xgboost_model.pkl"):
+def save_model(model, stock_symbol, close_scaler, other_scaler, target_scaler, selected_features, model_name="xgboost"):
     """Saves the model, scalers, and selected features."""
-    model_dir = f"models/{stock_symbol}"
+    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    model_dir = f"/home/skylap/Downloads/stockmarketprediction/train-model/{stock_symbol}/{model_name}-{timestamp}"
     os.makedirs(model_dir, exist_ok=True)
-    model_path = os.path.join(model_dir, model_name)
+    model_path = os.path.join(model_dir, "model.pkl")
     close_scaler_path = os.path.join(model_dir, "close_scaler.pkl")
     other_scaler_path = os.path.join(model_dir, "other_scaler.pkl")
     target_scaler_path = os.path.join(model_dir, "target_scaler.pkl")
@@ -287,7 +303,6 @@ if __name__ == "__main__":
     # --- MongoDB Connection Details ---
     mongo_uri = "mongodb://localhost:27017/"
     db_name = "stock_market_db"
-    collection_name = "stock_data"
     evaluation_collection_name = "xgboost_evaluation_results"
 
     # --- Date Range ---
@@ -297,7 +312,7 @@ if __name__ == "__main__":
     end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
 
     # --- Load Stock Symbols ---
-    stocks_file = "stocks.csv"
+    stocks_file = "stock_symbols.csv"
     try:
         stocks_df = pd.read_csv(stocks_file)
         stock_symbols = stocks_df['Symbol'].tolist()
@@ -319,7 +334,7 @@ if __name__ == "__main__":
             try:
                 # 1. Load Data
                 df = load_data_from_mongodb(
-                    mongo_uri, db_name, collection_name,
+                    mongo_uri, db_name,
                     stock_symbol_to_predict, start_date, end_date
                 )
 

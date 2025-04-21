@@ -1,5 +1,4 @@
 # train-arima.py
-# modify the code to add date range to control how much data is used for training and prediction to make it less compute heavy
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -13,8 +12,13 @@ import pymongo
 from pymongo import MongoClient
 import pickle
 import os
+import sys
 from tqdm import tqdm  # Import tqdm for progress bar
 from datetime import datetime, timezone
+
+# Add parent directory to path to import mongo_utils
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from stocks.mongo_utils import get_mongo_db, STOCK_PRICES_COLLECTION
 
 # --- Feature Engineering Functions ---
 def calculate_moving_average(series, window=10):
@@ -52,34 +56,48 @@ def calculate_atr(df, period=14):
     return atr
 
 # --- 1. Load Stock Price Data from MongoDB ---
-def load_data_from_mongodb(mongo_uri, db_name, collection_name, stock_symbol, price_field='Close', start_date=None, end_date=None, feature_engineering=True):
+def load_data_from_mongodb(mongo_uri, db_name, stock_symbol, price_field='close', start_date=None, end_date=None, feature_engineering=True):
     """Loads stock price data from MongoDB, with optional date range and feature engineering."""
     client = None  # Initialize client outside the try block
     try:
         client = MongoClient(mongo_uri)
         db = client[db_name]
-        collection = db[collection_name]
+        collection = db[STOCK_PRICES_COLLECTION]
 
-        query = {"Symbol": stock_symbol}
+        query = {"symbol": stock_symbol}
         if start_date and end_date:
             # Convert datetime.date to datetime.datetime with UTC timezone for MongoDB compatibility
             start_datetime = datetime.combine(start_date, datetime.min.time()).replace(tzinfo=timezone.utc)
             end_datetime = datetime.combine(end_date, datetime.max.time()).replace(tzinfo=timezone.utc)
-            query["Date"] = {"$gte": start_datetime, "$lte": end_datetime} # Add date range to query
+            query["date"] = {"$gte": start_datetime, "$lte": end_datetime} # Add date range to query
 
-        projection = {"Date": 1, "Open": 1, "High": 1, "Low": 1, "Close": 1, "Volume": 1, "_id": 0} # Include OHLCV for feature engineering
-        sort = [("Date", pymongo.ASCENDING)]
+        projection = {"date": 1, "open": 1, "high": 1, "low": 1, "close": 1, "volume": 1, "_id": 0} # Include OHLCV for feature engineering
+        sort = [("date", pymongo.ASCENDING)]
 
         cursor = collection.find(query, projection=projection).sort(sort)
         data_list = list(cursor)
 
         if not data_list:
-            raise ValueError(f"No data found for symbol '{stock_symbol}' in MongoDB collection '{collection_name}' within the specified date range.")
+            raise ValueError(f"No data found for symbol '{stock_symbol}' in MongoDB collection '{STOCK_PRICES_COLLECTION}' within the specified date range.")
 
         df = pd.DataFrame(data_list)
 
-        if 'Date' not in df.columns or price_field not in df.columns:
-            raise ValueError(f"Required fields 'Date' and '{price_field}' not found in MongoDB data.")
+        if 'date' not in df.columns or price_field not in df.columns:
+            raise ValueError(f"Required fields 'date' and '{price_field}' not found in MongoDB data.")
+
+        # Convert column names to match expected format
+        df.rename(columns={
+            'date': 'Date',
+            'close': 'Close', 
+            'volume': 'Volume',
+            'open': 'Open',
+            'high': 'High',
+            'low': 'Low'
+        }, inplace=True)
+        
+        # Also adjust price_field if it was renamed
+        if price_field == 'close':
+            price_field = 'Close'
 
         df['Date'] = pd.to_datetime(df['Date'])
         df.set_index('Date', inplace=True)
@@ -267,9 +285,10 @@ def evaluate_model(model_fit, train_series, test_series, original_series, diff_o
     # plt.show()
 
     # --- Store Trained Model ---
-    model_dir = f"models/{stock_symbol}"
+    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    model_dir = f"/home/skylap/Downloads/stockmarketprediction/train-model/{stock_symbol}/arima-{timestamp}"
     os.makedirs(model_dir, exist_ok=True)
-    model_path = os.path.join(model_dir, "arima.pkl")
+    model_path = os.path.join(model_dir, "model.pkl")
 
     try:
         with open(model_path, 'wb') as file:
@@ -306,10 +325,9 @@ if __name__ == "__main__":
     # --- MongoDB Connection Details ---
     mongo_uri = "mongodb://localhost:27017/"
     db_name = "stock_market_db"
-    collection_name = "stock_data"
     evaluation_collection_name = "arima_evaluation_results" # Collection to store evaluation results
 
-    price_field_to_use = 'Close'
+    price_field_to_use = 'close'
 
     # --- Date Range for Training and Prediction ---
     start_date_str = "2020-02-25"  # Original start date
@@ -319,7 +337,7 @@ if __name__ == "__main__":
     end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
 
     # --- Load Stock Symbols from CSV ---
-    stocks_file = "stocks.csv" # Ensure stocks.csv is in the same directory or provide full path
+    stocks_file = "stock_symbols.csv" # Ensure stock_symbols.csv is in the same directory or provide full path
     try:
         stocks_df = pd.read_csv(stocks_file)
         stock_symbols = stocks_df['Symbol'].tolist()
@@ -341,7 +359,7 @@ if __name__ == "__main__":
 
             try:
                 # 1. Load Data from MongoDB with Date Range and Feature Engineering
-                stock_series, feature_df = load_data_from_mongodb(mongo_uri, db_name, collection_name, stock_symbol_to_predict, price_field_to_use, start_date, end_date, feature_engineering=True)
+                stock_series, feature_df = load_data_from_mongodb(mongo_uri, db_name, stock_symbol_to_predict, price_field_to_use, start_date, end_date, feature_engineering=True)
 
                 # 2. Handle Stationarity (using 'Close' price series)
                 stationary_series, diff_order = make_stationary(stock_series.copy())
