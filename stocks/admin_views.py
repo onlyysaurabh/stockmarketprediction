@@ -10,9 +10,14 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.admin.models import LogEntry, ADDITION
 from django.contrib.contenttypes.models import ContentType
 import json
+import subprocess
+import os
+import sys
+import tempfile
+from pathlib import Path
 
 from .models import Stock, StockNews
-from .forms import FetchNewsForm
+from .forms import FetchNewsForm, TrainModelForm
 from .services import process_news_for_stock
 
 logger = logging.getLogger(__name__)
@@ -251,3 +256,164 @@ def fetch_news_standalone_view(request: HttpRequest) -> TemplateResponse | HttpR
     
     # Use the fetch news template
     return TemplateResponse(request, "admin/stocks/stock/fetch_news_form.html", context)
+
+@staff_member_required
+def train_models_view(request: HttpRequest) -> TemplateResponse | HttpResponseRedirect:
+    """View for training stock prediction models through the admin interface."""
+    # Get all unique sectors and industries for the filters (same pattern as fetch_news)
+    sectors = Stock.objects.exclude(sector__isnull=True).exclude(sector='').values_list('sector', flat=True).distinct().order_by('sector')
+    industries = Stock.objects.exclude(industry__isnull=True).exclude(industry='').values_list('industry', flat=True).distinct().order_by('industry')
+    
+    # Get all stocks for selection
+    all_stocks = Stock.objects.all().order_by('symbol')
+    
+    # No pre-selected IDs for this view
+    preselected_ids = []
+    
+    if request.method == 'POST':
+        form = TrainModelForm(request.POST)
+        if form.is_valid():
+            start_date = form.cleaned_data['start_date']
+            end_date = form.cleaned_data['end_date']
+            selected_models = form.cleaned_data['models']
+            max_workers = form.cleaned_data['max_workers']
+            
+            # Get selected stocks from the checkboxes
+            selected_stock_ids = request.POST.getlist('selected_stocks')
+            
+            if not selected_stock_ids:
+                messages.warning(request, "No stocks selected. Please select at least one stock.")
+                context = {
+                    **admin.site.each_context(request),
+                    'title': 'Train Stock Prediction Models',
+                    'form': form,
+                    'all_stocks': all_stocks,
+                    'sectors': sectors,
+                    'industries': industries,
+                    'preselected_ids': [],
+                    'media': form.media,
+                    'opts': Stock._meta,
+                }
+                return TemplateResponse(request, "admin/stocks/stock/train_models_form.html", context)
+            
+            # Get the selected stocks - ensure IDs are integers
+            selected_stocks = Stock.objects.filter(pk__in=[int(id_val) for id_val in selected_stock_ids])
+            selected_symbols = list(selected_stocks.values_list('symbol', flat=True))
+            stock_count = len(selected_symbols)
+            
+            # Create a temporary JSON configuration file for the training job
+            with tempfile.NamedTemporaryFile(suffix='.json', mode='w+', delete=False) as temp_config:
+                config_path = temp_config.name
+                
+                # Prepare jobs for the config file
+                jobs = []
+                for model_type in selected_models:
+                    # Create job entry for each model with all selected stocks
+                    jobs.append({
+                        "model": model_type,
+                        "symbols": selected_symbols,
+                        "extra_args": []
+                    })
+                
+                # Create the complete config
+                config = {
+                    "max_workers": max_workers,
+                    "start_date": start_date.strftime('%Y-%m-%d'),
+                    "end_date": end_date.strftime('%Y-%m-%d'),
+                    "jobs": jobs
+                }
+                
+                # Write JSON to temp file
+                json.dump(config, temp_config, indent=2)
+            
+            # Construct the path to the train.py script
+            base_dir = Path(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            train_script = base_dir / 'train-model' / 'train.py'
+            
+            # Check if the script exists
+            if not train_script.exists():
+                os.unlink(config_path)  # Clean up temp file
+                messages.error(request, f"Training script not found: {train_script}")
+                return redirect('admin:index')
+            
+            # Start the training process
+            # We'll use subprocess.Popen to run it in the background
+            try:
+                cmd = [sys.executable, str(train_script), '--config', config_path]
+                process = subprocess.Popen(
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True
+                )
+                
+                # We're not waiting for it to complete since it may take a while
+                # The train.py script handles its own logging
+                
+                # Add to admin log
+                content_type_id = ContentType.objects.get_for_model(Stock).pk
+                model_names = [dict(form.fields['models'].choices)[m] for m in selected_models]
+                
+                LogEntry.objects.log_action(
+                    user_id=request.user.id,
+                    content_type_id=content_type_id,
+                    object_id=None,
+                    object_repr=f"Model Training: {', '.join(model_names)} for {len(selected_symbols)} stocks",
+                    action_flag=ADDITION,
+                    change_message=json.dumps([{
+                        "added": {
+                            "name": "model training job", 
+                            "object": f"{', '.join(selected_symbols[:5])}{'...' if len(selected_symbols) > 5 else ''}"
+                        }
+                    }])
+                )
+                
+                # Success message
+                messages.success(
+                    request, 
+                    f"Started training {len(selected_models)} model types for {stock_count} stocks. "
+                    f"This process will run in the background and may take a while to complete. "
+                    f"You can check train_jobs.log for progress."
+                )
+                
+            except Exception as e:
+                os.unlink(config_path)  # Clean up temp file
+                messages.error(request, f"Error starting training process: {str(e)}")
+                logger.error(f"Training process error: {str(e)}")
+            
+            # Redirect back to admin index
+            if request.POST.get('continue_training'):
+                return redirect('admin_train_models')
+            else:
+                return redirect('admin:stocks_stock_changelist')
+        else:
+            # Form is invalid, show errors
+            messages.error(request, "Please correct the errors below.")
+    else:
+        # Default date range for training
+        today = date.today()
+        three_years_ago = today.replace(year=today.year - 3)
+        form = TrainModelForm(initial={'start_date': three_years_ago, 'end_date': today})
+    
+    # Get stats about trained models (could be extended)
+    model_stats = {
+        'total_trained': 0,  # Placeholder for stats
+    }
+    
+    context = {
+        **admin.site.each_context(request),
+        'title': 'Train Stock Prediction Models',
+        'subtitle': 'Select stocks, date range, and models to train',
+        'form': form,
+        'all_stocks': all_stocks,
+        'sectors': sectors,
+        'industries': industries,
+        'preselected_ids': [],
+        'is_standalone': True,
+        'model_stats': model_stats,
+        'media': form.media,
+        'opts': Stock._meta,
+    }
+    
+    # Use template
+    return TemplateResponse(request, "admin/stocks/stock/train_models_form.html", context)

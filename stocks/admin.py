@@ -9,7 +9,7 @@ from django.http import HttpResponseRedirect
 from django.urls import path, reverse
 from django.template.response import TemplateResponse
 from django.contrib.admin import SimpleListFilter
-from .forms import FetchNewsForm
+from .forms import FetchNewsForm, TrainModelForm
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.contenttypes.models import ContentType
 import json
@@ -197,6 +197,7 @@ class StockAdmin(admin.ModelAdmin):
             path('update-all-prices/', self.admin_site.admin_view(self.update_all_prices_view), name='stocks_stock_update_all_prices'),
             path('fetch-news/', self.admin_site.admin_view(self.fetch_news_view), name='stocks_stock_fetch_news'),
             path('update-commodities/', self.admin_site.admin_view(self.update_commodities_view), name='stocks_stock_update_commodities'),
+            path('train-models/', self.admin_site.admin_view(self.train_models_view), name='stocks_stock_train_models'),
         ]
         return custom_urls + urls
 
@@ -424,11 +425,17 @@ class StockAdmin(admin.ModelAdmin):
         
         return TemplateResponse(request, "admin/stocks/stock/fetch_news_form.html", context)
 
+    def train_models_view(self, request):
+        """Custom admin view to train prediction models for stocks"""
+        # This is a redirector to the standalone view
+        return HttpResponseRedirect(reverse('admin_train_models'))
+
     def changelist_view(self, request, extra_context=None):
         """Override to add the update button to the template"""
         extra_context = extra_context or {}
         extra_context['show_update_button'] = True
         extra_context['show_commodity_button'] = True  # Add this to enable the commodity update button
+        extra_context['show_train_models_button'] = True  # Add this to enable the train models button
         return super().changelist_view(request, extra_context=extra_context)
 
     def get_list_display_links(self, request, list_display):

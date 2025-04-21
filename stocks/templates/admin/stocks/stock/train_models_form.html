@@ -1,0 +1,673 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block extrastyle %}{{ block.super }}
+    {# Include form media CSS if any #}
+    {{ media.css }}
+    <link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}">
+    <link rel="stylesheet" type="text/css" href="{% static "admin/css/changelists.css" %}">
+    <style>
+        /* Custom styles for the train models form */
+        .stock-selection-container {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .filter-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+        }
+        
+        .filter-option {
+            display: flex;
+            align-items: center;
+        }
+        
+        .filter-option label {
+            margin-right: 5px;
+            font-weight: bold;
+        }
+        
+        .stock-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background-color: #fff;
+        }
+        
+        .stock-item {
+            display: flex;
+            align-items: center;
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .stock-item:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .stock-item input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        
+        .stock-item .stock-info {
+            flex-grow: 1;
+        }
+        
+        .stock-item .stock-symbol {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .stock-item .stock-name {
+            color: #666;
+        }
+        
+        .stock-item .stock-industry,
+        .stock-item .stock-sector {
+            color: #888;
+            font-size: 0.9em;
+        }
+        
+        .select-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .select-actions button {
+            padding: 5px 10px;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        .select-actions button:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .date-range-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .date-range-container .form-row {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .results-count {
+            font-weight: bold;
+            margin-top: 10px;
+            padding: 5px;
+            background-color: #e8f5e9;
+            border-radius: 3px;
+            text-align: center;
+        }
+        
+        .flex-container {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        /* Model selection styles */
+        .model-selection-container {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f3f7fa;
+            border: 1px solid #c5d6e6;
+            border-radius: 4px;
+        }
+        
+        .model-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .model-option {
+            display: flex;
+            padding: 10px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            align-items: flex-start;
+        }
+        
+        .model-option input[type="checkbox"] {
+            margin-right: 10px;
+            margin-top: 2px; /* Align with text */
+        }
+        
+        .model-info .model-name {
+            font-weight: bold;
+            display: block;
+        }
+        
+        .model-info .model-desc {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        /* Selected stocks display */
+        .selected-stocks {
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 10px;
+            margin-top: 10px;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        /* Quick actions section */
+        .quick-actions {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f1f8e9;
+            border: 1px solid #c5e1a5;
+            border-radius: 4px;
+        }
+
+        .quick-actions h3 {
+            margin-top: 0;
+            color: #558b2f;
+        }
+
+        .quick-action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .quick-action-button {
+            padding: 8px 12px;
+            background-color: #8bc34a;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .quick-action-button:hover {
+            background-color: #7cb342;
+        }
+        
+        .model-desc-container {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #fafafa;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+        }
+        
+        .model-desc-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .model-comparison {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        
+        .model-comparison th, .model-comparison td {
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        
+        .model-comparison th {
+            background-color: #f2f2f2;
+            text-align: left;
+        }
+        
+        .model-comparison tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 20px;
+        }
+        
+        /* Stats display */
+        .stats-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            flex: 1;
+            min-width: 150px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1976d2;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #555;
+        }
+        
+        /* Custom action buttons */
+        .custom-submit-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .custom-submit-row input[type="submit"] {
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+    </style>
+{% endblock %}
+
+{% block extrahead %}{{ block.super }}
+    {# Include form media JS if any (for date picker etc.) #}
+    {{ media.js }}
+    <script src="{% url 'admin:jsi18n' %}"></script> {# Required for admin date widget #}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Function to filter stocks based on sector and industry selectors
+            function filterStocks() {
+                const sectorFilter = document.getElementById('sector-filter').value;
+                const industryFilter = document.getElementById('industry-filter').value;
+                const searchFilter = document.getElementById('search-filter').value.toLowerCase();
+                const stockItems = document.querySelectorAll('.stock-item');
+                let visibleCount = 0;
+                
+                stockItems.forEach(function(item) {
+                    const sector = item.getAttribute('data-sector') || '';
+                    const industry = item.getAttribute('data-industry') || '';
+                    const symbol = item.querySelector('.stock-symbol').innerText.toLowerCase();
+                    const name = (item.querySelector('.stock-name')?.innerText || '').toLowerCase();
+                    
+                    const matchesSector = sectorFilter === '' || sector === sectorFilter;
+                    const matchesIndustry = industryFilter === '' || industry === industryFilter;
+                    const matchesSearch = searchFilter === '' || 
+                                         symbol.includes(searchFilter) || 
+                                         name.includes(searchFilter);
+                    
+                    if (matchesSector && matchesIndustry && matchesSearch) {
+                        item.style.display = '';
+                        visibleCount++;
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+                
+                // Update visible count
+                document.getElementById('visible-count').innerText = visibleCount;
+                document.getElementById('total-count').innerText = stockItems.length;
+            }
+            
+            // Attach event listeners to filters
+            document.getElementById('sector-filter')?.addEventListener('change', filterStocks);
+            document.getElementById('industry-filter')?.addEventListener('change', filterStocks);
+            document.getElementById('search-filter')?.addEventListener('input', filterStocks);
+            
+            // Select/Deselect all visible stocks
+            document.getElementById('select-all-visible')?.addEventListener('click', function() {
+                const visibleItems = document.querySelectorAll('.stock-item:not([style*="display: none"]) input[type="checkbox"]');
+                visibleItems.forEach(checkbox => checkbox.checked = true);
+                updateSelectedCount();
+            });
+            
+            document.getElementById('deselect-all')?.addEventListener('click', function() {
+                const checkboxes = document.querySelectorAll('.stock-item input[type="checkbox"]');
+                checkboxes.forEach(checkbox => checkbox.checked = false);
+                updateSelectedCount();
+            });
+            
+            // Quick actions
+            document.getElementById('select-tech')?.addEventListener('click', function() {
+                document.getElementById('sector-filter').value = 'Technology';
+                filterStocks();
+                document.getElementById('select-all-visible').click();
+            });
+            
+            document.getElementById('select-finance')?.addEventListener('click', function() {
+                document.getElementById('sector-filter').value = 'Financial Services';
+                filterStocks();
+                document.getElementById('select-all-visible').click();
+            });
+            
+            document.getElementById('select-healthcare')?.addEventListener('click', function() {
+                document.getElementById('sector-filter').value = 'Healthcare';
+                filterStocks();
+                document.getElementById('select-all-visible').click();
+            });
+            
+            document.getElementById('select-top-50')?.addEventListener('click', function() {
+                const stockItems = document.querySelectorAll('.stock-item');
+                const limit = Math.min(50, stockItems.length);
+                
+                // First uncheck all
+                stockItems.forEach(item => {
+                    const checkbox = item.querySelector('input[type="checkbox"]');
+                    checkbox.checked = false;
+                });
+                
+                // Then check the first 50
+                for(let i = 0; i < limit; i++) {
+                    const checkbox = stockItems[i].querySelector('input[type="checkbox"]');
+                    checkbox.checked = true;
+                }
+                
+                updateSelectedCount();
+            });
+            
+            // Function to update the selected count
+            function updateSelectedCount() {
+                const selectedCount = document.querySelectorAll('.stock-item input[type="checkbox"]:checked').length;
+                document.getElementById('selected-count').innerText = selectedCount;
+            }
+            
+            // Add change event to all checkboxes
+            document.querySelectorAll('.stock-item input[type="checkbox"]').forEach(function(checkbox) {
+                checkbox?.addEventListener('change', updateSelectedCount);
+            });
+
+            // Date quick selection buttons
+            document.getElementById('one-year')?.addEventListener('click', function() {
+                const today = new Date();
+                const lastYear = new Date();
+                lastYear.setFullYear(today.getFullYear() - 1);
+                
+                document.getElementById('id_start_date').value = formatDate(lastYear);
+                document.getElementById('id_end_date').value = formatDate(today);
+            });
+            
+            document.getElementById('three-years')?.addEventListener('click', function() {
+                const today = new Date();
+                const threeYearsAgo = new Date();
+                threeYearsAgo.setFullYear(today.getFullYear() - 3);
+                
+                document.getElementById('id_start_date').value = formatDate(threeYearsAgo);
+                document.getElementById('id_end_date').value = formatDate(today);
+            });
+            
+            document.getElementById('five-years')?.addEventListener('click', function() {
+                const today = new Date();
+                const fiveYearsAgo = new Date();
+                fiveYearsAgo.setFullYear(today.getFullYear() - 5);
+                
+                document.getElementById('id_start_date').value = formatDate(fiveYearsAgo);
+                document.getElementById('id_end_date').value = formatDate(today);
+            });
+            
+            function formatDate(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+            
+            // Initialize filters and counts
+            filterStocks();
+            updateSelectedCount();
+        });
+    </script>
+{% endblock %}
+
+{% block coltype %}colM{% endblock %}
+
+{% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }} change-form{% endblock %}
+
+{% if not is_popup %}
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+&rsaquo; <a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+&rsaquo; {% translate 'Train Models' %}
+</div>
+{% endblock %}
+{% endif %}
+
+{% block content %}
+<div id="content-main">
+    <form method="post" id="train-models-form">
+        {% csrf_token %}
+        
+        <h1>{{ title }}</h1>
+        
+        {% if subtitle %}
+        <p class="subtitle">{{ subtitle }}</p>
+        {% endif %}
+
+        {% if model_stats %}
+        <div class="stats-container">
+            <div class="stat-box">
+                <div class="stat-number">{{ model_stats.total_trained }}</div>
+                <div class="stat-label">Models Trained</div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Quick Actions for Date Selection -->
+        <div class="quick-actions">
+            <h3>Training Data Time Period</h3>
+            <div class="quick-action-buttons">
+                <button type="button" id="one-year" class="quick-action-button">Last 1 Year</button>
+                <button type="button" id="three-years" class="quick-action-button">Last 3 Years</button>
+                <button type="button" id="five-years" class="quick-action-button">Last 5 Years</button>
+            </div>
+        </div>
+
+        <!-- Date Range Selection -->
+        <fieldset class="module aligned">
+            <h2>Training Data Date Range</h2>
+            <div class="description">Select the date range for the historical stock data used in model training</div>
+            <div class="date-range-container">
+                {% for field in form %}
+                    {% if field.name == 'start_date' or field.name == 'end_date' %}
+                        <div class="form-row field-{{ field.name }}">
+                            {{ field.errors }}
+                            <div class="flex-container">
+                                 <label class="required" for="{{ field.id_for_label }}">{{ field.label }}:</label>
+                                 {{ field }}
+                            </div>
+                            {% if field.help_text %}
+                                <div class="help">{{ field.help_text|safe }}</div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </fieldset>
+        
+        <!-- Model Selection -->
+        <fieldset class="module aligned model-selection-container">
+            <h2>Select Models to Train</h2>
+            <div class="description">Choose one or more prediction models to train for the selected stocks</div>
+            
+            <div class="form-row">
+                {{ form.models.errors }}
+                <div class="model-options">
+                    {% for value, text in form.models.field.choices %}
+                        <div class="model-option">
+                            <input type="checkbox" name="models" value="{{ value }}" id="id_models_{{ forloop.counter0 }}" 
+                                   {% if value in form.models.value %}checked{% endif %}>
+                            <div class="model-info">
+                                <label for="id_models_{{ forloop.counter0 }}" class="model-name">{{ text }}</label>
+                                <div class="model-desc">
+                                    {% if value == 'xgboost' %}
+                                        Gradient boosting for stock price prediction
+                                    {% elif value == 'lstm' %}
+                                        Deep learning for time series analysis
+                                    {% elif value == 'svm' %}
+                                        Support Vector Machine for regression
+                                    {% elif value == 'arima' %}
+                                        Time series statistical analysis
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                {% if form.models.help_text %}
+                    <div class="help">{{ form.models.help_text|safe }}</div>
+                {% endif %}
+            </div>
+            
+            <!-- Max Workers Selection -->
+            <div class="form-row field-max_workers">
+                {{ form.max_workers.errors }}
+                <div class="flex-container">
+                     <label for="{{ form.max_workers.id_for_label }}">{{ form.max_workers.label }}:</label>
+                     {{ form.max_workers }}
+                </div>
+                {% if form.max_workers.help_text %}
+                    <div class="help">{{ form.max_workers.help_text|safe }}</div>
+                {% endif %}
+            </div>
+        </fieldset>
+        
+        <!-- Model Descriptions -->
+        <div class="model-desc-container">
+            <div class="model-desc-title">Model Comparison</div>
+            <table class="model-comparison">
+                <thead>
+                    <tr>
+                        <th>Model</th>
+                        <th>Description</th>
+                        <th>Best For</th>
+                        <th>Training Speed</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>XGBoost</td>
+                        <td>Gradient boosting framework with advanced regularization</td>
+                        <td>General purpose stock prediction with high accuracy</td>
+                        <td>Fast</td>
+                    </tr>
+                    <tr>
+                        <td>LSTM</td>
+                        <td>Deep learning recurrent neural network</td>
+                        <td>Capturing long-term trends and complex patterns</td>
+                        <td>Slow</td>
+                    </tr>
+                    <tr>
+                        <td>SVM</td>
+                        <td>Support Vector Machine regression</td>
+                        <td>Medium-term prediction with small datasets</td>
+                        <td>Medium</td>
+                    </tr>
+                    <tr>
+                        <td>ARIMA</td>
+                        <td>Autoregressive Integrated Moving Average</td>
+                        <td>Short-term prediction with clear seasonal patterns</td>
+                        <td>Fast</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Quick Actions for Stock Selection -->
+        <div class="quick-actions">
+            <h3>Quick Stock Selection</h3>
+            <div class="quick-action-buttons">
+                <button type="button" id="select-tech" class="quick-action-button">All Technology</button>
+                <button type="button" id="select-finance" class="quick-action-button">All Financial</button>
+                <button type="button" id="select-healthcare" class="quick-action-button">All Healthcare</button>
+                <button type="button" id="select-top-50" class="quick-action-button">Top 50 Stocks</button>
+            </div>
+        </div>
+        
+        <!-- Stock Selection -->
+        <fieldset class="module aligned stock-selection-container">
+            <h2>Select Stocks to Train On</h2>
+            
+            <div class="filter-options">
+                <div class="filter-option">
+                    <label for="search-filter">Search:</label>
+                    <input type="text" id="search-filter" placeholder="Symbol or name...">
+                </div>
+                <div class="filter-option">
+                    <label for="sector-filter">Sector:</label>
+                    <select id="sector-filter">
+                        <option value="">All Sectors</option>
+                        {% for sector in sectors %}
+                            <option value="{{ sector }}">{{ sector }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-option">
+                    <label for="industry-filter">Industry:</label>
+                    <select id="industry-filter">
+                        <option value="">All Industries</option>
+                        {% for industry in industries %}
+                            <option value="{{ industry }}">{{ industry }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="results-count">
+                Showing <span id="visible-count">0</span> of <span id="total-count">0</span> stocks 
+                (<span id="selected-count">0</span> selected)
+            </div>
+            
+            <div class="select-actions">
+                <button type="button" id="select-all-visible">Select All Visible</button>
+                <button type="button" id="deselect-all">Deselect All</button>
+            </div>
+            
+            <div class="stock-list">
+                {% for stock in all_stocks %}
+                <div class="stock-item" data-sector="{{ stock.sector|default:'' }}" data-industry="{{ stock.industry|default:'' }}">
+                    <input type="checkbox" name="selected_stocks" value="{{ stock.pk }}" id="stock_{{ stock.pk }}"
+                           {% if stock.pk|stringformat:"s" in preselected_ids %}checked{% endif %}>
+                    <label for="stock_{{ stock.pk }}" class="stock-info">
+                        <span class="stock-symbol">{{ stock.symbol }}</span>
+                        <span class="stock-name">{{ stock.name }}</span>
+                        {% if stock.sector or stock.industry %}
+                        <div>
+                            {% if stock.sector %}<span class="stock-sector">{{ stock.sector }}</span>{% endif %}
+                            {% if stock.sector and stock.industry %} | {% endif %}
+                            {% if stock.industry %}<span class="stock-industry">{{ stock.industry }}</span>{% endif %}
+                        </div>
+                        {% endif %}
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+        </fieldset>
+
+        <div class="submit-row custom-submit-row">
+            <input type="submit" name="train_models" value="Start Training" class="default">
+            <input type="submit" name="continue_training" value="Start Training & Stay on Page">
+        </div>
+    </form>
+</div>
+{% endblock %}

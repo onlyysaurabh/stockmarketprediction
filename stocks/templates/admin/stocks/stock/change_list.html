@@ -26,6 +26,14 @@
         </a>
     </li>
     {% endif %}
+    
+    {% if show_train_models_button %}
+    <li style="margin-left: 10px;">
+        <a href="{% url 'admin:stocks_stock_train_models' %}" class="btn btn-success" style="margin-right: 10px;">
+            <i class="fas fa-brain"></i> {% trans "Train Prediction Models" %}
+        </a>
+    </li>
+    {% endif %}
     {# Removed the {{ block.super }} to hide the default "Add Stock" button #}
 {% endblock %}
 
