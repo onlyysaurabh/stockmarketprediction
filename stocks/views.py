@@ -6,13 +6,17 @@ from django.http import JsonResponse, HttpRequest, Http404 # Keep HttpRequest fo
 from django.views.decorators.http import require_GET # require_POST removed as unused
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-# from django.utils import timezone # Removed as unused
 from django.db import IntegrityError
-# from . import services # Removed as unused
-from .models import Watchlist, WatchlistItem # Stock removed as unused here
-from .forms import WatchlistItemForm
+from .models import Watchlist, WatchlistItem, Stock, StockNews # Import Stock and StockNews
+from .forms import WatchlistItemForm, UserUpdateForm
 # Import specific functions needed from services
-from .services import get_stock_data, get_stock_historical_data, get_commodity_historical_data, process_news_for_stock
+from .services import (
+    get_stock_data, 
+    get_stock_historical_data, 
+    get_commodity_historical_data, 
+    process_news_for_stock,
+    get_model_predictions
+)
 import logging
 import json
 import yfinance as yf
@@ -21,8 +25,6 @@ from datetime import datetime, timedelta, date  # Added date import here
 from django.contrib.auth.forms import UserCreationForm, PasswordChangeForm # Added PasswordChangeForm
 from django.contrib.auth import login, update_session_auth_hash, logout
 from django.utils import timezone # Import timezone for date calculations
-from .forms import WatchlistItemForm, UserUpdateForm
-from .models import Stock, StockNews # Import Stock and StockNews
 from .news_service import fetch_stock_news
 
 logger = logging.getLogger(__name__)
@@ -237,6 +239,9 @@ def stock_detail(request: HttpRequest, symbol: str):
     else:
         sentiment_percentages = {'positive': 0, 'negative': 0, 'neutral': 100} # Default if no analyzed news
 
+    # --- Fetch Model Predictions ---
+    model_predictions = get_model_predictions(symbol)
+
     # --- Prepare Context ---
     
     # Keys to exclude from display (sensitive, irrelevant, or shown elsewhere)
@@ -289,6 +294,7 @@ def stock_detail(request: HttpRequest, symbol: str):
         'sentiment_percentages': json.dumps(sentiment_percentages), # Add sentiment data for chart
         'sentiment_counts': sentiment_counts, # Optional: pass counts too
         'total_analyzed_news': total_analyzed, # Optional: pass total analyzed count
+        'model_predictions': model_predictions, # Add model predictions to context
     }
 
     return render(request, 'stocks/stock_detail.html', context)
