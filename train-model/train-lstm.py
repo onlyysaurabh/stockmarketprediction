@@ -14,6 +14,9 @@ import datetime
 import pymongo
 from pymongo import MongoClient
 import argparse
+import shap  # Import SHAP for model explainability
+import matplotlib.pyplot as plt
+import tensorflow as tf
 
 # Add parent directory to path to import mongo_utils
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -245,6 +248,60 @@ def evaluate_classification(y_true, y_pred):
     return accuracy, conf_matrix, class_report, sensitivity, specificity, precision, f1 # Return additional metrics
 
 
+def generate_lstm_shap_values(model, X_test, feature_names):
+    """Generate SHAP values for LSTM model explanation"""
+    print("\nGenerating SHAP values for LSTM model explanation...")
+    feature_importance_dict = {}
+    
+    try:
+        # Create a function that returns model predictions
+        def model_predict(x):
+            # Convert pandas DataFrame to numpy array with correct shape for LSTM
+            x_array = np.array(x)
+            # Reshape to (samples, timesteps, features)
+            x_reshaped = x_array.reshape((x_array.shape[0], X_test.shape[1], X_test.shape[2]))
+            return model.predict(x_reshaped)
+        
+        # Use a subset of test data for performance reasons
+        max_samples = min(100, X_test.shape[0])
+        X_sample = X_test[:max_samples]
+        
+        # Flatten the 3D input to 2D for SHAP explainer
+        X_sample_2d = X_sample.reshape(X_sample.shape[0], -1)
+        
+        # Create a background dataset for the explainer (small subset of data)
+        background_data = X_sample_2d[:min(20, X_sample_2d.shape[0])]
+        
+        # Create SHAP explainer
+        explainer = shap.DeepExplainer(model, X_sample.reshape(X_sample.shape[0], X_sample.shape[1], X_sample.shape[2]))
+        
+        # Calculate SHAP values
+        shap_values = explainer.shap_values(X_sample.reshape(X_sample.shape[0], X_sample.shape[1], X_sample.shape[2]))
+        
+        # Calculate feature importance from SHAP values (average absolute SHAP values across samples)
+        # For sequential data, we need to consider the time dimension
+        shap_importance = np.abs(shap_values[0]).mean(axis=0)  # Average across samples
+        
+        # Sum importance across time steps for each feature
+        feature_importance = shap_importance.sum(axis=0)  # Sum across time steps
+        
+        # Create feature importance dictionary
+        for i, importance in enumerate(feature_importance):
+            if i < len(feature_names):
+                feature_importance_dict[feature_names[i]] = float(importance)
+        
+        # Print top features by importance
+        print("\nLSTM SHAP Feature Importance (Top 10):")
+        sorted_features = sorted(feature_importance_dict.items(), key=lambda x: x[1], reverse=True)[:10]
+        for feature, importance in sorted_features:
+            print(f"  {feature}: {importance:.4f}")
+        
+    except Exception as e:
+        print(f"Error generating SHAP values for LSTM model: {e}")
+    
+    return feature_importance_dict
+
+
 def train_lstm_model(symbol, start_date, end_date, evaluation_results_collection, seq_length=60, short_window=20, long_window=50, lag_days=1, lstm_units=50, dropout_rate=0.2, epochs=50, batch_size=32, patience=10):
     """
     Trains and evaluates LSTM models for regression and classification and stores results in MongoDB.
@@ -351,6 +408,9 @@ def train_lstm_model(symbol, start_date, end_date, evaluation_results_collection
 
     accuracy, conf_matrix, class_report, sensitivity, specificity, precision, f1 = evaluate_classification(y_test_class, y_pred_class_from_reg) # Evaluate classification metrics
 
+    # Generate SHAP values for feature importance
+    feature_names = features
+    shap_importance = generate_lstm_shap_values(model_reg, X_test, feature_names)
 
     print(f"\n--- Model Evaluation Summary for {symbol} ---")
     print(f"Regression Model Metrics:")
@@ -388,7 +448,8 @@ def train_lstm_model(symbol, start_date, end_date, evaluation_results_collection
         "precision": precision,
         "f1_score": f1,
         "classification_confusion_matrix": conf_matrix.tolist(), # Store confusion matrix as list
-        "classification_report": class_report # Store classification report as string
+        "classification_report": class_report, # Store classification report as string
+        "shap_feature_importance": shap_importance  # Store SHAP feature importance
     }
 
     try:

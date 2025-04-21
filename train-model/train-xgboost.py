@@ -278,6 +278,19 @@ def evaluate_model(model, X_test, y_test, close_scaler, other_scaler, target_sca
         class_report = "Not enough data for classification metrics."
         print("\nNot enough data for classification metrics.")
 
+    # Calculate feature importance from XGBoost
+    feature_importance = model.feature_importances_
+    feature_importance_dict = {}
+    for i, importance in enumerate(feature_importance):
+        if i < len(X_test.columns):
+            feature_importance_dict[X_test.columns[i]] = float(importance)
+    
+    # Print top 10 features by importance
+    print("\nXGBoost Feature Importance (Top 10):")
+    sorted_features = sorted(feature_importance_dict.items(), key=lambda x: x[1], reverse=True)[:10]
+    for feature, importance in sorted_features:
+        print(f"  {feature}: {importance:.4f}")
+
     # Store evaluation results
     best_params = model.get_params()
     evaluation_data = {
@@ -296,7 +309,8 @@ def evaluate_model(model, X_test, y_test, close_scaler, other_scaler, target_sca
       "r2": r2,
       "accuracy": accuracy,
       "confusion_matrix": conf_matrix.tolist() if conf_matrix.size > 0 else [],
-      "report": class_report
+      "report": class_report,
+      "feature_importance": feature_importance_dict
     }
     try:
         evaluation_results_collection.insert_one(evaluation_data)
@@ -305,7 +319,6 @@ def evaluate_model(model, X_test, y_test, close_scaler, other_scaler, target_sca
         print(f"Error storing evaluation results in MongoDB: {e}")
 
     return mse, rmse, mae, r2, mape, accuracy, conf_matrix, class_report
-
 
 
 # --- 5. Save Trained Model ---

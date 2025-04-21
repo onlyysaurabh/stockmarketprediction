@@ -188,11 +188,6 @@ The application uses a hybrid database approach:
 - Market indicators
 - Commodity prices
 
-# Appending Documentation for Model Training Functionality
-
-I'll add comprehensive documentation about the model training functionality to the README file. Here's the content to add:
-
-```markdown
 ## 🧠 Model Training
 
 StockWise includes a powerful model training system that allows you to train and evaluate multiple predictive models on various stock symbols efficiently.

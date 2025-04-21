@@ -14,6 +14,7 @@ import numpy as np
 import argparse
 from datetime import datetime
 from sklearn.feature_selection import SelectKBest, f_regression
+import shap  # Import SHAP library for model explainability
 
 # Add parent directory to path to import mongo_utils
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -290,6 +291,33 @@ def evaluate_model(model, X_test, y_test, close_scaler, other_scaler, target_sca
         class_report = "Not enough data for classification metrics."
         print("\nNot enough data for classification metrics.")
 
+    # Generate SHAP values for model explanation
+    print("\nGenerating SHAP values for model explanation...")
+    try:
+        # Use a subset of the test data if it's too large (for performance)
+        max_samples = min(100, X_test.shape[0])
+        X_test_sample = X_test.iloc[:max_samples]
+        
+        # Create a SHAP KernelExplainer for the SVM model
+        explainer = shap.KernelExplainer(model.predict, X_test_sample)
+        shap_values = explainer.shap_values(X_test_sample)
+        
+        # Calculate mean absolute SHAP values for each feature
+        shap_importance = np.abs(shap_values).mean(axis=0)
+        feature_importance_dict = {}
+        for i, importance in enumerate(shap_importance):
+            feature_importance_dict[X_test.columns[i]] = float(importance)
+        
+        # Print top 10 features by SHAP importance
+        print("\nSHAP Feature Importance (Top 10):")
+        sorted_features = sorted(feature_importance_dict.items(), key=lambda x: x[1], reverse=True)[:10]
+        for feature, importance in sorted_features:
+            print(f"  {feature}: {importance:.4f}")
+            
+    except Exception as e:
+        print(f"Error generating SHAP values: {e}")
+        feature_importance_dict = {}
+
     # Store evaluation results
     best_params = model.get_params()
     evaluation_data = {
@@ -307,7 +335,8 @@ def evaluate_model(model, X_test, y_test, close_scaler, other_scaler, target_sca
         "r2": r2,
         "accuracy": accuracy,
         "confusion_matrix": conf_matrix.tolist() if conf_matrix.size > 0 else [],
-        "report": class_report
+        "report": class_report,
+        "shap_feature_importance": feature_importance_dict  # Store SHAP feature importance
     }
     try:
         evaluation_results_collection.insert_one(evaluation_data)
