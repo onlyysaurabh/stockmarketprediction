@@ -381,11 +381,8 @@ def train_models_view(request: HttpRequest) -> TemplateResponse | HttpResponseRe
                 messages.error(request, f"Error starting training process: {str(e)}")
                 logger.error(f"Training process error: {str(e)}")
             
-            # Redirect back to admin index
-            if request.POST.get('continue_training'):
+                # Redirect back to the train models view to stay on the same page
                 return redirect('admin_train_models')
-            else:
-                return redirect('admin:stocks_stock_changelist')
         else:
             # Form is invalid, show errors
             messages.error(request, "Please correct the errors below.")
