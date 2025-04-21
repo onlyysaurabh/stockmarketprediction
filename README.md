@@ -1,4 +1,4 @@
-# StockWise: Stock Market Prediction & Analysis
+# StockWise:Stock Market Prediction & Analysis
 
 StockWise is a comprehensive web application for stock market analysis, prediction, and tracking. It provides users with real-time stock data, news sentiment analysis, and portfolio management capabilities.
 
