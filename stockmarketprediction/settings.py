@@ -244,12 +244,20 @@ JAZZMIN_SETTINGS = {
     
     # Custom links to append to app groups, keyed on app name
     "custom_links": {
-        "stocks": [{
-            "name": "Fetch News", 
-            "url": "admin_fetch_news_standalone", 
-            "icon": "fas fa-newspaper",
-            # "permissions": ["stocks.view_stocknews"]
-        }]
+        "stocks": [
+            {
+                "name": "Fetch News", 
+                "url": "admin_fetch_news_standalone", 
+                "icon": "fas fa-newspaper",
+                # "permissions": ["stocks.view_stocknews"]
+            },
+            {
+                "name": "Train Models",
+                "url": "admin_train_models",
+                "icon": "fas fa-brain",
+                # "permissions": ["stocks.view_stock"]
+            }
+        ]
     },
 
     #############
