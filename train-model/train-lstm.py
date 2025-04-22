@@ -84,44 +84,72 @@ def get_stock_symbols(args):
 
 def load_data_from_mongodb(mongo_uri, db_name, stock_symbol, 
                           start_date=None, end_date=None):
-    """Load stock data from MongoDB using the proper collection and field names"""
+    """Load stock data from MongoDB using the correct collection and data structure"""
     client = None
     try:
         client = MongoClient(mongo_uri)
         db = client[db_name]
-        collection = db[STOCK_PRICES_COLLECTION]
+        collection = db['stock_prices']  # Use 'stock_prices' collection directly
         
-        query = {"symbol": stock_symbol}
-        if start_date and end_date:
-            query["date"] = {
-                "$gte": datetime.datetime.strptime(start_date, "%Y-%m-%d"),
-                "$lte": datetime.datetime.strptime(end_date, "%Y-%m-%d")
-            }
-        
-        projection = {"date": 1, "close": 1, "high": 1, "low": 1, "open": 1, 
-                      "volume": 1, "_id": 0}
-        sort = [("date", pymongo.ASCENDING)]
-        
-        cursor = collection.find(query, projection=projection).sort(sort)
-        data_list = list(cursor)
-        
-        if not data_list:
-            raise ValueError(f"No data found for {stock_symbol}")
+        # Find the single document for the stock symbol
+        stock_doc = collection.find_one({"symbol": stock_symbol})
+
+        if not stock_doc:
+            raise ValueError(
+                f"No document found for symbol '{stock_symbol}' in MongoDB "
+                f"collection 'stock_prices'."
+            )
+
+        historical_data = stock_doc.get("historical_data", [])
+        if not historical_data:
+             raise ValueError(
+                f"No 'historical_data' found for symbol '{stock_symbol}'."
+            )
+
+        # Convert to DataFrame
+        df = pd.DataFrame(historical_data)
+
+        if 'Date' not in df.columns:
+             raise ValueError(
+                f"Required field 'Date' not found in 'historical_data'."
+            )
             
-        df = pd.DataFrame(data_list)
-        
-        # Convert MongoDB field names to what LSTM code expects
-        df.rename(columns={
+        # Ensure 'Date' is datetime
+        df['Date'] = pd.to_datetime(df['Date'])
+
+        # Filter by date range if provided
+        if start_date and end_date:
+            start_dt = datetime.datetime.strptime(start_date, "%Y-%m-%d")
+            end_dt = datetime.datetime.strptime(end_date, "%Y-%m-%d")
+            df = df[(df['Date'] >= start_dt) & (df['Date'] <= end_dt)]
+
+        if df.empty:
+            raise ValueError(
+                f"No historical data found for symbol '{stock_symbol}' "
+                f"within the specified date range ({start_date} to {end_date})."
+            )
+
+        # Map column names to expected format if needed
+        column_map = {
             'date': 'Date',
             'close': 'Close',
             'high': 'High',
             'low': 'Low',
             'open': 'Open',
             'volume': 'Volume'
-        }, inplace=True)
+        }
+        df.rename(columns=column_map, inplace=True, errors='ignore')
         
-        df['Date'] = pd.to_datetime(df['Date'])
+        # Check for required columns after renaming
+        required_cols = ['Date', 'Close', 'Volume', 'Open', 'High', 'Low']
+        missing_cols = [col for col in required_cols if col not in df.columns]
+        if missing_cols:
+            raise ValueError(
+                f"Missing required columns in historical_data: {', '.join(missing_cols)}"
+            )
+        
         df.set_index('Date', inplace=True)
+        df.sort_index(inplace=True)  # Ensure data is sorted by date
         
         return df
     

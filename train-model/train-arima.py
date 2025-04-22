@@ -19,7 +19,7 @@ from datetime import datetime, timezone
 
 # Add parent directory to path to import mongo_utils
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from stocks.mongo_utils import get_mongo_db, STOCK_PRICES_COLLECTION
+from stocks.mongo_utils import get_mongo_db, STOCK_PRICES_COLLECTION, STOCKS_COLLECTION
 
 # --- Parse Command Line Arguments ---
 def parse_args():
@@ -117,45 +117,71 @@ def load_data_from_mongodb(mongo_uri, db_name, stock_symbol, price_field='close'
     try:
         client = MongoClient(mongo_uri)
         db = client[db_name]
-        collection = db[STOCK_PRICES_COLLECTION]
+        collection = db['stock_prices']  # Use 'stock_prices' collection directly
 
-        query = {"symbol": stock_symbol}
+        # Find the single document for the stock symbol
+        stock_doc = collection.find_one({"symbol": stock_symbol})
+
+        if not stock_doc:
+            raise ValueError(
+                f"No document found for symbol '{stock_symbol}' in MongoDB "
+                f"collection 'stock_prices'."
+            )
+
+        historical_data = stock_doc.get("historical_data", [])
+        if not historical_data:
+             raise ValueError(
+                f"No 'historical_data' found for symbol '{stock_symbol}'."
+            )
+
+        # Convert to DataFrame
+        df = pd.DataFrame(historical_data)
+
+        if 'Date' not in df.columns:
+             raise ValueError(
+                f"Required field 'Date' not found in 'historical_data'."
+            )
+            
+        # Ensure 'Date' is datetime
+        df['Date'] = pd.to_datetime(df['Date'])
+
+        # Filter by date range if provided
         if start_date and end_date:
-            # Convert datetime.date to datetime.datetime with UTC timezone for MongoDB compatibility
-            start_datetime = datetime.combine(start_date, datetime.min.time()).replace(tzinfo=timezone.utc)
-            end_datetime = datetime.combine(end_date, datetime.max.time()).replace(tzinfo=timezone.utc)
-            query["date"] = {"$gte": start_datetime, "$lte": end_datetime} # Add date range to query
+            start_dt = datetime.combine(start_date, datetime.min.time())
+            end_dt = datetime.combine(end_date, datetime.max.time())
+            df = df[(df['Date'] >= start_dt) & (df['Date'] <= end_dt)]
 
-        projection = {"date": 1, "open": 1, "high": 1, "low": 1, "close": 1, "volume": 1, "_id": 0} # Include OHLCV for feature engineering
-        sort = [("date", pymongo.ASCENDING)]
+        if df.empty:
+            raise ValueError(
+                f"No historical data found for symbol '{stock_symbol}' "
+                f"within the specified date range ({start_date} to {end_date})."
+            )
 
-        cursor = collection.find(query, projection=projection).sort(sort)
-        data_list = list(cursor)
-
-        if not data_list:
-            raise ValueError(f"No data found for symbol '{stock_symbol}' in MongoDB collection '{STOCK_PRICES_COLLECTION}' within the specified date range.")
-
-        df = pd.DataFrame(data_list)
-
-        if 'date' not in df.columns or price_field not in df.columns:
-            raise ValueError(f"Required fields 'date' and '{price_field}' not found in MongoDB data.")
-
-        # Convert column names to match expected format
-        df.rename(columns={
+        # Map column names to expected format
+        column_map = {
             'date': 'Date',
             'close': 'Close', 
             'volume': 'Volume',
             'open': 'Open',
             'high': 'High',
             'low': 'Low'
-        }, inplace=True)
+        }
+        df.rename(columns=column_map, inplace=True, errors='ignore')
         
         # Also adjust price_field if it was renamed
         if price_field == 'close':
             price_field = 'Close'
+            
+        # Check for required columns after renaming
+        required_cols = ['Date', 'Close', 'Volume', 'Open', 'High', 'Low']
+        missing_cols = [col for col in required_cols if col not in df.columns]
+        if missing_cols:
+            raise ValueError(
+                f"Missing required columns in historical_data: {', '.join(missing_cols)}"
+            )
 
-        df['Date'] = pd.to_datetime(df['Date'])
         df.set_index('Date', inplace=True)
+        df.sort_index(inplace=True)
 
         if feature_engineering:
             df['MA_10'] = calculate_moving_average(df['Close'], window=10)
@@ -169,7 +195,7 @@ def load_data_from_mongodb(mongo_uri, db_name, stock_symbol, price_field='close'
 
             df.dropna(inplace=True) # Important: Drop rows with NaN after feature engineering
 
-        price_series = df[price_field].squeeze() # Still predicting 'Close' price
+        price_series = df[price_field].squeeze() # Still predicting price based on selected field
 
         return price_series, df # Return both price_series and the feature-rich DataFrame
 

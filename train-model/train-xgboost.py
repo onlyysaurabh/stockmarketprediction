@@ -19,7 +19,7 @@ from sklearn.feature_selection import SelectKBest, f_regression
 
 # Add parent directory to path to import mongo_utils
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from stocks.mongo_utils import get_mongo_db, STOCK_PRICES_COLLECTION
+from stocks.mongo_utils import get_mongo_db, STOCKS_COLLECTION
 
 
 # --- 1. Load Stock Price Data from MongoDB ---
@@ -30,7 +30,7 @@ def load_data_from_mongodb(mongo_uri, db_name, stock_symbol,
     try:
         client = MongoClient(mongo_uri)
         db = client[db_name]
-        collection = db[STOCK_PRICES_COLLECTION]
+        collection = db['stock_prices']  # Use 'stock_prices' collection directly
 
         # Find the single document for the stock symbol
         stock_doc = collection.find_one({"symbol": stock_symbol})
@@ -38,7 +38,7 @@ def load_data_from_mongodb(mongo_uri, db_name, stock_symbol,
         if not stock_doc:
             raise ValueError(
                 f"No document found for symbol '{stock_symbol}' in MongoDB "
-                f"collection '{STOCK_PRICES_COLLECTION}'."
+                f"collection 'stock_prices'."
             )
 
         historical_data = stock_doc.get("historical_data", [])
@@ -47,22 +47,22 @@ def load_data_from_mongodb(mongo_uri, db_name, stock_symbol,
                 f"No 'historical_data' found for symbol '{stock_symbol}'."
             )
 
-        # Convert to DataFrame and filter by date
+        # Convert to DataFrame
         df = pd.DataFrame(historical_data)
 
-        if 'date' not in df.columns:
+        if 'Date' not in df.columns:
              raise ValueError(
-                f"Required field 'date' not found in 'historical_data'."
+                f"Required field 'Date' not found in 'historical_data'."
             )
             
-        # Ensure 'date' is datetime
-        df['date'] = pd.to_datetime(df['date'])
+        # Ensure 'Date' is datetime
+        df['Date'] = pd.to_datetime(df['Date'])
 
         # Filter by date range if provided
         if start_date and end_date:
             start_dt = datetime.combine(start_date, datetime.min.time())
             end_dt = datetime.combine(end_date, datetime.max.time())
-            df = df[(df['date'] >= start_dt) & (df['date'] <= end_dt)]
+            df = df[(df['Date'] >= start_dt) & (df['Date'] <= end_dt)]
 
         if df.empty:
             raise ValueError(
@@ -71,22 +71,26 @@ def load_data_from_mongodb(mongo_uri, db_name, stock_symbol,
             )
 
         # Check for required columns after filtering
-        required_cols = ['date', 'close', 'volume', 'open', 'high', 'low']
+        required_cols = ['Date', 'Close', 'Volume', 'Open', 'High', 'Low']
         missing_cols = [col for col in required_cols if col not in df.columns]
         if missing_cols:
-            raise ValueError(
-                f"Missing required columns in historical_data: {', '.join(missing_cols)}"
-            )
-
-        # Rename columns to match expected format
-        df.rename(columns={
-            'date': 'Date',
-            'close': 'Close',
-            'volume': 'Volume',
-            'open': 'Open',
-            'high': 'High',
-            'low': 'Low'
-        }, inplace=True)
+            # Check if columns are in different case (MongoDB data has different case)
+            column_map = {
+                'date': 'Date',
+                'close': 'Close', 
+                'volume': 'Volume',
+                'open': 'Open',
+                'high': 'High',
+                'low': 'Low'
+            }
+            df.rename(columns=column_map, inplace=True, errors='ignore')
+            
+            # Check again for missing columns
+            missing_cols = [col for col in required_cols if col not in df.columns]
+            if missing_cols:
+                raise ValueError(
+                    f"Missing required columns in historical_data: {', '.join(missing_cols)}"
+                )
 
         # Set Date as index
         df.set_index('Date', inplace=True)
@@ -397,7 +401,7 @@ if __name__ == "__main__":
     # Fix the database name to match what's used in the services.py file
     import os
     mongo_uri = os.getenv('MONGO_URI', 'mongodb://localhost:27017/')
-    db_name = os.getenv('MONGO_DB_NAME', 'stock_data')
+    db_name = os.getenv('MONGO_DB_NAME', 'stock_prices')
     evaluation_collection_name = "xgboost_evaluation_results"
 
     # --- Date Range ---
