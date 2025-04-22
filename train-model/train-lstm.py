@@ -156,9 +156,10 @@ def load_data_from_mongodb(mongo_uri, db_name, stock_symbol,
         
         return df
     
+    except pymongo.errors.ConnectionFailure as e:
+        raise Exception(f"Could not connect to MongoDB: {e}")
     except Exception as e:
-        print(f"Error loading data: {e}")
-        return None
+        raise Exception(f"Error loading data from MongoDB: {e}")
     finally:
         if client:
             client.close()
@@ -359,9 +360,9 @@ def train_lstm_model(symbol, start_date, end_date, evaluation_results_collection
 
     # --- 1. Data Fetching and Preprocessing ---
     try:
-        # Use MongoDB data instead of yfinance
-        mongo_uri = "mongodb://localhost:27017/"
-        db_name = "stock_market_db"
+        # Use environment variables for MongoDB connection details
+        mongo_uri = os.getenv('MONGO_URI', 'mongodb://localhost:27017/')
+        db_name = os.getenv('MONGO_DB_NAME', 'stock_prices')
         data = load_data_from_mongodb(mongo_uri, db_name, symbol, start_date, end_date)
         
         if data is None or data.empty:
@@ -453,6 +454,23 @@ def train_lstm_model(symbol, start_date, end_date, evaluation_results_collection
 
     # --- 7. Save Regression Model (already handled by ModelCheckpoint callback) ---
     print(f"\nRegression model saved to: {os.path.join(model_dir, 'model.h5')}") # Inform user about save path
+    
+    # Save the scaler and features list for future inference
+    try:
+        import pickle
+        # Save the scaler
+        scaler_path = os.path.join(model_dir, "scaler.pkl")
+        with open(scaler_path, 'wb') as file:
+            pickle.dump(scaler, file)
+        print(f"Scaler saved to: {scaler_path}")
+        
+        # Save the features list
+        features_path = os.path.join(model_dir, "selected_features.pkl")
+        with open(features_path, 'wb') as file:
+            pickle.dump(features, file)
+        print(f"Feature list saved to: {features_path}")
+    except Exception as e:
+        print(f"Error saving scaler or feature list: {e}")
 
     # --- 8. Store Evaluation Results in MongoDB ---
     evaluation_metrics = {

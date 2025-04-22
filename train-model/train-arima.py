@@ -630,8 +630,8 @@ def evaluate_model(model_fit, train_series, test_series, original_series, diff_o
         }
 
     # --- Store Trained Model ---
-    # Use a consistent, configurable path - adapted from XGBoost suggestion
-    MODEL_SAVE_DIR_BASE = os.getenv('MODEL_SAVE_DIR', './trained_models') # Default to relative path
+    # Use the consistent path format like other training scripts
+    MODEL_SAVE_DIR_BASE = '/home/skylap/Downloads/stockmarketprediction/train-model'
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     model_dir = os.path.join(MODEL_SAVE_DIR_BASE, stock_symbol, f"arima-{timestamp}")
     os.makedirs(model_dir, exist_ok=True)
