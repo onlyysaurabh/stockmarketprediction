@@ -29,23 +29,11 @@ def load_data_from_mongodb(mongo_uri, db_name, stock_symbol,
     try:
         client = MongoClient(mongo_uri)
         db = client[db_name]
-        
-        # Try both collection names and variations of symbol case
-        collections_to_try = ['stock_prices', 'stockPrices']
-        symbol_variations = [stock_symbol, stock_symbol.lower(), stock_symbol.upper()]
-        
-        found = False
-        stock_doc = None
-        for collection_name in collections_to_try:
-            collection = db[collection_name]
-            for symbol_var in symbol_variations:
-                stock_doc = collection.find_one({"symbol": symbol_var})
-                if stock_doc:
-                    found = True
-                    break
-            if found:
-                break
-                
+        collection = db['stock_prices']  # Use 'stock_prices' collection directly
+
+        # Find the single document for the stock symbol
+        stock_doc = collection.find_one({"symbol": stock_symbol})
+
         if not stock_doc:
             raise ValueError(
                 f"No document found for symbol '{stock_symbol}' in MongoDB "
@@ -81,27 +69,31 @@ def load_data_from_mongodb(mongo_uri, db_name, stock_symbol,
                 f"within the specified date range ({start_date} to {end_date})."
             )
 
-        # Map column names to expected format
-        column_map = {
-            'date': 'Date',
-            'close': 'Close', 
-            'volume': 'Volume',
-            'open': 'Open',
-            'high': 'High',
-            'low': 'Low'
-        }
-        df.rename(columns=column_map, inplace=True, errors='ignore')
-        
-        # Check for required columns after renaming
+        # Check for required columns after filtering
         required_cols = ['Date', 'Close', 'Volume', 'Open', 'High', 'Low']
         missing_cols = [col for col in required_cols if col not in df.columns]
         if missing_cols:
-            raise ValueError(
-                f"Missing required columns in historical_data: {', '.join(missing_cols)}"
-            )
+            # Check if columns are in different case (MongoDB data has different case)
+            column_map = {
+                'date': 'Date',
+                'close': 'Close', 
+                'volume': 'Volume',
+                'open': 'Open',
+                'high': 'High',
+                'low': 'Low'
+            }
+            df.rename(columns=column_map, inplace=True, errors='ignore')
+            
+            # Check again for missing columns
+            missing_cols = [col for col in required_cols if col not in df.columns]
+            if missing_cols:
+                raise ValueError(
+                    f"Missing required columns in historical_data: {', '.join(missing_cols)}"
+                )
 
+        # Set Date as index
         df.set_index('Date', inplace=True)
-        df.sort_index(inplace=True)
+        df.sort_index(inplace=True) # Ensure data is sorted by date
 
         return df
 
@@ -432,8 +424,10 @@ if __name__ == "__main__":
     args = parse_args()
     
     # --- MongoDB Connection Details ---
-    mongo_uri = "mongodb://localhost:27017/"
-    db_name = "stock_market_db"
+    # Use environment variables for MongoDB connection details
+    import os
+    mongo_uri = os.getenv('MONGO_URI', 'mongodb://localhost:27017/')
+    db_name = os.getenv('MONGO_DB_NAME', 'stock_prices')
     evaluation_collection_name = "svm_evaluation_results"
 
     # --- Date Range ---
