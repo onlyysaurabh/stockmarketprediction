@@ -29,11 +29,23 @@ def load_data_from_mongodb(mongo_uri, db_name, stock_symbol,
     try:
         client = MongoClient(mongo_uri)
         db = client[db_name]
-        collection = db['stock_prices']  # Use 'stock_prices' collection directly
-
-        # Find the single document for the stock symbol
-        stock_doc = collection.find_one({"symbol": stock_symbol})
-
+        
+        # Try both collection names and variations of symbol case
+        collections_to_try = ['stock_prices', 'stockPrices']
+        symbol_variations = [stock_symbol, stock_symbol.lower(), stock_symbol.upper()]
+        
+        found = False
+        stock_doc = None
+        for collection_name in collections_to_try:
+            collection = db[collection_name]
+            for symbol_var in symbol_variations:
+                stock_doc = collection.find_one({"symbol": symbol_var})
+                if stock_doc:
+                    found = True
+                    break
+            if found:
+                break
+                
         if not stock_doc:
             raise ValueError(
                 f"No document found for symbol '{stock_symbol}' in MongoDB "
