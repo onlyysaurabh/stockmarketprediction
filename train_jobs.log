@@ -1,0 +1,687 @@
+2025-04-22 10:49:27,857 - INFO - Prepared 4 training jobs with 4 max workers
+2025-04-22 10:49:27,860 - INFO - Starting job: model=xgboost, symbol=AAPL
+2025-04-22 10:49:27,861 - INFO - Starting job: model=lstm, symbol=AAPL
+2025-04-22 10:49:27,861 - INFO - Starting job: model=svm, symbol=AAPL
+2025-04-22 10:49:27,862 - INFO - Starting job: model=arima, symbol=AAPL
+2025-04-22 10:49:33,419 - INFO - Job stdout: model=arima, symbol=AAPL
+ARIMA parameters: price_field=close, feature_engineering=True
+max_p=3, max_q=3, test_size=0.2
+Training with date range: 2024-04-22 to 2025-04-21
+Training ARIMA model for 1 stock(s): AAPL
+
+--- Processing Stock: AAPL ---
+An error occurred for AAPL: Error loading data from MongoDB: No document found for symbol 'AAPL' in MongoDB collection 'stock_prices'.. Skipping stock.
+
+--- Stock Price Prediction and Evaluation Completed for all symbols. ---
+2025-04-22 10:49:33,420 - INFO - Job completed: model=arima, symbol=AAPL
+2025-04-22 10:49:34,014 - INFO - Job stdout: model=svm, symbol=AAPL
+Training with date range: 2024-04-22 to 2025-04-21
+Training SVM model for 1 stock(s): AAPL
+Using look_back=60, num_features=30
+Using kernel=rbf, C values=0.1,1,10,100, gamma values=scale,auto,0.1,1,10
+
+--- Processing Stock: AAPL ---
+An error occurred for AAPL: Error loading data from MongoDB: No document found for symbol 'AAPL' in MongoDB collection 'stock_prices'.. Skipping stock.
+
+--- SVM Stock Price Prediction and Evaluation Completed. ---
+2025-04-22 10:49:34,014 - INFO - Job completed: model=svm, symbol=AAPL
+2025-04-22 10:49:46,140 - INFO - Job stdout: model=lstm, symbol=AAPL
+Training with date range: 2024-04-22 to 2025-04-21
+LSTM parameters: units=60, dropout=0.2, epochs=75, batch_size=32
+Sequence length=60, short_window=20, long_window=50, lag_days=1
+Training LSTM model for 1 stock(s): AAPL
+
+--- Processing Stock: AAPL ---
+Error loading data: No document found for symbol 'AAPL' in MongoDB collection 'stock_prices'.
+No data found for AAPL between 2024-04-22 and 2025-04-21.
+Skipping to next stock due to errors processing AAPL.
+
+--- LSTM Stock Price Prediction and Evaluation Completed for all symbols. ---
+2025-04-22 10:49:46,141 - WARNING - Job stderr: model=lstm, symbol=AAPL
+2025-04-22 10:49:30.988446: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:477] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1745318971.044062   72490 cuda_dnn.cc:8310] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+E0000 00:00:1745318971.064943   72490 cuda_blas.cc:1418] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2025-04-22 10:49:31.117287: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2025-04-22 10:49:46,143 - INFO - Job completed: model=lstm, symbol=AAPL
+2025-04-22 10:50:00,738 - INFO - Job stdout: model=xgboost, symbol=AAPL
+Training with date range: 2024-04-22 to 2025-04-21
+Training XGBoost model for 1 stock(s): AAPL
+Using look_back=60, num_features=30
+Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
+
+--- Processing Stock: AAPL ---
+Best parameters: {'colsample_bytree': 0.9, 'learning_rate': 0.1, 'max_depth': 5, 'n_estimators': 100, 'subsample': 1.0}
+
+Regression Metrics:
+  Mean Squared Error (MSE): 330.6581
+  Root Mean Squared Error (RMSE): 18.1840
+  Mean Absolute Error (MAE): 13.4971
+  MAPE: 6.96%
+  R-squared (R2): -0.5886
+
+Classification Metrics:
+  Accuracy: 0.4400
+  Confusion Matrix:
+ [[4 8]
+ [6 7]]
+  Classification Report:
+               precision    recall  f1-score   support
+
+           0       0.40      0.33      0.36        12
+           1       0.47      0.54      0.50        13
+
+    accuracy                           0.44        25
+   macro avg       0.43      0.44      0.43        25
+weighted avg       0.43      0.44      0.43        25
+
+
+XGBoost Feature Importance (Top 10):
+  Close: 0.4751
+  Low: 0.2849
+  Close_Lag_13: 0.0329
+  Close_Lag_10: 0.0211
+  Close_Lag_29: 0.0199
+  Close_Lag_60: 0.0172
+  High: 0.0166
+  Close_Lag_58: 0.0158
+  Close_Lag_9: 0.0137
+  EMA: 0.0104
+Evaluation results for AAPL stored in MongoDB.
+Trained XGBoost model saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/xgboost-20250422-104959/model.pkl
+Close scaler saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/xgboost-20250422-104959/close_scaler.pkl
+Other features scaler saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/xgboost-20250422-104959/other_scaler.pkl
+Target scaler saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/xgboost-20250422-104959/target_scaler.pkl
+Selected features saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/xgboost-20250422-104959/selected_features.pkl
+
+--- XGBoost Stock Price Prediction and Evaluation Completed. ---
+2025-04-22 10:50:00,739 - WARNING - Job stderr: model=xgboost, symbol=AAPL
+/home/skylap/Downloads/stockmarketprediction/train-model/train-xgboost.py:149: FutureWarning: Setting an item of incompatible dtype is deprecated and will raise in a future error of pandas. Value '[-0.9676112  -0.83057692 -0.51927685  0.43380826 -0.74155083 -0.78326241
+ -0.26827921 -0.65830012 -0.5589611  -0.04387443 -0.85547587 -0.56065884
+ -0.66471552 -0.69038861 -0.243775    0.41919541  0.45393973 -0.32526664
+ -0.97037817  0.04327764 -0.43283377 -0.57880515 -0.43789634 -0.49949412
+ -0.18646948 -0.32605611 -0.21109249 -0.33517333 -0.65993655 -0.69987757
+ -0.43396049 -0.58495611  1.40728544 -0.28534478 -0.76392424 -0.95619455
+ -0.2029142  -0.55840924 -0.34675094 -0.5134593  -0.63468885 -0.33658365
+ -0.63299494 -0.31525264 -0.79155184 -0.77707312 -0.06656976 -0.07953852
+  0.12808812  0.28552979  3.60486569 -0.48184603 -1.15726782 -1.0038808
+ -0.42449452 -0.68501178 -0.53466001  0.08848435 -0.50540365 -0.32139211
+ -0.48195334 -0.60562795  0.31728486 -0.14567383 -0.5363999  -0.52119687
+  0.70236968  0.57702032  1.71071764  0.40985974  0.26071516  0.04852033
+  1.58781334  0.85369105 -0.30451049  0.08532647  1.82586905  0.75235153
+ -0.32056048 -0.52931001 -0.90085887 -0.52597967 -0.77859458  0.0109822
+ -0.3138155   0.00698504 -0.48041272 -0.1766471  -0.81352285 -0.80920376
+ -0.00898448 -0.08068823 -0.20765868 -0.34484625 -0.47054819  0.13036072
+ -0.23944058  0.01403661 -0.23776966 -0.3166093  -0.27433053  0.71433052
+  0.8701626   0.34934652  0.30415514  0.25584038 -0.20535543 -0.42153976
+  0.03654415 -0.17509882  1.55962239 -0.34998547 -0.72578443 -0.72683834
+ -0.62609667 -0.52171041  0.45480585 -0.6522373  -0.67165979  1.91569611
+  2.77767031  4.10196319  2.58408166  5.01903546  2.62319106  1.30316361
+  1.83651539 -0.08001757  0.2414613  -0.08038547]' has dtype incompatible with int64, please explicitly cast to a compatible dtype first.
+  X.loc[:, other_features] = other_scaler.fit_transform(X[other_features].astype(np.float64))
+2025-04-22 10:50:00,739 - INFO - Job completed: model=xgboost, symbol=AAPL
+2025-04-22 10:50:00,739 - INFO - Training Summary:
+2025-04-22 10:50:00,739 - INFO -   Total jobs: 4
+2025-04-22 10:50:00,740 - INFO -   Successful: 4
+2025-04-22 10:50:00,740 - INFO -   Failed: 0
+2025-04-22 10:50:00,740 - INFO -   Total duration: 32.88 seconds
+2025-04-22 11:22:13,654 - INFO - Prepared 4 training jobs with 4 max workers
+2025-04-22 11:22:13,657 - INFO - Starting job: model=xgboost, symbol=AAPL
+2025-04-22 11:22:13,657 - INFO - Starting job: model=lstm, symbol=AAPL
+2025-04-22 11:22:13,657 - INFO - Starting job: model=svm, symbol=AAPL
+2025-04-22 11:22:13,658 - INFO - Starting job: model=arima, symbol=AAPL
+2025-04-22 11:22:18,628 - INFO - Job stdout: model=arima, symbol=AAPL
+ARIMA parameters: price_field=close, feature_engineering=True
+max_p=3, max_q=3, test_size=0.2
+Training with date range: 2024-04-22 to 2025-04-21
+Training ARIMA model for 1 stock(s): AAPL
+
+--- Processing Stock: AAPL ---
+An error occurred for AAPL: Error loading data from MongoDB: No document found for symbol 'AAPL' in MongoDB collection 'stock_prices'.. Skipping stock.
+
+--- Stock Price Prediction and Evaluation Completed for all symbols. ---
+2025-04-22 11:22:18,654 - INFO - Job completed: model=arima, symbol=AAPL
+2025-04-22 11:22:21,579 - INFO - Job stdout: model=svm, symbol=AAPL
+Training with date range: 2024-04-22 to 2025-04-21
+Training SVM model for 1 stock(s): AAPL
+Using look_back=60, num_features=30
+Using kernel=rbf, C values=0.1,1,10,100, gamma values=scale,auto,0.1,1,10
+
+--- Processing Stock: AAPL ---
+An error occurred for AAPL: Error loading data from MongoDB: No document found for symbol 'AAPL' in MongoDB collection 'stock_prices'.. Skipping stock.
+
+--- SVM Stock Price Prediction and Evaluation Completed. ---
+2025-04-22 11:22:21,580 - INFO - Job completed: model=svm, symbol=AAPL
+2025-04-22 11:22:35,372 - INFO - Job stdout: model=lstm, symbol=AAPL
+Training with date range: 2024-04-22 to 2025-04-21
+LSTM parameters: units=60, dropout=0.2, epochs=75, batch_size=32
+Sequence length=60, short_window=20, long_window=50, lag_days=1
+Training LSTM model for 1 stock(s): AAPL
+
+--- Processing Stock: AAPL ---
+Error loading data: No document found for symbol 'AAPL' in MongoDB collection 'stock_prices'.
+No data found for AAPL between 2024-04-22 and 2025-04-21.
+Skipping to next stock due to errors processing AAPL.
+
+--- LSTM Stock Price Prediction and Evaluation Completed for all symbols. ---
+2025-04-22 11:22:35,373 - WARNING - Job stderr: model=lstm, symbol=AAPL
+2025-04-22 11:22:18.231332: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:477] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1745320938.480664   75247 cuda_dnn.cc:8310] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+E0000 00:00:1745320938.548295   75247 cuda_blas.cc:1418] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2025-04-22 11:22:18.930424: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2025-04-22 11:22:35,373 - INFO - Job completed: model=lstm, symbol=AAPL
+2025-04-22 11:22:46,407 - INFO - Job stdout: model=xgboost, symbol=AAPL
+Training with date range: 2024-04-22 to 2025-04-21
+Training XGBoost model for 1 stock(s): AAPL
+Using look_back=60, num_features=30
+Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
+
+--- Processing Stock: AAPL ---
+Best parameters: {'colsample_bytree': 0.9, 'learning_rate': 0.1, 'max_depth': 5, 'n_estimators': 100, 'subsample': 1.0}
+
+Regression Metrics:
+  Mean Squared Error (MSE): 330.6581
+  Root Mean Squared Error (RMSE): 18.1840
+  Mean Absolute Error (MAE): 13.4971
+  MAPE: 6.96%
+  R-squared (R2): -0.5886
+
+Classification Metrics:
+  Accuracy: 0.4400
+  Confusion Matrix:
+ [[4 8]
+ [6 7]]
+  Classification Report:
+               precision    recall  f1-score   support
+
+           0       0.40      0.33      0.36        12
+           1       0.47      0.54      0.50        13
+
+    accuracy                           0.44        25
+   macro avg       0.43      0.44      0.43        25
+weighted avg       0.43      0.44      0.43        25
+
+
+XGBoost Feature Importance (Top 10):
+  Close: 0.4751
+  Low: 0.2849
+  Close_Lag_13: 0.0329
+  Close_Lag_10: 0.0211
+  Close_Lag_29: 0.0199
+  Close_Lag_60: 0.0172
+  High: 0.0166
+  Close_Lag_58: 0.0158
+  Close_Lag_9: 0.0137
+  EMA: 0.0104
+Evaluation results for AAPL stored in MongoDB.
+Trained XGBoost model saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/xgboost-20250422-112244/model.pkl
+Close scaler saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/xgboost-20250422-112244/close_scaler.pkl
+Other features scaler saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/xgboost-20250422-112244/other_scaler.pkl
+Target scaler saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/xgboost-20250422-112244/target_scaler.pkl
+Selected features saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/xgboost-20250422-112244/selected_features.pkl
+
+--- XGBoost Stock Price Prediction and Evaluation Completed. ---
+2025-04-22 11:22:46,407 - WARNING - Job stderr: model=xgboost, symbol=AAPL
+/home/skylap/Downloads/stockmarketprediction/train-model/train-xgboost.py:149: FutureWarning: Setting an item of incompatible dtype is deprecated and will raise in a future error of pandas. Value '[-0.9676112  -0.83057692 -0.51927685  0.43380826 -0.74155083 -0.78326241
+ -0.26827921 -0.65830012 -0.5589611  -0.04387443 -0.85547587 -0.56065884
+ -0.66471552 -0.69038861 -0.243775    0.41919541  0.45393973 -0.32526664
+ -0.97037817  0.04327764 -0.43283377 -0.57880515 -0.43789634 -0.49949412
+ -0.18646948 -0.32605611 -0.21109249 -0.33517333 -0.65993655 -0.69987757
+ -0.43396049 -0.58495611  1.40728544 -0.28534478 -0.76392424 -0.95619455
+ -0.2029142  -0.55840924 -0.34675094 -0.5134593  -0.63468885 -0.33658365
+ -0.63299494 -0.31525264 -0.79155184 -0.77707312 -0.06656976 -0.07953852
+  0.12808812  0.28552979  3.60486569 -0.48184603 -1.15726782 -1.0038808
+ -0.42449452 -0.68501178 -0.53466001  0.08848435 -0.50540365 -0.32139211
+ -0.48195334 -0.60562795  0.31728486 -0.14567383 -0.5363999  -0.52119687
+  0.70236968  0.57702032  1.71071764  0.40985974  0.26071516  0.04852033
+  1.58781334  0.85369105 -0.30451049  0.08532647  1.82586905  0.75235153
+ -0.32056048 -0.52931001 -0.90085887 -0.52597967 -0.77859458  0.0109822
+ -0.3138155   0.00698504 -0.48041272 -0.1766471  -0.81352285 -0.80920376
+ -0.00898448 -0.08068823 -0.20765868 -0.34484625 -0.47054819  0.13036072
+ -0.23944058  0.01403661 -0.23776966 -0.3166093  -0.27433053  0.71433052
+  0.8701626   0.34934652  0.30415514  0.25584038 -0.20535543 -0.42153976
+  0.03654415 -0.17509882  1.55962239 -0.34998547 -0.72578443 -0.72683834
+ -0.62609667 -0.52171041  0.45480585 -0.6522373  -0.67165979  1.91569611
+  2.77767031  4.10196319  2.58408166  5.01903546  2.62319106  1.30316361
+  1.83651539 -0.08001757  0.2414613  -0.08038547]' has dtype incompatible with int64, please explicitly cast to a compatible dtype first.
+  X.loc[:, other_features] = other_scaler.fit_transform(X[other_features].astype(np.float64))
+2025-04-22 11:22:46,407 - INFO - Job completed: model=xgboost, symbol=AAPL
+2025-04-22 11:22:46,412 - INFO - Training Summary:
+2025-04-22 11:22:46,412 - INFO -   Total jobs: 4
+2025-04-22 11:22:46,412 - INFO -   Successful: 4
+2025-04-22 11:22:46,412 - INFO -   Failed: 0
+2025-04-22 11:22:46,412 - INFO -   Total duration: 32.76 seconds
+2025-04-22 16:58:14,418 - INFO - Prepared 1 training jobs with 4 max workers
+2025-04-22 16:58:14,421 - INFO - Starting job: model=arima, symbol=AAPL
+2025-04-22 16:58:28,747 - INFO - Job stdout: model=arima, symbol=AAPL
+ARIMA parameters: price_field='Close', feature_engineering=True
+max_p=3, max_q=3, test_size=0.2
+Differencing order (d): 1 (fixed)
+Training with date range: 2020-02-25 to 2025-02-25
+Training ARIMA model for 1 stock(s): AAPL
+Connected to MongoDB: mongodb://localhost:27017/, Database: 'stock_data'
+
+--- Processing Stock: AAPL ---
+Loaded 1244 data points for AAPL.
+Applied fixed differencing d=1.
+Train set size: 994, Test set size: 249
+Searching for best ARIMA(p,1,q) order (max_p=3, max_q=3)...
+Auto search complete. Best Order: ARIMA(2, 1, 3) with AIC=4703.82
+Training ARIMA(2, 1, 3) model...
+ARIMA model training finished.
+                               SARIMAX Results                                
+==============================================================================
+Dep. Variable:                  Close   No. Observations:                  994
+Model:                 ARIMA(2, 1, 3)   Log Likelihood               -2345.911
+Date:                Tue, 22 Apr 2025   AIC                           4703.822
+Time:                        16:58:28   BIC                           4733.227
+Sample:                             0   HQIC                          4715.002
+                                - 994                                         
+Covariance Type:                  opg                                         
+==============================================================================
+                 coef    std err          z      P>|z|      [0.025      0.975]
+------------------------------------------------------------------------------
+ar.L1         -1.8732      0.011   -174.038      0.000      -1.894      -1.852
+ar.L2         -0.9863      0.011    -92.348      0.000      -1.007      -0.965
+ma.L1          0.8708      1.311      0.664      0.507      -1.700       3.441
+ma.L2         -0.8932      2.452     -0.364      0.716      -5.699       3.912
+ma.L3         -0.9775      1.281     -0.763      0.445      -3.488       1.532
+sigma2         6.5501      8.580      0.763      0.445     -10.266      23.366
+===================================================================================
+Ljung-Box (L1) (Q):                   0.05   Jarque-Bera (JB):               106.40
+Prob(Q):                              0.83   Prob(JB):                         0.00
+Heteroskedasticity (H):               1.01   Skew:                            -0.05
+Prob(H) (two-sided):                  0.93   Kurtosis:                         4.60
+===================================================================================
+
+Warnings:
+[1] Covariance matrix calculated using the outer product of gradients (complex-step).
+Starting Walk-Forward Validation...
+Skipping AAPL due to an unexpected error: 'ARIMAResults' object has no attribute 'order'
+Traceback (most recent call last):
+  File "/home/skylap/Downloads/stockmarketprediction/train-model/train-arima.py", line 719, in <module>
+    evaluate_model(arima_model_fit, train_data, test_data, original_series, diff_order, stock_symbol_to_predict, best_order, evaluation_results_collection, start_date, end_date)
+  File "/home/skylap/Downloads/stockmarketprediction/train-model/train-arima.py", line 392, in evaluate_model
+    current_order = model_fit.order # Use the order from the fitted model
+                    ^^^^^^^^^^^^^^^
+  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/statsmodels/base/wrapper.py", line 34, in __getattribute__
+    obj = getattr(results, attr)
+          ^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'ARIMAResults' object has no attribute 'order'
+
+
+MongoDB connection closed.
+
+--- ARIMA Stock Price Prediction and Evaluation Completed for all symbols. ---
+2025-04-22 16:58:28,747 - WARNING - Job stderr: model=arima, symbol=AAPL
+AIC Search:   0%|          | 0/16 [00:00<?, ?it/s]
+AIC Search:  12%|█▎        | 2/16 [00:00<00:01,  8.36it/s]
+AIC Search:  19%|█▉        | 3/16 [00:00<00:03,  4.09it/s]
+AIC Search:  25%|██▌       | 4/16 [00:01<00:05,  2.26it/s]
+AIC Search:  38%|███▊      | 6/16 [00:02<00:03,  2.72it/s]
+AIC Search:  44%|████▍     | 7/16 [00:02<00:03,  2.46it/s]
+AIC Search:  50%|█████     | 8/16 [00:03<00:04,  1.64it/s]
+AIC Search:  62%|██████▎   | 10/16 [00:04<00:03,  1.93it/s]
+AIC Search:  69%|██████▉   | 11/16 [00:05<00:02,  1.78it/s]
+AIC Search:  75%|███████▌  | 12/16 [00:06<00:03,  1.21it/s]
+AIC Search:  88%|████████▊ | 14/16 [00:07<00:01,  1.42it/s]
+AIC Search:  94%|█████████▍| 15/16 [00:09<00:00,  1.13it/s]
+AIC Search: 100%|██████████| 16/16 [00:11<00:00,  1.09s/it]
+AIC Search: 100%|██████████| 16/16 [00:11<00:00,  1.45it/s]
+
+Walk-Forward Validation:   0%|          | 0/249 [00:00<?, ?it/s]
+Walk-Forward Validation:   0%|          | 0/249 [00:00<?, ?it/s]
+2025-04-22 16:58:28,747 - INFO - Job completed: model=arima, symbol=AAPL
+2025-04-22 16:58:28,748 - INFO - Training Summary:
+2025-04-22 16:58:28,748 - INFO -   Total jobs: 1
+2025-04-22 16:58:28,748 - INFO -   Successful: 1
+2025-04-22 16:58:28,748 - INFO -   Failed: 0
+2025-04-22 16:58:28,748 - INFO -   Total duration: 14.33 seconds
+2025-04-22 17:17:49,088 - INFO - Prepared 1 training jobs with 4 max workers
+2025-04-22 17:17:49,094 - INFO - Starting job: model=arima, symbol=AAPL
+2025-04-22 17:19:42,048 - INFO - Job stdout: model=arima, symbol=AAPL
+ARIMA parameters: price_field='Close', feature_engineering=True
+max_p=3, max_q=3, test_size=0.2
+Differencing order (d): 1 (fixed)
+Training with date range: 2020-02-25 to 2025-02-25
+Training ARIMA model for 1 stock(s): AAPL
+Connected to MongoDB: mongodb://localhost:27017/, Database: 'stock_data'
+
+--- Processing Stock: AAPL ---
+Loaded 1244 data points for AAPL.
+Applied fixed differencing d=1.
+Train set size: 994, Test set size: 249
+Searching for best ARIMA(p,1,q) order (max_p=3, max_q=3)...
+Auto search complete. Best Order: ARIMA(2, 1, 3) with AIC=4703.82
+Training ARIMA(2, 1, 3) model...
+ARIMA model training finished.
+                               SARIMAX Results                                
+==============================================================================
+Dep. Variable:                  Close   No. Observations:                  994
+Model:                 ARIMA(2, 1, 3)   Log Likelihood               -2345.911
+Date:                Tue, 22 Apr 2025   AIC                           4703.822
+Time:                        17:18:02   BIC                           4733.227
+Sample:                             0   HQIC                          4715.002
+                                - 994                                         
+Covariance Type:                  opg                                         
+==============================================================================
+                 coef    std err          z      P>|z|      [0.025      0.975]
+------------------------------------------------------------------------------
+ar.L1         -1.8732      0.011   -174.038      0.000      -1.894      -1.852
+ar.L2         -0.9863      0.011    -92.348      0.000      -1.007      -0.965
+ma.L1          0.8708      1.311      0.664      0.507      -1.700       3.441
+ma.L2         -0.8932      2.452     -0.364      0.716      -5.699       3.912
+ma.L3         -0.9775      1.281     -0.763      0.445      -3.488       1.532
+sigma2         6.5501      8.580      0.763      0.445     -10.266      23.366
+===================================================================================
+Ljung-Box (L1) (Q):                   0.05   Jarque-Bera (JB):               106.40
+Prob(Q):                              0.83   Prob(JB):                         0.00
+Heteroskedasticity (H):               1.01   Skew:                            -0.05
+Prob(H) (two-sided):                  0.93   Kurtosis:                         4.60
+===================================================================================
+
+Warnings:
+[1] Covariance matrix calculated using the outer product of gradients (complex-step).
+Starting Walk-Forward Validation...
+Inverse transforming predictions...
+Calculating evaluation metrics...
+
+Model Evaluation (Original Scale - Regression Metrics):
+  RMSE: 3.1759
+  MAE:  2.3013
+  MAPE: 1.08%
+
+Model Evaluation (Direction Prediction - Classification Metrics):
+  Confusion Matrix (Rows: Actual, Cols: Predicted):
+[[42 61]
+ [63 82]]
+  Accuracy:    0.5000
+  Sensitivity: 0.5655 (Recall/TPR)
+  Specificity: 0.4078 (TNR)
+  Precision:   0.5734
+  F1-Score:    0.5694
+
+Analyzing ARIMA components...
+Error extracting ARIMA component info: 'numpy.ndarray' object has no attribute 'index'
+
+Trained ARIMA model saved to: ./trained_models/AAPL/arima-20250422-171941/model.pkl
+Creating MongoDB collection: arima_evaluation_results
+Evaluation results for AAPL stored in MongoDB collection 'arima_evaluation_results'.
+
+MongoDB connection closed.
+
+--- ARIMA Stock Price Prediction and Evaluation Completed for all symbols. ---
+2025-04-22 17:19:42,049 - WARNING - Job stderr: model=arima, symbol=AAPL
+AIC Search:   0%|          | 0/16 [00:00<?, ?it/s]
+AIC Search:  12%|█▎        | 2/16 [00:00<00:01,  9.55it/s]
+AIC Search:  19%|█▉        | 3/16 [00:00<00:02,  4.38it/s]
+AIC Search:  25%|██▌       | 4/16 [00:01<00:04,  2.48it/s]
+AIC Search:  38%|███▊      | 6/16 [00:01<00:03,  2.87it/s]
+AIC Search:  44%|████▍     | 7/16 [00:02<00:03,  2.64it/s]
+AIC Search:  50%|█████     | 8/16 [00:03<00:04,  1.87it/s]
+AIC Search:  62%|██████▎   | 10/16 [00:04<00:02,  2.19it/s]
+AIC Search:  69%|██████▉   | 11/16 [00:04<00:02,  2.01it/s]
+AIC Search:  75%|███████▌  | 12/16 [00:06<00:02,  1.39it/s]
+AIC Search:  88%|████████▊ | 14/16 [00:06<00:01,  1.62it/s]
+AIC Search:  94%|█████████▍| 15/16 [00:08<00:00,  1.23it/s]
+AIC Search: 100%|██████████| 16/16 [00:10<00:00,  1.06s/it]
+AIC Search: 100%|██████████| 16/16 [00:10<00:00,  1.56it/s]
+
+Walk-Forward Validation:   0%|          | 0/249 [00:00<?, ?it/s]
+Walk-Forward Validation:   1%|          | 2/249 [00:00<00:24, 10.18it/s]
+Walk-Forward Validation:   2%|▏         | 4/249 [00:00<00:26,  9.21it/s]
+Walk-Forward Validation:   2%|▏         | 5/249 [00:00<00:47,  5.17it/s]
+Walk-Forward Validation:   2%|▏         | 6/249 [00:01<01:23,  2.92it/s]
+Walk-Forward Validation:   3%|▎         | 7/249 [00:01<01:08,  3.51it/s]
+Walk-Forward Validation:   3%|▎         | 8/249 [00:01<00:56,  4.27it/s]
+Walk-Forward Validation:   4%|▎         | 9/249 [00:01<00:47,  5.04it/s]
+Walk-Forward Validation:   4%|▍         | 10/249 [00:02<00:43,  5.44it/s]
+Walk-Forward Validation:   4%|▍         | 11/249 [00:02<00:39,  5.96it/s]
+Walk-Forward Validation:   5%|▍         | 12/249 [00:02<00:38,  6.20it/s]
+Walk-Forward Validation:   5%|▌         | 13/249 [00:02<00:36,  6.55it/s]
+Walk-Forward Validation:   6%|▌         | 14/249 [00:02<00:33,  7.07it/s]
+Walk-Forward Validation:   6%|▌         | 15/249 [00:02<00:32,  7.22it/s]
+Walk-Forward Validation:   6%|▋         | 16/249 [00:02<00:31,  7.31it/s]
+Walk-Forward Validation:   7%|▋         | 17/249 [00:03<00:47,  4.92it/s]
+Walk-Forward Validation:   7%|▋         | 18/249 [00:04<01:31,  2.52it/s]
+Walk-Forward Validation:   8%|▊         | 19/249 [00:04<01:15,  3.04it/s]
+Walk-Forward Validation:   8%|▊         | 20/249 [00:04<01:13,  3.10it/s]
+Walk-Forward Validation:   8%|▊         | 21/249 [00:04<01:21,  2.80it/s]
+Walk-Forward Validation:   9%|▉         | 22/249 [00:05<01:50,  2.06it/s]
+Walk-Forward Validation:   9%|▉         | 23/249 [00:05<01:28,  2.57it/s]
+Walk-Forward Validation:  10%|▉         | 24/249 [00:06<01:11,  3.13it/s]
+Walk-Forward Validation:  10%|█         | 25/249 [00:06<00:58,  3.84it/s]
+Walk-Forward Validation:  10%|█         | 26/249 [00:06<01:14,  2.99it/s]
+Walk-Forward Validation:  11%|█         | 27/249 [00:07<01:38,  2.25it/s]
+Walk-Forward Validation:  11%|█         | 28/249 [00:07<01:33,  2.37it/s]
+Walk-Forward Validation:  12%|█▏        | 29/249 [00:08<01:47,  2.04it/s]
+Walk-Forward Validation:  12%|█▏        | 30/249 [00:08<01:30,  2.42it/s]
+Walk-Forward Validation:  12%|█▏        | 31/249 [00:09<01:50,  1.97it/s]
+Walk-Forward Validation:  13%|█▎        | 32/249 [00:10<01:59,  1.82it/s]
+Walk-Forward Validation:  13%|█▎        | 33/249 [00:10<01:34,  2.27it/s]
+Walk-Forward Validation:  14%|█▎        | 34/249 [00:11<02:13,  1.61it/s]
+Walk-Forward Validation:  14%|█▍        | 35/249 [00:11<02:20,  1.52it/s]
+Walk-Forward Validation:  14%|█▍        | 36/249 [00:12<02:14,  1.58it/s]
+Walk-Forward Validation:  15%|█▍        | 37/249 [00:13<02:19,  1.52it/s]
+Walk-Forward Validation:  15%|█▌        | 38/249 [00:13<02:21,  1.49it/s]
+Walk-Forward Validation:  16%|█▌        | 39/249 [00:14<01:53,  1.85it/s]
+Walk-Forward Validation:  16%|█▌        | 40/249 [00:14<01:36,  2.18it/s]
+Walk-Forward Validation:  16%|█▋        | 41/249 [00:14<01:24,  2.46it/s]
+Walk-Forward Validation:  17%|█▋        | 42/249 [00:15<01:13,  2.81it/s]
+Walk-Forward Validation:  17%|█▋        | 43/249 [00:15<01:03,  3.22it/s]
+Walk-Forward Validation:  18%|█▊        | 44/249 [00:15<01:10,  2.90it/s]
+Walk-Forward Validation:  18%|█▊        | 45/249 [00:16<01:16,  2.67it/s]
+Walk-Forward Validation:  18%|█▊        | 46/249 [00:16<01:20,  2.52it/s]
+Walk-Forward Validation:  19%|█▉        | 47/249 [00:17<01:24,  2.38it/s]
+Walk-Forward Validation:  19%|█▉        | 48/249 [00:17<01:32,  2.18it/s]
+Walk-Forward Validation:  20%|█▉        | 49/249 [00:18<01:50,  1.80it/s]
+Walk-Forward Validation:  20%|██        | 50/249 [00:18<01:27,  2.28it/s]
+Walk-Forward Validation:  20%|██        | 51/249 [00:18<01:10,  2.81it/s]
+Walk-Forward Validation:  21%|██        | 52/249 [00:18<01:00,  3.27it/s]
+Walk-Forward Validation:  21%|██▏       | 53/249 [00:19<01:31,  2.15it/s]
+Walk-Forward Validation:  22%|██▏       | 54/249 [00:20<01:22,  2.35it/s]
+Walk-Forward Validation:  22%|██▏       | 55/249 [00:20<01:19,  2.43it/s]
+Walk-Forward Validation:  22%|██▏       | 56/249 [00:20<01:02,  3.07it/s]
+Walk-Forward Validation:  23%|██▎       | 57/249 [00:20<01:06,  2.90it/s]
+Walk-Forward Validation:  23%|██▎       | 58/249 [00:21<00:54,  3.48it/s]
+Walk-Forward Validation:  24%|██▎       | 59/249 [00:21<00:46,  4.10it/s]
+Walk-Forward Validation:  24%|██▍       | 60/249 [00:21<00:53,  3.56it/s]
+Walk-Forward Validation:  24%|██▍       | 61/249 [00:21<00:55,  3.38it/s]
+Walk-Forward Validation:  25%|██▍       | 62/249 [00:22<00:48,  3.84it/s]
+Walk-Forward Validation:  25%|██▌       | 63/249 [00:22<00:57,  3.24it/s]
+Walk-Forward Validation:  26%|██▌       | 64/249 [00:22<00:47,  3.87it/s]
+Walk-Forward Validation:  26%|██▌       | 65/249 [00:23<00:58,  3.13it/s]
+Walk-Forward Validation:  27%|██▋       | 66/249 [00:23<01:02,  2.92it/s]
+Walk-Forward Validation:  27%|██▋       | 67/249 [00:23<00:52,  3.48it/s]
+Walk-Forward Validation:  27%|██▋       | 68/249 [00:23<00:51,  3.51it/s]
+Walk-Forward Validation:  28%|██▊       | 69/249 [00:24<00:52,  3.42it/s]
+Walk-Forward Validation:  28%|██▊       | 70/249 [00:24<00:53,  3.35it/s]
+Walk-Forward Validation:  29%|██▊       | 71/249 [00:24<00:53,  3.32it/s]
+Walk-Forward Validation:  29%|██▉       | 72/249 [00:25<00:48,  3.64it/s]
+Walk-Forward Validation:  29%|██▉       | 73/249 [00:25<00:46,  3.77it/s]
+Walk-Forward Validation:  30%|██▉       | 74/249 [00:25<01:03,  2.74it/s]
+Walk-Forward Validation:  30%|███       | 75/249 [00:26<01:07,  2.59it/s]
+Walk-Forward Validation:  31%|███       | 76/249 [00:26<00:55,  3.11it/s]
+Walk-Forward Validation:  31%|███       | 77/249 [00:26<00:47,  3.63it/s]
+Walk-Forward Validation:  31%|███▏      | 78/249 [00:26<00:43,  3.90it/s]
+Walk-Forward Validation:  32%|███▏      | 79/249 [00:27<00:41,  4.09it/s]
+Walk-Forward Validation:  32%|███▏      | 80/249 [00:27<00:41,  4.07it/s]
+Walk-Forward Validation:  33%|███▎      | 81/249 [00:27<00:36,  4.57it/s]
+Walk-Forward Validation:  33%|███▎      | 82/249 [00:27<00:32,  5.17it/s]
+Walk-Forward Validation:  33%|███▎      | 83/249 [00:27<00:29,  5.68it/s]
+Walk-Forward Validation:  34%|███▎      | 84/249 [00:28<00:59,  2.76it/s]
+Walk-Forward Validation:  34%|███▍      | 85/249 [00:28<00:50,  3.24it/s]
+Walk-Forward Validation:  35%|███▍      | 86/249 [00:29<00:58,  2.77it/s]
+Walk-Forward Validation:  35%|███▍      | 87/249 [00:30<01:23,  1.95it/s]
+Walk-Forward Validation:  35%|███▌      | 88/249 [00:30<01:29,  1.80it/s]
+Walk-Forward Validation:  36%|███▌      | 89/249 [00:31<01:12,  2.21it/s]
+Walk-Forward Validation:  36%|███▌      | 90/249 [00:31<01:05,  2.42it/s]
+Walk-Forward Validation:  37%|███▋      | 91/249 [00:31<01:09,  2.27it/s]
+Walk-Forward Validation:  37%|███▋      | 92/249 [00:32<01:22,  1.91it/s]
+Walk-Forward Validation:  37%|███▋      | 93/249 [00:33<01:30,  1.72it/s]
+Walk-Forward Validation:  38%|███▊      | 94/249 [00:34<01:38,  1.58it/s]
+Walk-Forward Validation:  38%|███▊      | 95/249 [00:34<01:15,  2.04it/s]
+Walk-Forward Validation:  39%|███▊      | 96/249 [00:34<01:00,  2.51it/s]
+Walk-Forward Validation:  39%|███▉      | 97/249 [00:34<00:50,  2.99it/s]
+Walk-Forward Validation:  39%|███▉      | 98/249 [00:34<00:46,  3.24it/s]
+Walk-Forward Validation:  40%|███▉      | 99/249 [00:35<01:05,  2.28it/s]
+Walk-Forward Validation:  40%|████      | 100/249 [00:35<00:59,  2.52it/s]
+Walk-Forward Validation:  41%|████      | 101/249 [00:36<00:51,  2.86it/s]
+Walk-Forward Validation:  41%|████      | 102/249 [00:36<00:46,  3.15it/s]
+Walk-Forward Validation:  41%|████▏     | 103/249 [00:37<01:11,  2.03it/s]
+Walk-Forward Validation:  42%|████▏     | 104/249 [00:37<01:07,  2.15it/s]
+Walk-Forward Validation:  42%|████▏     | 105/249 [00:37<01:01,  2.34it/s]
+Walk-Forward Validation:  43%|████▎     | 106/249 [00:38<00:55,  2.57it/s]
+Walk-Forward Validation:  43%|████▎     | 107/249 [00:38<00:54,  2.60it/s]
+Walk-Forward Validation:  43%|████▎     | 108/249 [00:39<00:55,  2.55it/s]
+Walk-Forward Validation:  44%|████▍     | 109/249 [00:40<01:43,  1.35it/s]
+Walk-Forward Validation:  44%|████▍     | 110/249 [00:40<01:27,  1.59it/s]
+Walk-Forward Validation:  45%|████▍     | 111/249 [00:41<01:24,  1.63it/s]
+Walk-Forward Validation:  45%|████▍     | 112/249 [00:42<01:41,  1.35it/s]
+Walk-Forward Validation:  45%|████▌     | 113/249 [00:42<01:20,  1.69it/s]
+Walk-Forward Validation:  46%|████▌     | 114/249 [00:43<01:05,  2.07it/s]
+Walk-Forward Validation:  46%|████▌     | 115/249 [00:43<00:53,  2.49it/s]
+Walk-Forward Validation:  47%|████▋     | 116/249 [00:43<00:49,  2.70it/s]
+Walk-Forward Validation:  47%|████▋     | 117/249 [00:43<00:45,  2.91it/s]
+Walk-Forward Validation:  47%|████▋     | 118/249 [00:44<00:42,  3.06it/s]
+Walk-Forward Validation:  48%|████▊     | 119/249 [00:44<00:45,  2.86it/s]
+Walk-Forward Validation:  48%|████▊     | 120/249 [00:45<01:16,  1.70it/s]
+Walk-Forward Validation:  49%|████▊     | 121/249 [00:45<00:59,  2.15it/s]
+Walk-Forward Validation:  49%|████▉     | 122/249 [00:46<00:47,  2.66it/s]
+Walk-Forward Validation:  49%|████▉     | 123/249 [00:46<00:42,  2.97it/s]
+Walk-Forward Validation:  50%|████▉     | 124/249 [00:46<00:36,  3.45it/s]
+Walk-Forward Validation:  50%|█████     | 125/249 [00:47<00:47,  2.62it/s]
+Walk-Forward Validation:  51%|█████     | 126/249 [00:47<00:44,  2.77it/s]
+Walk-Forward Validation:  51%|█████     | 127/249 [00:47<00:43,  2.83it/s]
+Walk-Forward Validation:  51%|█████▏    | 128/249 [00:47<00:38,  3.18it/s]
+Walk-Forward Validation:  52%|█████▏    | 129/249 [00:48<00:33,  3.56it/s]
+Walk-Forward Validation:  52%|█████▏    | 130/249 [00:48<00:29,  4.02it/s]
+Walk-Forward Validation:  53%|█████▎    | 131/249 [00:49<00:49,  2.39it/s]
+Walk-Forward Validation:  53%|█████▎    | 132/249 [00:49<00:40,  2.87it/s]
+Walk-Forward Validation:  53%|█████▎    | 133/249 [00:49<00:34,  3.34it/s]
+Walk-Forward Validation:  54%|█████▍    | 134/249 [00:49<00:30,  3.72it/s]
+Walk-Forward Validation:  54%|█████▍    | 135/249 [00:49<00:26,  4.36it/s]
+Walk-Forward Validation:  55%|█████▍    | 136/249 [00:50<00:24,  4.58it/s]
+Walk-Forward Validation:  55%|█████▌    | 137/249 [00:50<00:24,  4.60it/s]
+Walk-Forward Validation:  55%|█████▌    | 138/249 [00:50<00:23,  4.82it/s]
+Walk-Forward Validation:  56%|█████▌    | 139/249 [00:50<00:23,  4.68it/s]
+Walk-Forward Validation:  56%|█████▌    | 140/249 [00:50<00:25,  4.27it/s]
+Walk-Forward Validation:  57%|█████▋    | 141/249 [00:51<00:47,  2.28it/s]
+Walk-Forward Validation:  57%|█████▋    | 142/249 [00:52<00:42,  2.54it/s]
+Walk-Forward Validation:  57%|█████▋    | 143/249 [00:52<00:37,  2.83it/s]
+Walk-Forward Validation:  58%|█████▊    | 144/249 [00:52<00:34,  3.07it/s]
+Walk-Forward Validation:  58%|█████▊    | 145/249 [00:53<00:45,  2.26it/s]
+Walk-Forward Validation:  59%|█████▊    | 146/249 [00:53<00:36,  2.78it/s]
+Walk-Forward Validation:  59%|█████▉    | 147/249 [00:53<00:31,  3.24it/s]
+Walk-Forward Validation:  59%|█████▉    | 148/249 [00:53<00:27,  3.68it/s]
+Walk-Forward Validation:  60%|█████▉    | 149/249 [00:54<00:24,  4.08it/s]
+Walk-Forward Validation:  60%|██████    | 150/249 [00:54<00:35,  2.81it/s]
+Walk-Forward Validation:  61%|██████    | 151/249 [00:54<00:31,  3.10it/s]
+Walk-Forward Validation:  61%|██████    | 152/249 [00:55<00:43,  2.24it/s]
+Walk-Forward Validation:  61%|██████▏   | 153/249 [00:55<00:35,  2.73it/s]
+Walk-Forward Validation:  62%|██████▏   | 154/249 [00:56<00:31,  2.99it/s]
+Walk-Forward Validation:  62%|██████▏   | 155/249 [00:57<01:13,  1.28it/s]
+Walk-Forward Validation:  63%|██████▎   | 156/249 [00:58<01:00,  1.53it/s]
+Walk-Forward Validation:  63%|██████▎   | 157/249 [00:58<00:51,  1.80it/s]
+Walk-Forward Validation:  63%|██████▎   | 158/249 [00:58<00:40,  2.26it/s]
+Walk-Forward Validation:  64%|██████▍   | 159/249 [00:59<00:39,  2.30it/s]
+Walk-Forward Validation:  64%|██████▍   | 160/249 [00:59<00:41,  2.14it/s]
+Walk-Forward Validation:  65%|██████▍   | 161/249 [01:00<00:40,  2.16it/s]
+Walk-Forward Validation:  65%|██████▌   | 162/249 [01:00<00:43,  2.00it/s]
+Walk-Forward Validation:  65%|██████▌   | 163/249 [01:01<00:36,  2.37it/s]
+Walk-Forward Validation:  66%|██████▌   | 164/249 [01:01<00:34,  2.45it/s]
+Walk-Forward Validation:  66%|██████▋   | 165/249 [01:01<00:30,  2.80it/s]
+Walk-Forward Validation:  67%|██████▋   | 166/249 [01:01<00:27,  3.03it/s]
+Walk-Forward Validation:  67%|██████▋   | 167/249 [01:02<00:30,  2.70it/s]
+Walk-Forward Validation:  67%|██████▋   | 168/249 [01:02<00:25,  3.16it/s]
+Walk-Forward Validation:  68%|██████▊   | 169/249 [01:02<00:21,  3.68it/s]
+Walk-Forward Validation:  68%|██████▊   | 170/249 [01:03<00:21,  3.70it/s]
+Walk-Forward Validation:  69%|██████▊   | 171/249 [01:03<00:19,  4.10it/s]
+Walk-Forward Validation:  69%|██████▉   | 172/249 [01:04<00:32,  2.39it/s]
+Walk-Forward Validation:  69%|██████▉   | 173/249 [01:04<00:29,  2.54it/s]
+Walk-Forward Validation:  70%|██████▉   | 174/249 [01:04<00:26,  2.84it/s]
+Walk-Forward Validation:  70%|███████   | 175/249 [01:04<00:23,  3.11it/s]
+Walk-Forward Validation:  71%|███████   | 176/249 [01:05<00:25,  2.91it/s]
+Walk-Forward Validation:  71%|███████   | 177/249 [01:05<00:21,  3.32it/s]
+Walk-Forward Validation:  71%|███████▏  | 178/249 [01:05<00:24,  2.94it/s]
+Walk-Forward Validation:  72%|███████▏  | 179/249 [01:06<00:21,  3.32it/s]
+Walk-Forward Validation:  72%|███████▏  | 180/249 [01:06<00:22,  3.05it/s]
+Walk-Forward Validation:  73%|███████▎  | 181/249 [01:06<00:19,  3.50it/s]
+Walk-Forward Validation:  73%|███████▎  | 182/249 [01:06<00:18,  3.57it/s]
+Walk-Forward Validation:  73%|███████▎  | 183/249 [01:07<00:18,  3.66it/s]
+Walk-Forward Validation:  74%|███████▍  | 184/249 [01:07<00:17,  3.65it/s]
+Walk-Forward Validation:  74%|███████▍  | 185/249 [01:07<00:17,  3.63it/s]
+Walk-Forward Validation:  75%|███████▍  | 186/249 [01:07<00:15,  4.00it/s]
+Walk-Forward Validation:  75%|███████▌  | 187/249 [01:08<00:13,  4.55it/s]
+Walk-Forward Validation:  76%|███████▌  | 188/249 [01:08<00:12,  5.02it/s]
+Walk-Forward Validation:  76%|███████▌  | 189/249 [01:08<00:13,  4.44it/s]
+Walk-Forward Validation:  76%|███████▋  | 190/249 [01:08<00:14,  4.17it/s]
+Walk-Forward Validation:  77%|███████▋  | 191/249 [01:09<00:13,  4.39it/s]
+Walk-Forward Validation:  77%|███████▋  | 192/249 [01:09<00:11,  4.88it/s]
+Walk-Forward Validation:  78%|███████▊  | 193/249 [01:09<00:10,  5.47it/s]
+Walk-Forward Validation:  78%|███████▊  | 194/249 [01:09<00:12,  4.54it/s]
+Walk-Forward Validation:  78%|███████▊  | 195/249 [01:09<00:12,  4.19it/s]
+Walk-Forward Validation:  79%|███████▊  | 196/249 [01:10<00:11,  4.54it/s]
+Walk-Forward Validation:  79%|███████▉  | 197/249 [01:10<00:10,  5.01it/s]
+Walk-Forward Validation:  80%|███████▉  | 198/249 [01:10<00:09,  5.40it/s]
+Walk-Forward Validation:  80%|███████▉  | 199/249 [01:10<00:08,  5.69it/s]
+Walk-Forward Validation:  80%|████████  | 200/249 [01:10<00:08,  5.45it/s]
+Walk-Forward Validation:  81%|████████  | 201/249 [01:11<00:11,  4.09it/s]
+Walk-Forward Validation:  81%|████████  | 202/249 [01:11<00:10,  4.43it/s]
+Walk-Forward Validation:  82%|████████▏ | 203/249 [01:11<00:09,  4.88it/s]
+Walk-Forward Validation:  82%|████████▏ | 204/249 [01:11<00:09,  4.82it/s]
+Walk-Forward Validation:  82%|████████▏ | 205/249 [01:11<00:10,  4.36it/s]
+Walk-Forward Validation:  83%|████████▎ | 206/249 [01:12<00:11,  3.77it/s]
+Walk-Forward Validation:  83%|████████▎ | 207/249 [01:12<00:11,  3.74it/s]
+Walk-Forward Validation:  84%|████████▎ | 208/249 [01:13<00:18,  2.21it/s]
+Walk-Forward Validation:  84%|████████▍ | 209/249 [01:13<00:14,  2.75it/s]
+Walk-Forward Validation:  84%|████████▍ | 210/249 [01:13<00:11,  3.38it/s]
+Walk-Forward Validation:  85%|████████▍ | 211/249 [01:13<00:09,  3.93it/s]
+Walk-Forward Validation:  85%|████████▌ | 212/249 [01:14<00:11,  3.22it/s]
+Walk-Forward Validation:  86%|████████▌ | 213/249 [01:14<00:10,  3.58it/s]
+Walk-Forward Validation:  86%|████████▌ | 214/249 [01:14<00:09,  3.79it/s]
+Walk-Forward Validation:  86%|████████▋ | 215/249 [01:15<00:11,  2.93it/s]
+Walk-Forward Validation:  87%|████████▋ | 216/249 [01:15<00:09,  3.34it/s]
+Walk-Forward Validation:  87%|████████▋ | 217/249 [01:15<00:09,  3.29it/s]
+Walk-Forward Validation:  88%|████████▊ | 218/249 [01:15<00:07,  4.01it/s]
+Walk-Forward Validation:  88%|████████▊ | 219/249 [01:16<00:07,  3.92it/s]
+Walk-Forward Validation:  88%|████████▊ | 220/249 [01:16<00:08,  3.62it/s]
+Walk-Forward Validation:  89%|████████▉ | 221/249 [01:17<00:09,  2.95it/s]
+Walk-Forward Validation:  89%|████████▉ | 222/249 [01:17<00:07,  3.40it/s]
+Walk-Forward Validation:  90%|████████▉ | 223/249 [01:17<00:08,  3.11it/s]
+Walk-Forward Validation:  90%|████████▉ | 224/249 [01:18<00:15,  1.62it/s]
+Walk-Forward Validation:  90%|█████████ | 225/249 [01:20<00:21,  1.12it/s]
+Walk-Forward Validation:  91%|█████████ | 226/249 [01:22<00:26,  1.14s/it]
+Walk-Forward Validation:  91%|█████████ | 227/249 [01:22<00:20,  1.07it/s]
+Walk-Forward Validation:  92%|█████████▏| 228/249 [01:22<00:15,  1.33it/s]
+Walk-Forward Validation:  92%|█████████▏| 229/249 [01:23<00:13,  1.50it/s]
+Walk-Forward Validation:  92%|█████████▏| 230/249 [01:24<00:13,  1.37it/s]
+Walk-Forward Validation:  93%|█████████▎| 231/249 [01:26<00:21,  1.20s/it]
+Walk-Forward Validation:  93%|█████████▎| 232/249 [01:26<00:16,  1.05it/s]
+Walk-Forward Validation:  94%|█████████▎| 233/249 [01:27<00:12,  1.26it/s]
+Walk-Forward Validation:  94%|█████████▍| 234/249 [01:27<00:11,  1.35it/s]
+Walk-Forward Validation:  94%|█████████▍| 235/249 [01:29<00:12,  1.10it/s]
+Walk-Forward Validation:  95%|█████████▍| 236/249 [01:32<00:22,  1.74s/it]
+Walk-Forward Validation:  95%|█████████▌| 237/249 [01:33<00:15,  1.27s/it]
+Walk-Forward Validation:  96%|█████████▌| 238/249 [01:33<00:11,  1.05s/it]
+Walk-Forward Validation:  96%|█████████▌| 239/249 [01:34<00:08,  1.17it/s]
+Walk-Forward Validation:  96%|█████████▋| 240/249 [01:34<00:06,  1.43it/s]
+Walk-Forward Validation:  97%|█████████▋| 241/249 [01:34<00:05,  1.52it/s]
+Walk-Forward Validation:  97%|█████████▋| 242/249 [01:35<00:04,  1.56it/s]
+Walk-Forward Validation:  98%|█████████▊| 243/249 [01:36<00:03,  1.56it/s]
+Walk-Forward Validation:  98%|█████████▊| 244/249 [01:36<00:02,  1.74it/s]
+Walk-Forward Validation:  98%|█████████▊| 245/249 [01:37<00:02,  1.86it/s]
+Walk-Forward Validation:  99%|█████████▉| 246/249 [01:37<00:01,  2.19it/s]
+Walk-Forward Validation:  99%|█████████▉| 247/249 [01:37<00:00,  2.27it/s]
+Walk-Forward Validation: 100%|█████████▉| 248/249 [01:38<00:00,  2.62it/s]
+Walk-Forward Validation: 100%|██████████| 249/249 [01:38<00:00,  2.64it/s]
+Walk-Forward Validation: 100%|██████████| 249/249 [01:38<00:00,  2.53it/s]
+2025-04-22 17:19:42,049 - INFO - Job completed: model=arima, symbol=AAPL
+2025-04-22 17:19:42,050 - INFO - Training Summary:
+2025-04-22 17:19:42,050 - INFO -   Total jobs: 1
+2025-04-22 17:19:42,050 - INFO -   Successful: 1
+2025-04-22 17:19:42,050 - INFO -   Failed: 0
+2025-04-22 17:19:42,050 - INFO -   Total duration: 112.96 seconds
