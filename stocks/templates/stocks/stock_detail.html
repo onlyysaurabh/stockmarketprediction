@@ -1134,8 +1134,86 @@
                 errorDiv.textContent = '';
                 
                 try {
-                    // Make API request
-                    const response = await fetch(`{% url 'ajax_get_ai_analysis' symbol=stock_data.symbol %}?analyzer=${analyzer}`);
+                    // Gather relevant data from UI elements
+                    const collectedData = {
+                        symbol: '{{ stock_data.symbol }}',
+                        name: '{{ stock_data.name|default:stock_data.symbol }}',
+                        analyzer: analyzer,
+                        
+                        // Current price and key metrics
+                        currentPrice: parseFloat('{{ stock_info.currentPrice|default:stock_info.regularMarketPrice|default:stock_info.regularMarketPreviousClose|default:stock_historical_data.0.Close|default:"0" }}'),
+                        keyMetrics: {},
+                        
+                        // Prediction data
+                        predictions: {},
+                        
+                        // Sentiment data
+                        sentiment: {
+                            positive: parseFloat('{{ sentiment_percentages.positive|default:"0" }}'),
+                            neutral: parseFloat('{{ sentiment_percentages.neutral|default:"0" }}'),
+                            negative: parseFloat('{{ sentiment_percentages.negative|default:"0" }}')
+                        },
+                        
+                        // News headlines
+                        newsHeadlines: []
+                    };
+                    
+                    // Collect key metrics from "Key Information" section
+                    const keyMetricsMap = {
+                        'peRatio': 'PE Ratio',
+                        'forwardPE': 'Forward PE',
+                        'dividendYield': 'Dividend Yield',
+                        'marketCap': 'Market Cap',
+                        'fiftyTwoWeekHigh': '52 Week High',
+                        'fiftyTwoWeekLow': '52 Week Low',
+                        'profitMargins': 'Profit Margins',
+                        'beta': 'Beta'
+                    };
+                    
+                    Object.entries(keyMetricsMap).forEach(([key, label]) => {
+                        const value = '{{ stock_info|get_item:key|default:"null" }}';
+                        if (value !== 'null') {
+                            collectedData.keyMetrics[key] = isNaN(parseFloat(value)) ? value : parseFloat(value);
+                        }
+                    });
+                    
+                    // Collect prediction data from prediction cards
+                    {% for model_type in model_predictions.model_types %}
+                    collectedData.predictions['{{ model_type }}'] = {
+                        next_day: parseFloat('{{ model_predictions.predictions.next_day|get_item:model_type|default:"0" }}'),
+                        next_week: parseFloat('{{ model_predictions.predictions.next_week|get_item:model_type|default:"0" }}'),
+                        next_month: parseFloat('{{ model_predictions.predictions.next_month|get_item:model_type|default:"0" }}'),
+                        dates: {
+                            next_day: '{{ model_predictions.prediction_dates.next_day }}',
+                            next_week: '{{ model_predictions.prediction_dates.next_week }}',
+                            next_month: '{{ model_predictions.prediction_dates.next_month }}'
+                        }
+                    };
+                    {% endfor %}
+                    
+                    // Collect news headlines
+                    {% for news in news_items %}
+                    collectedData.newsHeadlines.push({
+                        headline: '{{ news.headline|escapejs }}',
+                        source: '{{ news.source|escapejs }}',
+                        published_at: '{{ news.published_at|date:"Y-m-d H:i" }}',
+                        sentiment: {
+                            positive: parseFloat('{{ news.sentiment_positive|default:"0" }}'),
+                            neutral: parseFloat('{{ news.sentiment_neutral|default:"0" }}'),
+                            negative: parseFloat('{{ news.sentiment_negative|default:"0" }}')
+                        }
+                    });
+                    {% endfor %}
+                    
+                    // Make API request with collected data
+                    const response = await fetch('{% url 'ajax_get_ai_analysis' symbol=stock_data.symbol %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        body: JSON.stringify(collectedData)
+                    });
                     const data = await response.json();
                     
                     // Hide loading state

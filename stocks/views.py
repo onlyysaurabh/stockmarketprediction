@@ -653,12 +653,29 @@ def ajax_get_ai_analysis(request: HttpRequest, symbol: str):
     """
     Endpoint to get AI-powered stock analysis
     Uses either Gemini or local LLM based on request parameter
-    """
-    # Determine which analyzer to use from the query parameter or default
-    analyzer_choice = request.GET.get('analyzer')
     
-    # Call the AI service to get the analysis
-    analysis_result = get_ai_stock_analysis(symbol, analyzer_choice=analyzer_choice)
+    Accepts both:
+    - GET requests with analyzer as query parameter
+    - POST requests with JSON payload containing stock data collected from the frontend
+    """
+    if request.method == 'POST':
+        try:
+            # Parse the JSON data sent from frontend
+            data = json.loads(request.body)
+            analyzer_choice = data.get('analyzer')
+            
+            # Call the AI service with the collected data
+            analysis_result = get_ai_stock_analysis(symbol, analyzer_choice=analyzer_choice, collected_data=data)
+            
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+        except Exception as e:
+            logger.error(f"Error processing AI analysis request: {e}")
+            return JsonResponse({'error': f"Error processing request: {str(e)}"}, status=500)
+    else:
+        # Handle GET requests for backward compatibility
+        analyzer_choice = request.GET.get('analyzer')
+        analysis_result = get_ai_stock_analysis(symbol, analyzer_choice=analyzer_choice)
     
     # Return the result as a JSON response
     return JsonResponse(analysis_result)
