@@ -99,6 +99,175 @@ python manage.py runserver
 
 The application will be available at http://127.0.0.1:8000/
 
+## 🔧 Detailed Setup Guide
+
+### System Requirements
+- **OS**: Linux, macOS, or Windows
+- **RAM**: 4GB minimum (8GB+ recommended for model training)
+- **Storage**: 1GB for application, plus additional space for stock data (5GB+ recommended)
+- **Processor**: Multi-core processor recommended for model training
+
+### Complete Installation Steps
+
+#### 1. Database Setup
+
+**SQLite Database** (Already configured for development):
+- The SQLite database (db.sqlite3) is automatically created during migration
+- No additional setup required for development environment
+
+**MongoDB Setup**:
+```bash
+# Install MongoDB if not already installed
+# Ubuntu/Debian
+sudo apt-get install mongodb
+
+# macOS (using Homebrew)
+brew tap mongodb/brew
+brew install mongodb-community
+
+# Start MongoDB service
+# Ubuntu/Debian
+sudo systemctl start mongodb
+
+# macOS
+brew services start mongodb-community
+
+# Verify MongoDB is running
+mongo --eval "db.version()"
+```
+
+#### 2. API Keys and External Services
+
+1. **Finnhub API** (for news data):
+   - Register at https://finnhub.io/
+   - Get your API key from the dashboard
+   - Add to your `.env` file as `FINNHUB_API_KEYS`
+
+2. **Yahoo Finance** (no API key needed):
+   - yfinance library is used and doesn't require authentication
+   - However, be mindful of rate limits for production use
+
+3. **Optional APIs** (for additional features):
+   - Alpha Vantage for additional financial data (https://www.alphavantage.co/)
+   - NewsAPI for broader news sources (https://newsapi.org/)
+
+#### 3. Model Training
+
+The application uses several prediction models. To train them:
+
+```bash
+# Activate your virtual environment first
+source venv/bin/activate  # On Windows, use: venv\Scripts\activate
+
+# Update stock data before training
+python manage.py update_stocks
+
+# Train individual models
+cd train-model
+python train.py --model xgboost --symbol AAPL
+python train.py --model lstm --symbol MSFT
+python train.py --model arima --symbol GOOG
+
+# Or train all models in batch mode
+python train.py --batch training_batch.json
+```
+
+Model files will be saved in the `/train-model/{SYMBOL}/{model-type}/` directories.
+
+#### 4. Running in Production
+
+For production deployment:
+
+1. **Set DEBUG=False in your environment variables**
+   ```
+   DEBUG=False
+   ```
+
+2. **Configure a proper database** (PostgreSQL recommended):
+   ```
+   DATABASE_URL=postgresql://user:password@localhost/stockwise
+   ```
+
+3. **Set up static files serving**:
+   ```bash
+   python manage.py collectstatic
+   ```
+
+4. **Use a production-ready web server**:
+   ```bash
+   # Install Gunicorn
+   pip install gunicorn
+
+   # Run with Gunicorn
+   gunicorn stockmarketprediction.wsgi:application
+   ```
+
+5. **Set up a reverse proxy** with Nginx or Apache
+
+#### 5. Scheduled Tasks
+
+Set up cron jobs or scheduled tasks for data updates:
+
+```bash
+# Example crontab entries (Linux/macOS)
+
+# Update stock prices daily at 18:00 (after market close)
+0 18 * * 1-5 cd /path/to/stockmarketprediction && /path/to/venv/bin/python manage.py update_stocks
+
+# Update news and sentiment analysis every 3 hours during market hours
+0 9,12,15 * * 1-5 cd /path/to/stockmarketprediction && /path/to/venv/bin/python manage.py update_news
+
+# Update commodities data daily
+0 19 * * * cd /path/to/stockmarketprediction && /path/to/venv/bin/python manage.py update_commodities
+```
+
+### Troubleshooting
+
+**MongoDB Connection Issues**:
+- Verify MongoDB is running: `sudo systemctl status mongodb`
+- Check your MONGO_URI in .env file
+- Ensure your firewall allows connections to MongoDB port (default: 27017)
+
+**Missing Stock Data**:
+- Run `python manage.py import_stocks` to populate initial data
+- Check `stock_symbols.csv` contains the symbols you want to track
+
+**Model Training Errors**:
+- Ensure you have at least 2 years of historical data for each stock
+- Check `train_jobs.log` for specific training errors
+- Increase memory allocation if you encounter memory errors
+
+**API Rate Limits**:
+- Implement retries with exponential backoff in production
+- Consider upgrading to paid API tiers for higher limits
+- Spread requests across multiple API keys when possible
+
+### Updating the Application
+
+```bash
+# Pull the latest changes
+git pull origin main
+
+# Install any new dependencies
+pip install -r requirements.txt
+
+# Apply any new migrations
+python manage.py migrate
+
+# Restart the application
+# (restart method depends on your deployment setup)
+```
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 📝 Acknowledgements
+
+- Yahoo Finance for stock data API
+- Finnhub for financial news
+- All open source libraries used in this project
+
 ## 📊 Data Updates
 
 The application includes several management commands to update data:
