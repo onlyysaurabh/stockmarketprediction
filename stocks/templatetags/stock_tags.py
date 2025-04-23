@@ -114,6 +114,10 @@ def subtract(value, arg):
     Subtracts the argument from the value.
     Usage: {{ value|subtract:arg }}
     """
+    # Check for None or empty values first
+    if value is None or value == '' or arg is None or arg == '':
+        # Return 0 for None or empty values instead of logging a warning
+        return 0
     try:
         return float(value) - float(arg)
     except (ValueError, TypeError):
@@ -126,6 +130,10 @@ def divide(value, arg):
     Divides the value by the argument.
     Usage: {{ value|divide:arg }}
     """
+    # Check for None or empty values first
+    if value is None or value == '' or arg is None or arg == '':
+        # Return 0 for None or empty values instead of logging a warning
+        return 0
     try:
         value = float(value)
         arg = float(arg)
@@ -142,6 +150,10 @@ def multiply(value, arg):
     Multiplies the value by the argument.
     Usage: {{ value|multiply:arg }}
     """
+    # Check for None or empty values first
+    if value is None or value == '' or arg is None or arg == '':
+        # Return 0 for None or empty values instead of logging a warning
+        return 0
     try:
         return float(value) * float(arg)
     except (ValueError, TypeError):
@@ -155,6 +167,10 @@ def percent_change(value, arg):
     Usage: {{ new_value|percent_change:old_value }}
     Returns the percentage change as (new - old) / old * 100
     """
+    # Check for None or empty values first
+    if value is None or value == '' or arg is None or arg == '':
+        # Return 0 for None or empty values instead of logging a warning
+        return 0
     try:
         value = float(value)
         arg = float(arg)

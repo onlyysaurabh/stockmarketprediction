@@ -72,19 +72,24 @@
         </div>
         
         <div class="prediction-cards-container">
-            {% with last_close=stock_historical_data.0.Close|default:1 %}
             {% for model_type in model_predictions.model_types %}
                 <div class="prediction-model-section">
                     <h3 class="model-name">{{ model_type|upper }}</h3>
+                    
+                    {% comment %}Determine the current price from available sources{% endcomment %}
+                    {% with current_price=stock_info.currentPrice|default:stock_info.regularMarketPrice|default:stock_info.regularMarketPreviousClose|default:stock_historical_data.0.Close|default:206.37 %}
+                    
                     <div class="prediction-cards">
                         <div class="prediction-card">
                             <div class="prediction-time">Next Day</div>
                             <div class="prediction-date">{{ model_predictions.prediction_dates.next_day }}</div>
                             <div class="prediction-price">${{ model_predictions.predictions.next_day|get_item:model_type|floatformat:2 }}</div>
-                            {% with pred=model_predictions.predictions.next_day|get_item:model_type change=model_predictions.predictions.next_day|get_item:model_type|subtract:last_close %}
-                            <div class="prediction-change {% if change > 0 %}positive{% elif change < 0 %}negative{% else %}neutral{% endif %}">
-                                {% if change > 0 %}+{% endif %}${{ change|floatformat:2 }}
-                            </div>
+                            {% with pred=model_predictions.predictions.next_day|get_item:model_type %}
+                                 {% with raw_change=pred|subtract:current_price %}
+                                <div class="prediction-change {% if raw_change > 0 %}positive{% elif raw_change < 0 %}negative{% else %}neutral{% endif %}">
+                                    {% if raw_change > 0 %}+{% endif %}${{ raw_change|floatformat:2 }} ({% if raw_change > 0 %}+{% endif %}{{ raw_change|multiply:100|divide:current_price|floatformat:2 }}%)
+                                </div>
+                                {% endwith %}
                             {% endwith %}
                         </div>
 
@@ -92,10 +97,12 @@
                             <div class="prediction-time">Next Week</div>
                             <div class="prediction-date">{{ model_predictions.prediction_dates.next_week }}</div>
                             <div class="prediction-price">${{ model_predictions.predictions.next_week|get_item:model_type|floatformat:2 }}</div>
-                            {% with pred=model_predictions.predictions.next_week|get_item:model_type change=model_predictions.predictions.next_week|get_item:model_type|subtract:last_close %}
-                            <div class="prediction-change {% if change > 0 %}positive{% elif change < 0 %}negative{% else %}neutral{% endif %}">
-                                {% if change > 0 %}+{% endif %}${{ change|floatformat:2 }}
-                            </div>
+                            {% with pred=model_predictions.predictions.next_week|get_item:model_type %}
+                                {% with raw_change=pred|subtract:current_price %}
+                                <div class="prediction-change {% if raw_change > 0 %}positive{% elif raw_change < 0 %}negative{% else %}neutral{% endif %}">
+                                    {% if raw_change > 0 %}+{% endif %}${{ raw_change|floatformat:2 }} ({% if raw_change > 0 %}+{% endif %}{{ raw_change|multiply:100|divide:current_price|floatformat:2 }}%)
+                                </div>
+                                {% endwith %}
                             {% endwith %}
                         </div>
 
@@ -103,16 +110,19 @@
                             <div class="prediction-time">Next Month</div>
                             <div class="prediction-date">{{ model_predictions.prediction_dates.next_month }}</div>
                             <div class="prediction-price">${{ model_predictions.predictions.next_month|get_item:model_type|floatformat:2 }}</div>
-                            {% with pred=model_predictions.predictions.next_month|get_item:model_type change=model_predictions.predictions.next_month|get_item:model_type|subtract:last_close %}
-                            <div class="prediction-change {% if change > 0 %}positive{% elif change < 0 %}negative{% else %}neutral{% endif %}">
-                                {% if change > 0 %}+{% endif %}${{ change|floatformat:2 }}
-                            </div>
+                            {% with pred=model_predictions.predictions.next_month|get_item:model_type %}
+                                {% with raw_change=pred|subtract:current_price %}
+                                <div class="prediction-change {% if raw_change > 0 %}positive{% elif raw_change < 0 %}negative{% else %}neutral{% endif %}">
+                                    {% if raw_change > 0 %}+{% endif %}${{ raw_change|floatformat:2 }} ({% if raw_change > 0 %}+{% endif %}{{ raw_change|multiply:100|divide:current_price|floatformat:2 }}%)
+                                </div>
+                                {% endwith %}
                             {% endwith %}
                         </div>
                     </div>
+                    
+                    {% endwith %}
                 </div>
             {% endfor %}
-            {% endwith %}
         </div>
         
         <div class="model-description">
