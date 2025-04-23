@@ -17,6 +17,7 @@ from .services import (
     process_news_for_stock,
     get_model_predictions
 )
+from .ai_service import get_ai_stock_analysis  # Import the new AI analysis function
 import logging
 import json
 import yfinance as yf
@@ -646,3 +647,18 @@ def stock_news(request: HttpRequest, symbol: str = None):
     }
     
     return render(request, 'stocks/stock_news.html', context)
+
+@login_required
+def ajax_get_ai_analysis(request: HttpRequest, symbol: str):
+    """
+    Endpoint to get AI-powered stock analysis
+    Uses either Gemini or local LLM based on request parameter
+    """
+    # Determine which analyzer to use from the query parameter or default
+    analyzer_choice = request.GET.get('analyzer')
+    
+    # Call the AI service to get the analysis
+    analysis_result = get_ai_stock_analysis(symbol, analyzer_choice=analyzer_choice)
+    
+    # Return the result as a JSON response
+    return JsonResponse(analysis_result)

@@ -28,6 +28,9 @@ urlpatterns = [
     path('news/', views.stock_news, name='stock_news'),  # News page without symbol
     path('news/<str:symbol>/', views.stock_news, name='stock_news_with_symbol'),  # News page with symbol
 
+    # AI Analysis endpoint
+    path('ajax/analyze/<str:symbol>/', views.ajax_get_ai_analysis, name='ajax_get_ai_analysis'),
+
     # Example: /AAPL/update/ (POST endpoint to trigger data update)
     path('<str:symbol>/update/', views.update_stock_data, name='update_stock_data'),
 

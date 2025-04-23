@@ -144,6 +144,43 @@
     <hr style="margin: 30px 0;">
     {% endif %}
 
+    {# AI Analysis Section #}
+    <h2>AI Stock Analysis</h2>
+    <div class="ai-analysis-section">
+        <div class="ai-buttons">
+            <button id="analyze-gemini-btn" class="btn btn-primary" data-analyzer="gemini">
+                <i class="fas fa-robot"></i> Analyze with Gemini
+            </button>
+            <button id="analyze-local-btn" class="btn btn-secondary" data-analyzer="local">
+                <i class="fas fa-desktop"></i> Analyze with Local LLM
+            </button>
+        </div>
+        
+        <div id="ai-analysis-result" style="display: none; margin-top: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 5px; background-color: #f9f9f9;">
+            <div id="ai-loading" style="text-align: center; display: none;">
+                <i class="fas fa-spinner fa-spin"></i> Analyzing stock data...
+            </div>
+            <div id="ai-content">
+                <h3 id="ai-overview-title">Overview</h3>
+                <p id="ai-overview-text"></p>
+                
+                <h3>Pros</h3>
+                <ul id="ai-pros-list"></ul>
+                
+                <h3>Cons</h3>
+                <ul id="ai-cons-list"></ul>
+                
+                <h3>Verdict</h3>
+                <p id="ai-verdict" class="verdict"></p>
+                
+                <p class="ai-source"><small id="ai-source-text">Analysis provided by Model</small></p>
+            </div>
+            <div id="ai-error" style="color: #d9534f; display: none;"></div>
+        </div>
+    </div>
+    
+    <hr style="margin: 30px 0;">
+
     {# Two-column layout for News and Sentiment Chart #}
     <div class="two-column-layout">
         {# Left Column: News Section #}
@@ -613,6 +650,116 @@
         color: white;
         border-color: #3b79cc;
     }
+    
+    /* AI Analysis Styles */
+    .ai-analysis-section {
+        margin: 20px 0;
+    }
+    
+    .ai-buttons {
+        margin-bottom: 15px;
+        display: flex;
+        gap: 10px;
+    }
+    
+    #analyze-gemini-btn {
+        background-color: #1a73e8;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    #analyze-gemini-btn:hover {
+        background-color: #1765cc;
+    }
+    
+    #analyze-local-btn {
+        background-color: #34a853;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    #analyze-local-btn:hover {
+        background-color: #2d8e47;
+    }
+    
+    #ai-analysis-result {
+        background-color: #f9f9f9;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        padding: 20px;
+    }
+    
+    #ai-overview-title {
+        color: #333;
+        margin-top: 0;
+    }
+    
+    #ai-overview-text {
+        line-height: 1.5;
+        color: #444;
+    }
+    
+    #ai-pros-list, #ai-cons-list {
+        padding-left: 25px;
+    }
+    
+    #ai-pros-list li {
+        color: #2d8e47;
+        margin-bottom: 8px;
+    }
+    
+    #ai-cons-list li {
+        color: #dc3545;
+        margin-bottom: 8px;
+    }
+    
+    .verdict {
+        font-weight: bold;
+        font-size: 1.2em;
+        padding: 5px 10px;
+        border-radius: 4px;
+        display: inline-block;
+    }
+    
+    .verdict.buy {
+        background-color: rgba(46, 204, 113, 0.15);
+        color: #27ae60;
+    }
+    
+    .verdict.sell {
+        background-color: rgba(231, 76, 60, 0.15);
+        color: #c0392b;
+    }
+    
+    .verdict.hold {
+        background-color: rgba(241, 196, 15, 0.15);
+        color: #f39c12;
+    }
+    
+    .ai-source {
+        margin-top: 15px;
+        color: #777;
+        font-style: italic;
+    }
+    
+    #ai-loading {
+        text-align: center;
+        padding: 20px;
+        color: #666;
+    }
+    
+    #ai-loading i {
+        margin-right: 10px;
+        font-size: 1.2em;
+    }
     </style>
 
     {# Chart.js Script & Other Scripts #}
@@ -967,6 +1114,91 @@
         } else {
              console.log("No sentiment data to display or canvas not found.");
         }
+
+        // AI Analysis functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const geminiBtn = document.getElementById('analyze-gemini-btn');
+            const localBtn = document.getElementById('analyze-local-btn');
+            const resultDiv = document.getElementById('ai-analysis-result');
+            const loadingDiv = document.getElementById('ai-loading');
+            const contentDiv = document.getElementById('ai-content');
+            const errorDiv = document.getElementById('ai-error');
+            
+            // Function to handle AI analysis
+            async function analyzeStock(analyzer) {
+                // Show loading state
+                resultDiv.style.display = 'block';
+                loadingDiv.style.display = 'block';
+                contentDiv.style.display = 'none';
+                errorDiv.style.display = 'none';
+                errorDiv.textContent = '';
+                
+                try {
+                    // Make API request
+                    const response = await fetch(`{% url 'ajax_get_ai_analysis' symbol=stock_data.symbol %}?analyzer=${analyzer}`);
+                    const data = await response.json();
+                    
+                    // Hide loading state
+                    loadingDiv.style.display = 'none';
+                    
+                    if (data.error) {
+                        // Show error
+                        errorDiv.style.display = 'block';
+                        errorDiv.textContent = data.error;
+                    } else {
+                        // Display results
+                        contentDiv.style.display = 'block';
+                        
+                        // Populate UI elements with analysis data
+                        document.getElementById('ai-overview-text').textContent = data.overview;
+                        
+                        // Populate pros list
+                        const prosList = document.getElementById('ai-pros-list');
+                        prosList.innerHTML = '';
+                        data.pros.forEach(pro => {
+                            const li = document.createElement('li');
+                            li.textContent = pro;
+                            li.className = 'pro-item';
+                            prosList.appendChild(li);
+                        });
+                        
+                        // Populate cons list
+                        const consList = document.getElementById('ai-cons-list');
+                        consList.innerHTML = '';
+                        data.cons.forEach(con => {
+                            const li = document.createElement('li');
+                            li.textContent = con;
+                            li.className = 'con-item';
+                            consList.appendChild(li);
+                        });
+                        
+                        // Set verdict
+                        const verdictElement = document.getElementById('ai-verdict');
+                        verdictElement.textContent = data.verdict.toUpperCase();
+                        verdictElement.className = 'verdict ' + data.verdict.toLowerCase();
+                        
+                        // Set source information
+                        document.getElementById('ai-source-text').textContent = 
+                            `Analysis provided by ${data.analyzer_used === 'gemini' ? 'Google Gemini AI' : 'Local LLM'}`;
+                    }
+                } catch (error) {
+                    // Handle fetch errors
+                    loadingDiv.style.display = 'none';
+                    errorDiv.style.display = 'block';
+                    errorDiv.textContent = `Error: ${error.message}`;
+                    console.error('AI analysis error:', error);
+                }
+            }
+            
+            // Add event listeners to buttons
+            if (geminiBtn) {
+                geminiBtn.addEventListener('click', () => analyzeStock('gemini'));
+            }
+            
+            if (localBtn) {
+                localBtn.addEventListener('click', () => analyzeStock('local'));
+            }
+        });
 
     </script>
 {% endblock %}
