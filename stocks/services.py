@@ -664,7 +664,7 @@ def get_model_predictions(symbol: str) -> Dict:
               }
     """
     symbol = symbol.upper()
-    base_model_dir = Path(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'trained_models', symbol))
+    base_model_dir = Path(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'train-model', symbol))
     
     if not base_model_dir.exists():
         logger.info(f"No trained models found for {symbol}")

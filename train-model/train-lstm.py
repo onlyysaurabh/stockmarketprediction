@@ -412,7 +412,7 @@ def train_lstm_model(symbol, start_date, end_date, evaluation_results_collection
     # --- 5. Train Regression Model with Callbacks ---
     timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     # Use relative path instead of absolute path
-    MODEL_SAVE_DIR_BASE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'trained_models')
+    MODEL_SAVE_DIR_BASE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'train-model')
     model_dir = os.path.join(MODEL_SAVE_DIR_BASE, symbol, f"lstm-{timestamp}")
     os.makedirs(model_dir, exist_ok=True)
 

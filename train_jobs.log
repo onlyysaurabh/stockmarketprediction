@@ -407,7 +407,7 @@ Model Evaluation (Direction Prediction - Classification Metrics):
 Analyzing ARIMA components...
 Error extracting ARIMA component info: 'numpy.ndarray' object has no attribute 'index'
 
-Trained ARIMA model saved to: ./trained_models/AAPL/arima-20250422-171941/model.pkl
+Trained ARIMA model saved to: ./train-model/AAPL/arima-20250422-171941/model.pkl
 Creating MongoDB collection: arima_evaluation_results
 Evaluation results for AAPL stored in MongoDB collection 'arima_evaluation_results'.
 

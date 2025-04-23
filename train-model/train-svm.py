@@ -374,7 +374,7 @@ def save_model(model, stock_symbol, close_scaler, other_scaler, target_scaler, s
     """Saves the model and scalers."""
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     # Use relative path instead of absolute path
-    MODEL_SAVE_DIR_BASE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'trained_models')
+    MODEL_SAVE_DIR_BASE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'train-model')
     model_dir = os.path.join(MODEL_SAVE_DIR_BASE, stock_symbol, f"{model_name}-{timestamp}")
     os.makedirs(model_dir, exist_ok=True)
     model_path = os.path.join(model_dir, "model.pkl")
