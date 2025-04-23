@@ -240,8 +240,8 @@ def _call_gemini(prompt):
         # Configure the API
         genai.configure(api_key=GEMINI_API_KEY)
         
-        # Set up the model
-        model = genai.GenerativeModel('')
+        # Set up the model - use Gemini 2.5 Flash
+        model = genai.GenerativeModel('gemini-2.5-flash')
         
         # Generate response
         response = model.generate_content(prompt)
