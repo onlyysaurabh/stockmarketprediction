@@ -164,7 +164,7 @@ def _call_gemini(prompt):
         genai.configure(api_key=GEMINI_API_KEY)
         
         # Set up the model
-        model = genai.GenerativeModel('gemini-pro')
+        model = genai.GenerativeModel('')
         
         # Generate response
         response = model.generate_content(prompt)

@@ -201,6 +201,50 @@ def get_stored_news(symbol: str = None, limit: int = 50) -> List[Dict[str, Any]]
     """
     return get_stock_news(symbol, limit)
 
+def get_news_for_stock(symbol: str, limit: int = 10, days_back: int = 7) -> List[Dict[str, Any]]:
+    """
+    Get news for a specific stock symbol. This function first tries to get stored news from MongoDB.
+    If no stored news is found or if it's insufficient, it will fetch fresh news from the API.
+    
+    Args:
+        symbol: The stock symbol to get news for
+        limit: Maximum number of news items to return
+        days_back: Number of days in the past to fetch news for
+        
+    Returns:
+        A list of news items as dictionaries, or an error dictionary
+    """
+    # First try to get stored news from MongoDB
+    stored_news = get_stored_news(symbol, limit)
+    
+    # If we have enough stored news, return it
+    if stored_news and len(stored_news) >= limit:
+        return stored_news[:limit]
+    
+    # Otherwise, try to fetch fresh news
+    try:
+        news_items = fetch_stock_news(symbol, days_back=days_back)
+        
+        # If successful, store the news in MongoDB
+        if news_items:
+            store_news_in_mongodb(symbol, news_items)
+            
+            # Get the updated stored news
+            updated_news = get_stored_news(symbol, limit)
+            if updated_news:
+                return updated_news[:limit]
+        
+        # If we have any stored news (even if less than limit), return it
+        if stored_news:
+            return stored_news
+            
+        # If we couldn't get any news, return error
+        return [{'error': f"Could not retrieve news for {symbol}"}]
+        
+    except Exception as e:
+        logger.error(f"Error in get_news_for_stock for {symbol}: {e}")
+        return [{'error': f"Error retrieving news: {str(e)}"}]
+
 # Example Usage (for testing)
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
