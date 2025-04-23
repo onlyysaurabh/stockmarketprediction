@@ -72,7 +72,7 @@
         </div>
         
         <div class="prediction-cards-container">
-            {% with last_close=stock_historical_data.0.Close|default:0 %}
+            {% with last_close=stock_historical_data.0.Close|default:1 %}
             {% for model_type in model_predictions.model_types %}
                 <div class="prediction-model-section">
                     <h3 class="model-name">{{ model_type|upper }}</h3>
@@ -83,7 +83,7 @@
                             <div class="prediction-price">${{ model_predictions.predictions.next_day|get_item:model_type|floatformat:2 }}</div>
                             {% with pred=model_predictions.predictions.next_day|get_item:model_type change=model_predictions.predictions.next_day|get_item:model_type|subtract:last_close %}
                             <div class="prediction-change {% if change > 0 %}positive{% elif change < 0 %}negative{% else %}neutral{% endif %}">
-                                {% if change > 0 %}+{% endif %}${{ change|floatformat:2 }} ({% if change > 0 %}+{% endif %}{{ change|divide:last_close|multiply:100|floatformat:2 }}%)
+                                {% if change > 0 %}+{% endif %}${{ change|floatformat:2 }}
                             </div>
                             {% endwith %}
                         </div>
@@ -94,7 +94,7 @@
                             <div class="prediction-price">${{ model_predictions.predictions.next_week|get_item:model_type|floatformat:2 }}</div>
                             {% with pred=model_predictions.predictions.next_week|get_item:model_type change=model_predictions.predictions.next_week|get_item:model_type|subtract:last_close %}
                             <div class="prediction-change {% if change > 0 %}positive{% elif change < 0 %}negative{% else %}neutral{% endif %}">
-                                {% if change > 0 %}+{% endif %}${{ change|floatformat:2 }} ({% if change > 0 %}+{% endif %}{{ change|divide:last_close|multiply:100|floatformat:2 }}%)
+                                {% if change > 0 %}+{% endif %}${{ change|floatformat:2 }}
                             </div>
                             {% endwith %}
                         </div>
@@ -105,7 +105,7 @@
                             <div class="prediction-price">${{ model_predictions.predictions.next_month|get_item:model_type|floatformat:2 }}</div>
                             {% with pred=model_predictions.predictions.next_month|get_item:model_type change=model_predictions.predictions.next_month|get_item:model_type|subtract:last_close %}
                             <div class="prediction-change {% if change > 0 %}positive{% elif change < 0 %}negative{% else %}neutral{% endif %}">
-                                {% if change > 0 %}+{% endif %}${{ change|floatformat:2 }} ({% if change > 0 %}+{% endif %}{{ change|divide:last_close|multiply:100|floatformat:2 }}%)
+                                {% if change > 0 %}+{% endif %}${{ change|floatformat:2 }}
                             </div>
                             {% endwith %}
                         </div>
