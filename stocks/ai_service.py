@@ -3,7 +3,7 @@ import logging
 import os
 from django.conf import settings
 from django.core.cache import cache
-from .services import get_stock_data, get_stock_price_prediction
+from .services import get_stock_data, get_model_predictions
 from .sentiment_service import get_stock_sentiment
 from .news_service import get_news_for_stock
 
@@ -45,11 +45,25 @@ def get_ai_stock_analysis(symbol, analyzer_choice=None):
             return {'error': f"Could not fetch stock data for {symbol}"}
         
         # Get prediction data
-        prediction_data = get_stock_price_prediction(symbol)
+        prediction_data = get_model_predictions(symbol)
         if not prediction_data or 'error' in prediction_data:
             prediction_summary = "No prediction data available"
         else:
-            prediction_summary = f"Predicted price movement: {prediction_data.get('direction', 'Unknown')}"
+            # Format predictions in a readable way
+            models = prediction_data.get('model_types', [])
+            if models:
+                # Use the first model's prediction for next day as direction indicator
+                first_model = models[0]
+                next_day_pred = prediction_data.get('predictions', {}).get('next_day', {}).get(first_model)
+                current_price = stock_data.get('price', 0)
+                
+                if next_day_pred and current_price:
+                    direction = "up" if float(next_day_pred) > float(current_price) else "down"
+                    prediction_summary = f"Predicted price movement: {direction} (based on {first_model.upper()} model)"
+                else:
+                    prediction_summary = "Predictions available but current comparison not possible"
+            else:
+                prediction_summary = "Models available but no specific prediction data"
         
         # Get sentiment data
         sentiment_data = get_stock_sentiment(symbol)

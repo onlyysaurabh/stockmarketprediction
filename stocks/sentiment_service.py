@@ -1,7 +1,8 @@
 import logging
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
 import torch
-from typing import Dict, Optional
+from typing import Dict, Optional, List
+import statistics
 
 logger = logging.getLogger(__name__)
 
@@ -28,8 +29,8 @@ def _load_model():
         except Exception as e:
             logger.error(f"Failed to load FinBERT model '{MODEL_NAME}': {e}", exc_info=True)
             # Set to False to prevent repeated load attempts on error
-            sentiment_pipeline = False 
-    
+            sentiment_pipeline = False
+            
     # Return True if loaded successfully or already loaded, False otherwise
     return sentiment_pipeline is not False and sentiment_pipeline is not None
 
@@ -78,6 +79,64 @@ def analyze_sentiment(text: str) -> Optional[Dict[str, float]]:
     except Exception as e:
         logger.error(f"Error during sentiment analysis for text '{text[:100]}...': {e}", exc_info=True)
         return None
+
+
+def get_stock_sentiment(symbol: str) -> Dict:
+    """
+    Get aggregated sentiment analysis for a stock based on recent news.
+    
+    Args:
+        symbol: The stock symbol to analyze
+        
+    Returns:
+        Dictionary containing sentiment analysis or error message
+    """
+    try:
+        # Import here to avoid circular imports
+        from .news_service import get_news_for_stock
+        
+        # Get recent news for the stock (last 7 days by default)
+        news_items = get_news_for_stock(symbol, limit=10)
+        
+        if not news_items or 'error' in news_items:
+            logger.warning(f"No news data available for {symbol}")
+            return {'error': f"Could not find news data for {symbol}"}
+        
+        # Analyze sentiment for each news item
+        sentiment_scores = []
+        for news in news_items:
+            # Combine title and summary for better context
+            text = f"{news.get('title', '')} {news.get('summary', '')}"
+            if text.strip():
+                sentiment = analyze_sentiment(text)
+                if sentiment:
+                    sentiment_scores.append(sentiment)
+        
+        if not sentiment_scores:
+            logger.warning(f"No valid sentiment scores for {symbol}")
+            return {'error': f"Could not analyze sentiment for {symbol}"}
+        
+        # Calculate aggregate sentiment
+        avg_positive = statistics.mean([s['positive'] for s in sentiment_scores])
+        avg_negative = statistics.mean([s['negative'] for s in sentiment_scores])
+        avg_neutral = statistics.mean([s['neutral'] for s in sentiment_scores])
+        
+        # Determine overall sentiment
+        scores = {'positive': avg_positive, 'negative': avg_negative, 'neutral': avg_neutral}
+        dominant = max(scores.items(), key=lambda x: x[1])
+        overall_sentiment = dominant[0]
+        
+        # Return the aggregated results
+        return {
+            'scores': scores,
+            'overall_sentiment': overall_sentiment,
+            'sentiment_strength': dominant[1],
+            'news_items_analyzed': len(sentiment_scores)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in get_stock_sentiment for {symbol}: {e}", exc_info=True)
+        return {'error': f"Error analyzing sentiment: {str(e)}"}
 
 # Example Usage (for testing)
 if __name__ == '__main__':
