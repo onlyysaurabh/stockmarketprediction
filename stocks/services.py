@@ -830,8 +830,7 @@ def get_model_predictions(symbol: str) -> Dict:
 def generate_features_for_prediction(df: pd.DataFrame, model_type: str, selected_features: List[str]) -> np.ndarray:
     """
     Generate features for prediction based on the model type and selected features.
-    This is a simplified version and should be adapted to match the exact feature 
-    engineering done during model training.
+    Creates the same features used during model training to ensure compatibility.
     
     Args:
         df: DataFrame with historical stock data
@@ -841,21 +840,52 @@ def generate_features_for_prediction(df: pd.DataFrame, model_type: str, selected
     Returns:
         np.ndarray: Feature array ready for prediction
     """
-    # This is a simplified implementation
-    # In a real system, this would exactly match the feature engineering done during training
+    logger.info(f"Generating features for {model_type} prediction with {len(selected_features)} selected features")
     
-    # Use the most recent data point for prediction
-    latest_data = df.iloc[-1:].copy()
+    # We need enough historical data to generate features
+    look_back = 60  # Default look_back from training
+    if len(df) < look_back + 1:
+        logger.error(f"Not enough historical data for prediction. Need at least {look_back + 1} data points, got {len(df)}")
+        raise ValueError(f"Insufficient historical data: need at least {look_back + 1} data points")
     
-    # Create a feature vector that matches what the model expects
-    # For simplicity, we're creating a dummy feature set
-    X = np.array([latest_data['Close'].values[0]])
+    # Create a copy to avoid modifying the original DataFrame
+    work_df = df.copy()
     
-    # Reshape to match model expectations (this is highly simplified)
-    if model_type == 'lstm':
-        return X.reshape(1, -1)
-    else:
-        return X.reshape(1, -1)
+    # Create same features used in training
+    # 1. Basic Features
+    work_df['SMA'] = work_df['Close'].rolling(window=look_back).mean()
+    work_df['EMA'] = work_df['Close'].ewm(span=look_back, adjust=False).mean()
+    work_df['Price_Range'] = work_df['High'] - work_df['Low']
+    work_df['Volume_Change'] = work_df['Volume'].diff()
+    work_df['Return'] = work_df['Close'].pct_change()
+    
+    # 2. Create Lagged Features (most important for the model)
+    for i in range(1, look_back + 1):
+        work_df[f'Close_Lag_{i}'] = work_df['Close'].shift(i)
+    
+    # Drop any rows with NaN values resulting from the feature creation
+    work_df.dropna(inplace=True)
+    
+    # Select only the last row for prediction (most recent data with all features)
+    latest_data = work_df.iloc[-1:].copy()
+    
+    # If selected features is provided, only keep those features
+    all_features = latest_data.columns.tolist()
+    
+    # Create a DataFrame with only the features the model was trained on
+    X = pd.DataFrame(index=latest_data.index)
+    for feature in selected_features:
+        if feature in latest_data.columns:
+            X[feature] = latest_data[feature]
+        else:
+            logger.warning(f"Feature {feature} required by model not found in data. Using 0.")
+            X[feature] = 0.0
+    
+    # Ensure the features are in the same order as during training
+    X = X[selected_features]
+    
+    logger.info(f"Generated feature matrix with shape {X.shape}")
+    return X.values
 
 # Example usage (for testing purposes)
 if __name__ == '__main__':
