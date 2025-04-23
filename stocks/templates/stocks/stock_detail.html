@@ -746,24 +746,21 @@
 
                 // Add prediction datasets
                 for (const modelType of visiblePredictionModels) {
-                    if (predictionValues[modelType]) {
-                        // Create prediction dataset
-                        let lastHistoricalDate = new Date(filteredLabels[filteredLabels.length - 1]);
+                    if (predictionValues[modelType] && predictionValues[modelType].length > 0) {
+                        console.log(`Adding ${modelType} predictions:`, predictionValues[modelType]);
                         
-                        // Calculate dates for predictions
-                        const predictionLabelsForChart = predictionDates.map(dateStr => {
-                            return dateStr;
-                        });
+                        // Create prediction dataset
+                        const lastStockPrice = filteredClose[filteredClose.length - 1];
+                        const lastStockDate = filteredLabels[filteredLabels.length - 1];
                         
                         // Create a combined array with the last actual data point + predictions
-                        const combinedLabels = [filteredLabels[filteredLabels.length - 1], ...predictionLabelsForChart];
-                        const combinedData = [filteredClose[filteredClose.length - 1], ...predictionValues[modelType]];
+                        const combinedLabels = [lastStockDate, ...predictionDates];
+                        const combinedData = [lastStockPrice, ...predictionValues[modelType]];
                         
                         // Add the prediction dataset
                         stockChart.data.datasets.push({
                             label: `${modelType.toUpperCase()} Prediction`,
                             data: combinedData,
-                            labels: combinedLabels, 
                             borderColor: predictionColors[modelType],
                             backgroundColor: 'transparent',
                             borderWidth: 2,
