@@ -257,8 +257,15 @@ def stock_detail(request: HttpRequest, symbol: str):
         'fiftyTwoWeekHigh', 'fiftyTwoWeekLow', 
         'dividendRate', 'dividendYield', 'exDividendDate',
         'trailingPE', 'forwardPE', 'priceToSalesTrailing12Months',
-        'bookValue', 'priceToBook', 'earningsGrowth', 'revenueGrowth',
+                    'bookValue', 'priceToBook', 'earningsGrowth', 'revenueGrowth',
     ]
+
+    # Keys needed for AI analysis in JavaScript
+    key_metrics_map_keys = [
+        'peRatio', 'forwardPE', 'dividendYield', 'marketCap', 
+        'fiftyTwoWeekHigh', 'fiftyTwoWeekLow', 'profitMargins', 'beta'
+    ]
+    key_metrics_data = {k: stock_info.get(k) for k in key_metrics_map_keys if stock_info.get(k) is not None}
     
     # Special formatting keys
     epoch_keys = ['exDividendDate', 'lastFiscalYearEnd', 'nextFiscalYearEnd', 'mostRecentQuarter', 'lastDividendDate']
@@ -296,6 +303,7 @@ def stock_detail(request: HttpRequest, symbol: str):
         'sentiment_counts': sentiment_counts, # Optional: pass counts too
         'total_analyzed_news': total_analyzed, # Optional: pass total analyzed count
         'model_predictions': model_predictions, # Add model predictions to context
+        'key_metrics_json': json.dumps(key_metrics_data), # Add key metrics for JS AI analysis
     }
 
     return render(request, 'stocks/stock_detail.html', context)

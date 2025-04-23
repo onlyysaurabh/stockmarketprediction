@@ -1123,6 +1123,7 @@
             const loadingDiv = document.getElementById('ai-loading');
             const contentDiv = document.getElementById('ai-content');
             const errorDiv = document.getElementById('ai-error');
+            const keyMetricsData = JSON.parse('{{ key_metrics_json|escapejs }}'); // Parse the JSON passed from the view
             
             // Function to handle AI analysis
             async function analyzeStock(analyzer) {
@@ -1168,11 +1169,13 @@
                         'fiftyTwoWeekLow': '52 Week Low',
                         'profitMargins': 'Profit Margins',
                         'beta': 'Beta'
+                        // This map might still be useful for labels elsewhere if needed
                     };
                     
-                    Object.entries(keyMetricsMap).forEach(([key, label]) => {
-                        const value = '{{ stock_info|get_item:key|default:"null" }}';
-                        if (value !== 'null') {
+                    // Collect key metrics from the parsed keyMetricsData object
+                    Object.keys(keyMetricsData).forEach(key => {
+                        const value = keyMetricsData[key]; // Get value directly from JS object
+                        if (value !== null && value !== undefined) { // Check if value exists
                             collectedData.keyMetrics[key] = isNaN(parseFloat(value)) ? value : parseFloat(value);
                         }
                     });
@@ -1184,9 +1187,9 @@
                         next_week: parseFloat('{{ model_predictions.predictions.next_week|get_item:model_type|default:"0" }}'),
                         next_month: parseFloat('{{ model_predictions.predictions.next_month|get_item:model_type|default:"0" }}'),
                         dates: {
-                            next_day: '{{ model_predictions.prediction_dates.next_day }}',
-                            next_week: '{{ model_predictions.prediction_dates.next_week }}',
-                            next_month: '{{ model_predictions.prediction_dates.next_month }}'
+                            next_day: '{{ model_predictions.prediction_dates.next_day|escapejs }}',
+                            next_week: '{{ model_predictions.prediction_dates.next_week|escapejs }}',
+                            next_month: '{{ model_predictions.prediction_dates.next_month|escapejs }}'
                         }
                     };
                     {% endfor %}
