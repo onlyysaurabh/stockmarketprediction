@@ -1,0 +1,13 @@
+{
+  "max_workers": 4,
+  "start_date": "2022-04-24",
+  "end_date": "2025-04-24",
+  "jobs": [
+    {
+      "model": "svm",
+      "symbols": [
+        "AAPL"
+      ]
+    }
+  ]
+}

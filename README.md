@@ -521,3 +521,10 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 
 gunicorn stockmarketprediction.wsgi:application;
+
+# Navigate to the parent directory containing the dump folder or provide the full path
+# Assuming the dump directory 'myDatabaseName' is now at '/home/user/mongodb_backups/myDatabaseName'
+
+mongodump --db stock_data --out ./  
+
+mongorestore /home/user/mongodb_backups/myDatabaseName

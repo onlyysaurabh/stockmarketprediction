@@ -18,6 +18,11 @@ import shap  # Import SHAP for model explainability
 import matplotlib.pyplot as plt
 import tensorflow as tf
 
+# Force CPU-only training to avoid CUDA/GPU-related errors
+# This must be set before any other TensorFlow operations
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+print("INFO: GPU usage has been disabled to avoid CUDA errors. Using CPU for training.")
+
 # Add parent directory to path to import mongo_utils
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from stocks.mongo_utils import get_mongo_db, STOCK_PRICES_COLLECTION
