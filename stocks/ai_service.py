@@ -15,8 +15,7 @@ logger = logging.getLogger(__name__)
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 VLLM_API_BASE_URL = os.environ.get('VLLM_API_BASE_URL', 'http://localhost:8000/v1')
 VLLM_MODEL_NAME = os.environ.get('VLLM_MODEL_NAME', 'Qwen/Qwen2.5-7B-Instruct')
-GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
-GROQ_MODEL_NAME = os.environ.get('GROQ_MODEL_NAME', 'llama3-8b-8192')
+# Groq configuration and API keys are now handled in groq_service.py
 DEFAULT_AI_ANALYZER = os.environ.get('DEFAULT_AI_ANALYZER', 'gemini')
 
 def get_ai_stock_analysis(symbol, analyzer_choice=None, collected_data=None):
@@ -197,9 +196,14 @@ def get_ai_stock_analysis(symbol, analyzer_choice=None, collected_data=None):
                 return {'error': 'vLLM API base URL not configured'}
             analysis = _call_local_llm(prompt)
         elif analyzer == 'groq':
-            if not GROQ_API_KEY:
-                return {'error': 'Groq API key not configured'}
-            analysis = _call_groq(prompt)
+            # Import our GroqClient with key rotation capability
+            try:
+                from .groq_service import groq_client
+                if not groq_client.api_keys:
+                    return {'error': 'Groq API keys not configured'}
+                analysis = _call_groq(prompt)
+            except ImportError:
+                return {'error': 'Groq service module not found. Check project structure.'}
         else:
             return {'error': f"Invalid analyzer choice: {analyzer}"}
         
@@ -344,33 +348,21 @@ def _extract_json(text):
 def _call_groq(prompt):
     """Call Groq API with the given prompt for stock market analysis"""
     try:
-        from groq import Groq
+        # Import our GroqClient with key rotation capability
+        from .groq_service import groq_client
         
-        # Initialize Groq client
-        client = Groq(api_key=GROQ_API_KEY)
+        # Call Groq with key rotation
+        result = groq_client.call_groq(prompt)
         
-        # Make the API request
-        response = client.chat.completions.create(
-            model=GROQ_MODEL_NAME,
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant specializing in financial analysis."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7,
-            max_tokens=1024,
-            top_p=0.9
-        )
+        # Check if we got an error response (dict) or a successful text response (str)
+        if isinstance(result, dict) and 'error' in result:
+            logger.error(f"Error from Groq client: {result['error']}")
+            return json.dumps(result)
         
-        # Extract the generated content
-        if response.choices and len(response.choices) > 0:
-            generated_text = response.choices[0].message.content
-            return generated_text
-        else:
-            logger.error("Unexpected response format from Groq API")
-            return json.dumps({'error': "Invalid response format from Groq API"})
+        return result
             
     except ImportError:
-        return json.dumps({'error': 'Groq client library not installed. Run: pip install groq'})
+        return json.dumps({'error': 'Groq service module not found. Check project structure.'})
     except Exception as e:
         logger.error(f"Error calling Groq API: {e}")
         return json.dumps({'error': f"Error calling Groq API: {str(e)}"})
