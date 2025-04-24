@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import requests
 from django.conf import settings
 from django.core.cache import cache
 from .services import get_stock_data, get_model_predictions
@@ -12,10 +13,9 @@ logger = logging.getLogger(__name__)
 
 # Check for environment variables
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
-LOCAL_LLM_MODEL_PATH = os.environ.get('LOCAL_LLM_MODEL_PATH')
+VLLM_API_BASE_URL = os.environ.get('VLLM_API_BASE_URL', 'http://localhost:8000/v1')
+VLLM_MODEL_NAME = os.environ.get('VLLM_MODEL_NAME', 'Qwen/Qwen2.5-7B-Instruct')
 DEFAULT_AI_ANALYZER = os.environ.get('DEFAULT_AI_ANALYZER', 'gemini')
-LOCAL_LLM_N_GPU_LAYERS = int(os.environ.get('LOCAL_LLM_N_GPU_LAYERS', '0'))
-LOCAL_LLM_N_CTX = int(os.environ.get('LOCAL_LLM_N_CTX', '2048'))
 
 def get_ai_stock_analysis(symbol, analyzer_choice=None, collected_data=None):
     """
@@ -177,12 +177,12 @@ def get_ai_stock_analysis(symbol, analyzer_choice=None, collected_data=None):
         Based *only* on the information provided above, provide a concise stock analysis in the following JSON format:
         {{
             "overview": "A concise paragraph summarizing the stock's current situation",
-            "pros": ["Pro point 1", "Pro point 2", ...],
-            "cons": ["Con point 1", "Con point 2", ...],
+            "pros": ["Pro point 1", "Pro point 2", "Pro point 3"],
+            "cons": ["Con point 1", "Con point 2", "Con point 3"],
             "verdict": "buy/hold/sell"
         }}
         
-        Ensure your response is ONLY the JSON format specified above. Include at least 3 pros and 3 cons.
+        IMPORTANT: Pay special attention to JSON syntax - ensure all commas are correctly placed between array items and between fields. Make sure your response is ONLY valid parseable JSON. Include exactly 3 pros and 3 cons.
         """
         
         # Call the appropriate AI analyzer
@@ -190,9 +190,9 @@ def get_ai_stock_analysis(symbol, analyzer_choice=None, collected_data=None):
             if not GEMINI_API_KEY:
                 return {'error': 'Gemini API key not configured'}
             analysis = _call_gemini(prompt)
-        elif analyzer == 'local':
-            if not LOCAL_LLM_MODEL_PATH:
-                return {'error': 'Local LLM model path not configured'}
+        elif analyzer == 'vllm':
+            if not VLLM_API_BASE_URL:
+                return {'error': 'vLLM API base URL not configured'}
             analysis = _call_local_llm(prompt)
         else:
             return {'error': f"Invalid analyzer choice: {analyzer}"}
@@ -255,35 +255,52 @@ def _call_gemini(prompt):
         return json.dumps({'error': f"Error calling Gemini API: {str(e)}"})
 
 def _call_local_llm(prompt):
-    """Call a local LLM using llama-cpp-python with the given prompt"""
+    """Call a vLLM server with the given prompt using the OpenAI Chat Completions API format"""
     try:
-        from llama_cpp import Llama
+        # Construct the API endpoint URL
+        api_url = f"{VLLM_API_BASE_URL}/chat/completions"
         
-        # Load the model
-        model = Llama(
-            model_path=LOCAL_LLM_MODEL_PATH,
-            n_ctx=LOCAL_LLM_N_CTX,
-            n_gpu_layers=LOCAL_LLM_N_GPU_LAYERS
-        )
+        # Prepare the request payload
+        payload = {
+            "model": VLLM_MODEL_NAME,
+            "messages": [
+                {"role": "system", "content": "You are a helpful assistant specializing in financial analysis."},
+                {"role": "user", "content": prompt}
+            ],
+            "temperature": 0.7,
+            "max_tokens": 1024,
+            "top_p": 0.9
+        }
         
-        # Generate response
-        response = model.create_completion(
-            prompt,
-            max_tokens=1024,
-            temperature=0.7,
-            top_p=0.9,
-            stop=["</s>", "```"],
-            echo=False
-        )
+        # Set headers
+        headers = {
+            "Content-Type": "application/json"
+        }
         
-        # Extract the generated text from the response
-        generated_text = response['choices'][0]['text'].strip()
-        return generated_text
-    except ImportError:
-        return json.dumps({'error': 'Llama-cpp-python library not installed. Run: pip install llama-cpp-python'})
+        # Make the API request
+        response = requests.post(api_url, json=payload, headers=headers)
+        
+        # Check if the request was successful
+        if response.status_code == 200:
+            # Parse the JSON response
+            response_data = response.json()
+            
+            # Extract the generated text
+            if 'choices' in response_data and len(response_data['choices']) > 0:
+                generated_text = response_data['choices'][0]['message']['content'].strip()
+                return generated_text
+            else:
+                logger.error("Unexpected response format from vLLM API")
+                return json.dumps({'error': "Invalid response format from vLLM API"})
+        else:
+            logger.error(f"Error from vLLM API: {response.status_code}, {response.text}")
+            return json.dumps({'error': f"Error from vLLM API: {response.status_code}"})
+    except requests.exceptions.ConnectionError:
+        logger.error("Connection error: Could not connect to vLLM server")
+        return json.dumps({'error': 'Could not connect to vLLM server. Make sure it is running.'})
     except Exception as e:
-        logger.error(f"Error calling local LLM: {e}")
-        return json.dumps({'error': f"Error calling local LLM: {str(e)}"})
+        logger.error(f"Error calling vLLM API: {e}")
+        return json.dumps({'error': f"Error calling vLLM API: {str(e)}"})
 
 def _extract_json(text):
     """Extract and parse JSON from a text response that may contain additional content"""
@@ -307,9 +324,36 @@ def _extract_json(text):
         json_pattern = r'(\{[\s\S]*\})'
         match = re.search(json_pattern, text)
         if match:
+            json_str = match.group(1)
             try:
-                return json.loads(match.group(1))
-            except json.JSONDecodeError:
+                # Try to fix common JSON formatting errors
+                json_str = _try_fix_json(json_str)
+                return json.loads(json_str)
+            except (json.JSONDecodeError, Exception) as e:
+                logger.error(f"Error fixing JSON: {e}")
                 raise ValueError(f"Could not extract valid JSON from the AI response: {text}")
         
         raise ValueError(f"Could not extract valid JSON from the AI response: {text}")
+        
+def _try_fix_json(json_str):
+    """Attempt to fix common JSON formatting errors"""
+    import re
+    
+    # Fix missing commas between fields (looking for patterns like '"}' or '"' followed by another '"')
+    json_str = re.sub(r'"(\s*)\n?\s*"', '",\n"', json_str)
+    
+    # Fix missing commas after entries in arrays
+    json_str = re.sub(r'"([^"]*)"(\s*)\n?\s*]', '"\1"\n]', json_str)
+    
+    # Fix missing commas between array and next field
+    json_str = re.sub(r'](\s*)\n?\s*"', '],\n"', json_str)
+    
+    # Fix case where verdict is inside cons array (a common error)
+    verdict_in_cons_pattern = r'"cons":\s*\[(.*?)"verdict":\s*"(buy|sell|hold)"', re.DOTALL
+    if re.search(verdict_in_cons_pattern, json_str):
+        json_str = re.sub(verdict_in_cons_pattern, r'"cons": [\1],\n"verdict": "\2"', json_str)
+    
+    # Remove potential leading/trailing text
+    json_str = re.sub(r'^[^{]*({.*})[^}]*$', r'\1', json_str)
+    
+    return json_str
