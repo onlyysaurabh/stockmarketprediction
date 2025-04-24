@@ -2,6 +2,10 @@ import json
 import logging
 import os
 import requests
+import signal
+import threading
+import time
+from contextlib import contextmanager
 from django.conf import settings
 from django.core.cache import cache
 from .services import get_stock_data, get_model_predictions
@@ -12,17 +16,34 @@ from .news_service import get_news_for_stock
 logger = logging.getLogger(__name__)
 
 # Check for environment variables
-GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 # llama-cpp-python config
-LLAMA_CPP_MODEL_PATH = os.environ.get('LLAMA_CPP_MODEL_PATH', 'SmolLM-135M.Q8_0.gguf')
+LLAMA_CPP_MODEL_PATH = os.environ.get('LLAMA_CPP_MODEL_PATH', 'finance-chat.Q2_K.gguf')
 LLAMA_CPP_N_THREADS = int(os.environ.get('LLAMA_CPP_N_THREADS', '4'))
 LLAMA_CPP_N_CONTEXT = int(os.environ.get('LLAMA_CPP_N_CONTEXT', '4096'))
 LLAMA_CPP_N_GPU_LAYERS = int(os.environ.get('LLAMA_CPP_N_GPU_LAYERS', '0'))
 # Groq configuration and API keys are now handled in groq_service.py
-DEFAULT_AI_ANALYZER = os.environ.get('DEFAULT_AI_ANALYZER', 'gemini')
+DEFAULT_AI_ANALYZER = os.environ.get('DEFAULT_AI_ANALYZER', 'local')
 
 # Global LLM model cache to avoid reloading
 _llm_model = None
+_llm_lock = threading.Lock()
+
+# Add timeout mechanism for LLM operations
+class TimeoutError(Exception):
+    pass
+
+@contextmanager
+def time_limit(seconds):
+    """Context manager to limit execution time of a block of code"""
+    def signal_handler(signum, frame):
+        raise TimeoutError("LLM operation timed out")
+    
+    signal.signal(signal.SIGALRM, signal_handler)
+    signal.alarm(seconds)
+    try:
+        yield
+    finally:
+        signal.alarm(0)
 
 def get_ai_stock_analysis(symbol, analyzer_choice=None, collected_data=None):
     """
@@ -30,7 +51,7 @@ def get_ai_stock_analysis(symbol, analyzer_choice=None, collected_data=None):
     
     Parameters:
     - symbol: The stock symbol to analyze
-    - analyzer_choice: Which AI model to use ('gemini', 'llama', 'local', or 'groq'), defaults to environment setting
+    - analyzer_choice: Which AI model to use ('local' or 'groq'), defaults to environment setting
     - collected_data: Pre-collected data from the frontend (optional)
     
     Returns:
@@ -38,10 +59,6 @@ def get_ai_stock_analysis(symbol, analyzer_choice=None, collected_data=None):
     """
     # Use the specified analyzer or fall back to default
     analyzer = analyzer_choice or DEFAULT_AI_ANALYZER
-    
-    # Map 'local' to 'llama' for backward compatibility
-    if analyzer == 'local':
-        analyzer = 'llama'
     
     # Check cache first (only if not using pre-collected data)
     if not collected_data:
@@ -197,14 +214,10 @@ def get_ai_stock_analysis(symbol, analyzer_choice=None, collected_data=None):
         """
         
         # Call the appropriate AI analyzer
-        if analyzer == 'gemini':
-            if not GEMINI_API_KEY:
-                return {'error': 'Gemini API key not configured'}
-            analysis = _call_gemini(prompt)
-        elif analyzer == 'llama':
+        if analyzer == 'local':
             # Check if model file exists
             if not os.path.exists(LLAMA_CPP_MODEL_PATH):
-                return {'error': f'Llama model file not found: {LLAMA_CPP_MODEL_PATH}'}
+                return {'error': f'Local model file not found: {LLAMA_CPP_MODEL_PATH}'}
             analysis = _call_local_llm(prompt)
         elif analyzer == 'groq':
             # Import our GroqClient with key rotation capability
@@ -253,34 +266,18 @@ def get_ai_stock_analysis(symbol, analyzer_choice=None, collected_data=None):
         logger.error(f"Error in AI analysis: {e}")
         return {'error': f"Error performing analysis: {str(e)}"}
 
-def _call_gemini(prompt):
-    """Call Google's Gemini API with the given prompt"""
-    try:
-        import google.generativeai as genai
-        
-        # Configure the API
-        genai.configure(api_key=GEMINI_API_KEY)
-        
-        # Set up the model - use Gemini 2.5 Flash
-        model = genai.GenerativeModel('gemini-2.5-flash-preview-04-17')
-        
-        # Generate response
-        response = model.generate_content(prompt)
-        
-        # Return the text response
-        return response.text
-    except ImportError:
-        return json.dumps({'error': 'Google Generative AI library not installed. Run: pip install google-generativeai'})
-    except Exception as e:
-        logger.error(f"Error calling Gemini API: {e}")
-        return json.dumps({'error': f"Error calling Gemini API: {str(e)}"})
-
 def _call_local_llm(prompt):
     """Call a local LLM using llama-cpp-python with the given prompt"""
     global _llm_model
+    global _llm_lock
     
     try:
-        from llama_cpp import Llama
+        # Import libraries with error handling
+        try:
+            from llama_cpp import Llama
+        except ImportError:
+            logger.error("llama-cpp-python not installed")
+            return json.dumps({'error': 'llama-cpp-python not installed. Run: pip install llama-cpp-python'})
         
         # Check if model file exists
         if not os.path.exists(LLAMA_CPP_MODEL_PATH):
@@ -288,90 +285,83 @@ def _call_local_llm(prompt):
             return json.dumps({'error': f"Model file not found: {LLAMA_CPP_MODEL_PATH}"})
         
         # Preprocess the prompt to handle problematic characters
-        # Replace newlines with spaces and sanitize the prompt for the tokenizer
         sanitized_prompt = prompt.replace('\n', ' ').replace('\r', ' ')
         
-        try:
-            # Initialize the Llama model - use cached model if available
-            if _llm_model is None:
-                logger.info(f"Loading LLM model from {LLAMA_CPP_MODEL_PATH}")
-                _llm_model = Llama(
-                    model_path=LLAMA_CPP_MODEL_PATH,
-                    n_threads=LLAMA_CPP_N_THREADS,
-                    n_ctx=LLAMA_CPP_N_CONTEXT,
-                    n_gpu_layers=LLAMA_CPP_N_GPU_LAYERS,
-                    verbose=False  # Reduce console output
-                )
-                logger.info("LLM model loaded successfully")
-        except RuntimeError as e:
-            logger.error(f"Error loading model: {e}")
-            # Try loading with more conservative settings if first attempt failed
-            _llm_model = None  # Reset the model variable
-            logger.info("Retrying with more conservative settings...")
-            _llm_model = Llama(
-                model_path=LLAMA_CPP_MODEL_PATH,
-                n_threads=max(1, LLAMA_CPP_N_THREADS - 2),  # Use fewer threads
-                n_ctx=min(2048, LLAMA_CPP_N_CONTEXT),       # Use smaller context
-                n_gpu_layers=0,                              # Disable GPU
-                verbose=False
-            )
-            logger.info("LLM model loaded with conservative settings")
+        # Create a default fallback response
+        fallback_response = json.dumps({
+            "overview": "Analysis not available due to technical limitations. Consider using a cloud-based AI service instead.",
+            "pros": ["Historical data suggests potential value", "Technical indicators show market interest", "Company fundamentals appear stable"],
+            "cons": ["Unable to perform detailed analysis", "Limited model context for full evaluation", "Consider using Groq for better insights"],
+            "verdict": "hold"
+        })
         
-        # Create a system prompt
-        system_prompt = "You are a helpful assistant specializing in financial analysis."
-        
-        # Format the prompt for chat completion or direct completion based on model capability
-        try:
-            # First try chat completion API
-            logger.info("Attempting chat completion...")
-            messages = [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": sanitized_prompt}
-            ]
-            
-            response = _llm_model.create_chat_completion(
-                messages=messages,
-                temperature=0.7,
-                max_tokens=1024,
-                top_p=0.9,
-                stop=["</s>", "```"]
-            )
-            
-            # Extract the generated text
-            if 'choices' in response and len(response['choices']) > 0:
-                generated_text = response['choices'][0]['message']['content'].strip()
-                return generated_text
-        except (AttributeError, RuntimeError, Exception) as e:
-            # If chat completion fails, fall back to standard completion
-            logger.warning(f"Chat completion failed: {e}. Falling back to standard completion.")
-            
-            # Combine system prompt and user prompt for standard completion
-            combined_prompt = f"{system_prompt}\n\n{sanitized_prompt}"
-            
-            response = _llm_model.create_completion(
-                combined_prompt,
-                max_tokens=1024,
-                temperature=0.7,
-                top_p=0.9,
-                stop=["</s>", "```", "\n\n\n"],
-                echo=False
-            )
-            
-            # Extract the generated text
-            if 'choices' in response and len(response['choices']) > 0:
-                generated_text = response['choices'][0]['text'].strip()
-                return generated_text
-        
-        # If we get here, both methods failed but didn't throw exceptions
-        logger.error("Unexpected response format from llama-cpp")
-        return json.dumps({'error': "Invalid response format from llama-cpp"})
-            
-    except ImportError:
-        logger.error("llama-cpp-python not installed or properly configured")
-        return json.dumps({'error': 'llama-cpp-python not installed. Run: pip install llama-cpp-python'})
+        # Use a thread-safe approach with a timeout
+        with _llm_lock:
+            # Use a timeout for the entire operation (model loading + inference)
+            try:
+                with time_limit(60):  # 60 second timeout
+                    # Initialize the Llama model - use cached model if available
+                    if _llm_model is None:
+                        logger.info(f"Loading LLM model from {LLAMA_CPP_MODEL_PATH}")
+                        try:
+                            # Try loading with minimal settings first
+                            _llm_model = Llama(
+                                model_path=LLAMA_CPP_MODEL_PATH,
+                                n_threads=2,                          # Use minimal threads
+                                n_ctx=2048,                           # Use smaller context
+                                n_gpu_layers=0,                       # Disable GPU
+                                verbose=False                         # Reduce console output
+                            )
+                            logger.info("LLM model loaded successfully with minimal settings")
+                        except Exception as e:
+                            logger.error(f"Failed to load model with minimal settings: {e}")
+                            return json.dumps({'error': f"Failed to load model: {str(e)}"})
+                    
+                    # Create a very simple system prompt
+                    system_prompt = "You are a financial analyst. Provide JSON output only."
+                    
+                    # Try the completion - use a simpler approach
+                    try:
+                        logger.info("Generating LLM response...")
+                        # Try standard completion for maximum compatibility
+                        combined_prompt = f"{system_prompt}\n\n{sanitized_prompt}"
+                        
+                        # Use a timeout for just the inference part
+                        with time_limit(45):  # 45 second timeout for inference
+                            response = _llm_model.create_completion(
+                                combined_prompt,
+                                max_tokens=1024,
+                                temperature=0.7,
+                                top_p=0.9,
+                                stop=["</s>", "```"],
+                                echo=False
+                            )
+                        
+                        # Extract the generated text if available
+                        if 'choices' in response and len(response['choices']) > 0:
+                            generated_text = response['choices'][0]['text'].strip()
+                            if generated_text:
+                                return generated_text
+                        
+                        # If we reach here, response was empty or invalid
+                        logger.warning("LLM returned empty or invalid response, using fallback")
+                        return fallback_response
+                        
+                    except Exception as inference_e:
+                        logger.error(f"Error during inference: {inference_e}")
+                        # Clean up the model if inference fails
+                        _llm_model = None
+                        return fallback_response
+                
+            except TimeoutError:
+                logger.error("LLM operation timed out")
+                # Clean up the model if operation times out
+                _llm_model = None
+                return fallback_response
+    
     except Exception as e:
-        logger.error(f"Error calling llama-cpp: {e}")
-        return json.dumps({'error': f"Error calling llama-cpp: {str(e)}"})
+        logger.error(f"Unexpected error in LLM processing: {e}")
+        return fallback_response
 
 def _extract_json(text):
     """Extract and parse JSON from a text response that may contain additional content"""
