@@ -217,9 +217,33 @@ document.addEventListener('DOMContentLoaded', function() {
         switch(analyzer) {
             case 'gemini': return 'Google Gemini';
             case 'groq': return 'Groq AI';
-            case 'vllm':
+            case 'llama':
             case 'local': return 'Local LLM';
             default: return analyzer || 'Unknown Analyzer';
+        }
+    }
+    
+    // Update analyzer info
+    function updateAnalyzerInfo(analyzerId) {
+        const infoText = document.getElementById('analyzer-info-text');
+        const infoTitle = document.getElementById('analyzer-info-title');
+        
+        switch(analyzerId) {
+            case 'gemini':
+                infoTitle.textContent = 'Gemini';
+                infoText.textContent = 'Google\'s Gemini model is a multimodal AI trained on diverse data. Fast responses and broad knowledge.';
+                break;
+            case 'llama':
+                infoTitle.textContent = 'Llama (Local)';
+                infoText.textContent = 'Open source model running locally on your server. Privacy-focused but may be slower than cloud-based models.';
+                break;
+            case 'groq':
+                infoTitle.textContent = 'Groq';
+                infoText.textContent = 'Ultra-fast inference engine for large language models with optimized hardware acceleration.';
+                break;
+            default:
+                infoTitle.textContent = 'AI Analyzer';
+                infoText.textContent = 'Select an analyzer to generate insights for this stock.';
         }
     }
 });

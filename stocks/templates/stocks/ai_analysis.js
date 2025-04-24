@@ -1,4 +1,5 @@
-// AI Analysis functionality with caching, delay and refresh
+// AI Analysis JavaScript
+
 document.addEventListener('DOMContentLoaded', function() {
     // Element references
     const resultDiv = document.getElementById('ai-analysis-result');
@@ -223,7 +224,7 @@ document.addEventListener('DOMContentLoaded', function() {
         switch(analyzer) {
             case 'gemini': return 'Google Gemini';
             case 'groq': return 'Groq AI';
-            case 'vllm':
+            case 'llama':
             case 'local': return 'Local LLM';
             default: return analyzer;
         }

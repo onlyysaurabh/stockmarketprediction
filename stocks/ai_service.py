@@ -13,10 +13,16 @@ logger = logging.getLogger(__name__)
 
 # Check for environment variables
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
-VLLM_API_BASE_URL = os.environ.get('VLLM_API_BASE_URL', 'http://localhost:8080/v1')
-VLLM_MODEL_NAME = os.environ.get('VLLM_MODEL_NAME', 'meta-llama/Llama-3.2-3B-Instruct')
+# llama-cpp-python config
+LLAMA_CPP_MODEL_PATH = os.environ.get('LLAMA_CPP_MODEL_PATH', 'SmolLM-135M.Q8_0.gguf')
+LLAMA_CPP_N_THREADS = int(os.environ.get('LLAMA_CPP_N_THREADS', '4'))
+LLAMA_CPP_N_CONTEXT = int(os.environ.get('LLAMA_CPP_N_CONTEXT', '4096'))
+LLAMA_CPP_N_GPU_LAYERS = int(os.environ.get('LLAMA_CPP_N_GPU_LAYERS', '0'))
 # Groq configuration and API keys are now handled in groq_service.py
 DEFAULT_AI_ANALYZER = os.environ.get('DEFAULT_AI_ANALYZER', 'gemini')
+
+# Global LLM model cache to avoid reloading
+_llm_model = None
 
 def get_ai_stock_analysis(symbol, analyzer_choice=None, collected_data=None):
     """
@@ -24,7 +30,7 @@ def get_ai_stock_analysis(symbol, analyzer_choice=None, collected_data=None):
     
     Parameters:
     - symbol: The stock symbol to analyze
-    - analyzer_choice: Which AI model to use ('gemini', 'vllm', or 'groq'), defaults to environment setting
+    - analyzer_choice: Which AI model to use ('gemini', 'llama', 'local', or 'groq'), defaults to environment setting
     - collected_data: Pre-collected data from the frontend (optional)
     
     Returns:
@@ -32,6 +38,10 @@ def get_ai_stock_analysis(symbol, analyzer_choice=None, collected_data=None):
     """
     # Use the specified analyzer or fall back to default
     analyzer = analyzer_choice or DEFAULT_AI_ANALYZER
+    
+    # Map 'local' to 'llama' for backward compatibility
+    if analyzer == 'local':
+        analyzer = 'llama'
     
     # Check cache first (only if not using pre-collected data)
     if not collected_data:
@@ -191,9 +201,10 @@ def get_ai_stock_analysis(symbol, analyzer_choice=None, collected_data=None):
             if not GEMINI_API_KEY:
                 return {'error': 'Gemini API key not configured'}
             analysis = _call_gemini(prompt)
-        elif analyzer == 'vllm':
-            if not VLLM_API_BASE_URL:
-                return {'error': 'vLLM API base URL not configured'}
+        elif analyzer == 'llama':
+            # Check if model file exists
+            if not os.path.exists(LLAMA_CPP_MODEL_PATH):
+                return {'error': f'Llama model file not found: {LLAMA_CPP_MODEL_PATH}'}
             analysis = _call_local_llm(prompt)
         elif analyzer == 'groq':
             # Import our GroqClient with key rotation capability
@@ -265,52 +276,102 @@ def _call_gemini(prompt):
         return json.dumps({'error': f"Error calling Gemini API: {str(e)}"})
 
 def _call_local_llm(prompt):
-    """Call a vLLM server with the given prompt using the OpenAI Chat Completions API format"""
+    """Call a local LLM using llama-cpp-python with the given prompt"""
+    global _llm_model
+    
     try:
-        # Construct the API endpoint URL
-        api_url = f"{VLLM_API_BASE_URL}/chat/completions"
+        from llama_cpp import Llama
         
-        # Prepare the request payload
-        payload = {
-            "model": VLLM_MODEL_NAME,
-            "messages": [
-                {"role": "system", "content": "You are a helpful assistant specializing in financial analysis."},
-                {"role": "user", "content": prompt}
-            ],
-            "temperature": 0.7,
-            "max_tokens": 1024,
-            "top_p": 0.9
-        }
+        # Check if model file exists
+        if not os.path.exists(LLAMA_CPP_MODEL_PATH):
+            logger.error(f"Model file not found: {LLAMA_CPP_MODEL_PATH}")
+            return json.dumps({'error': f"Model file not found: {LLAMA_CPP_MODEL_PATH}"})
         
-        # Set headers
-        headers = {
-            "Content-Type": "application/json"
-        }
+        # Preprocess the prompt to handle problematic characters
+        # Replace newlines with spaces and sanitize the prompt for the tokenizer
+        sanitized_prompt = prompt.replace('\n', ' ').replace('\r', ' ')
         
-        # Make the API request
-        response = requests.post(api_url, json=payload, headers=headers)
+        try:
+            # Initialize the Llama model - use cached model if available
+            if _llm_model is None:
+                logger.info(f"Loading LLM model from {LLAMA_CPP_MODEL_PATH}")
+                _llm_model = Llama(
+                    model_path=LLAMA_CPP_MODEL_PATH,
+                    n_threads=LLAMA_CPP_N_THREADS,
+                    n_ctx=LLAMA_CPP_N_CONTEXT,
+                    n_gpu_layers=LLAMA_CPP_N_GPU_LAYERS,
+                    verbose=False  # Reduce console output
+                )
+                logger.info("LLM model loaded successfully")
+        except RuntimeError as e:
+            logger.error(f"Error loading model: {e}")
+            # Try loading with more conservative settings if first attempt failed
+            _llm_model = None  # Reset the model variable
+            logger.info("Retrying with more conservative settings...")
+            _llm_model = Llama(
+                model_path=LLAMA_CPP_MODEL_PATH,
+                n_threads=max(1, LLAMA_CPP_N_THREADS - 2),  # Use fewer threads
+                n_ctx=min(2048, LLAMA_CPP_N_CONTEXT),       # Use smaller context
+                n_gpu_layers=0,                              # Disable GPU
+                verbose=False
+            )
+            logger.info("LLM model loaded with conservative settings")
         
-        # Check if the request was successful
-        if response.status_code == 200:
-            # Parse the JSON response
-            response_data = response.json()
+        # Create a system prompt
+        system_prompt = "You are a helpful assistant specializing in financial analysis."
+        
+        # Format the prompt for chat completion or direct completion based on model capability
+        try:
+            # First try chat completion API
+            logger.info("Attempting chat completion...")
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": sanitized_prompt}
+            ]
+            
+            response = _llm_model.create_chat_completion(
+                messages=messages,
+                temperature=0.7,
+                max_tokens=1024,
+                top_p=0.9,
+                stop=["</s>", "```"]
+            )
             
             # Extract the generated text
-            if 'choices' in response_data and len(response_data['choices']) > 0:
-                generated_text = response_data['choices'][0]['message']['content'].strip()
+            if 'choices' in response and len(response['choices']) > 0:
+                generated_text = response['choices'][0]['message']['content'].strip()
                 return generated_text
-            else:
-                logger.error("Unexpected response format from vLLM API")
-                return json.dumps({'error': "Invalid response format from vLLM API"})
-        else:
-            logger.error(f"Error from vLLM API: {response.status_code}, {response.text}")
-            return json.dumps({'error': f"Error from vLLM API: {response.status_code}"})
-    except requests.exceptions.ConnectionError:
-        logger.error("Connection error: Could not connect to vLLM server")
-        return json.dumps({'error': 'Could not connect to vLLM server. Make sure it is running.'})
+        except (AttributeError, RuntimeError, Exception) as e:
+            # If chat completion fails, fall back to standard completion
+            logger.warning(f"Chat completion failed: {e}. Falling back to standard completion.")
+            
+            # Combine system prompt and user prompt for standard completion
+            combined_prompt = f"{system_prompt}\n\n{sanitized_prompt}"
+            
+            response = _llm_model.create_completion(
+                combined_prompt,
+                max_tokens=1024,
+                temperature=0.7,
+                top_p=0.9,
+                stop=["</s>", "```", "\n\n\n"],
+                echo=False
+            )
+            
+            # Extract the generated text
+            if 'choices' in response and len(response['choices']) > 0:
+                generated_text = response['choices'][0]['text'].strip()
+                return generated_text
+        
+        # If we get here, both methods failed but didn't throw exceptions
+        logger.error("Unexpected response format from llama-cpp")
+        return json.dumps({'error': "Invalid response format from llama-cpp"})
+            
+    except ImportError:
+        logger.error("llama-cpp-python not installed or properly configured")
+        return json.dumps({'error': 'llama-cpp-python not installed. Run: pip install llama-cpp-python'})
     except Exception as e:
-        logger.error(f"Error calling vLLM API: {e}")
-        return json.dumps({'error': f"Error calling vLLM API: {str(e)}"})
+        logger.error(f"Error calling llama-cpp: {e}")
+        return json.dumps({'error': f"Error calling llama-cpp: {str(e)}"})
 
 def _extract_json(text):
     """Extract and parse JSON from a text response that may contain additional content"""
