@@ -260,11 +260,16 @@ def stock_detail(request: HttpRequest, symbol: str):
                     'bookValue', 'priceToBook', 'earningsGrowth', 'revenueGrowth',
     ]
 
-    # Keys needed for AI analysis in JavaScript
-    key_metrics_map_keys = [
-        'peRatio', 'forwardPE', 'dividendYield', 'marketCap', 
-        'fiftyTwoWeekHigh', 'fiftyTwoWeekLow', 'profitMargins', 'beta'
+    # Keys needed for AI analysis in JavaScript - expanded to include more financial metrics
+    # Start with the important keys already defined above and add additional metrics
+    key_metrics_map_keys = important_keys + [
+        'peRatio', 'beta', 'profitMargins', 'operatingMargins', 'grossMargins',
+        'returnOnAssets', 'returnOnEquity', 'revenue', 'revenuePerShare',
+        'ebitda', 'trailingEps', 'forwardEps', 'totalCash', 'totalDebt',
+        'totalRevenue', 'debtToEquity', 'freeCashflow', 'operatingCashflow'
     ]
+    # Remove duplicates while preserving order
+    key_metrics_map_keys = list(dict.fromkeys(key_metrics_map_keys))
     key_metrics_data = {k: stock_info.get(k) for k in key_metrics_map_keys if stock_info.get(k) is not None}
     
     # Special formatting keys
