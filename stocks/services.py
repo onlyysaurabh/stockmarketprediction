@@ -715,31 +715,18 @@ def get_model_predictions(symbol: str) -> Dict:
     
     for model_type, model_dir in latest_models.items():
         try:
-            # Load model and associated files
             logger.info(f"Loading {model_type} model from {model_dir}")
             
-            model_path = model_dir / "model.pkl"
-            close_scaler_path = model_dir / "close_scaler.pkl"
-            other_scaler_path = model_dir / "other_scaler.pkl"
-            target_scaler_path = model_dir / "target_scaler.pkl"
-            features_path = model_dir / "selected_features.pkl"
-            
-            if not model_path.exists():
-                logger.warning(f"Model file not found for {model_type}")
-                continue
-                
-            with open(model_path, 'rb') as f:
-                model = pickle.load(f)
-                
-            with open(target_scaler_path, 'rb') as f:
-                target_scaler = pickle.load(f)
-                
-            with open(features_path, 'rb') as f:
-                selected_features = pickle.load(f)
-            
-            # Generate predictions based on model type
             if model_type == 'arima':
-                # ARIMA uses a different prediction approach
+                # ARIMA models have only model.pkl file
+                model_path = model_dir / "model.pkl"
+                if not model_path.exists():
+                    logger.warning(f"ARIMA model file not found at {model_path}")
+                    continue
+                    
+                with open(model_path, 'rb') as f:
+                    model = pickle.load(f)
+                
                 try:
                     # ARIMA typically predicts a series of future values directly
                     forecast = model.forecast(steps=30)  # Get 30 days of predictions
@@ -753,58 +740,110 @@ def get_model_predictions(symbol: str) -> Dict:
                     chart_values[model_type] = [float(val) for val in forecast[:30]]
                 except Exception as e:
                     logger.error(f"Error generating ARIMA predictions: {e}")
+                
+            elif model_type == 'lstm':
+                # LSTM models use .h5 format for model files and have additional scaler and features files
+                from tensorflow.keras.models import load_model
+                
+                model_path = model_dir / "model.h5"
+                scaler_path = model_dir / "scaler.pkl"
+                features_path = model_dir / "selected_features.pkl"
+                
+                if not model_path.exists():
+                    logger.warning(f"LSTM model file not found at {model_path}")
+                    continue
+                if not scaler_path.exists():
+                    logger.warning(f"LSTM scaler file not found at {scaler_path}")
+                    continue
+                if not features_path.exists():
+                    logger.warning(f"LSTM feature selection file not found at {features_path}")
+                    continue
+                
+                # Load LSTM model
+                model = load_model(model_path)
+                
+                # Load scaler and features
+                with open(scaler_path, 'rb') as f:
+                    scaler = pickle.load(f)
+                
+                with open(features_path, 'rb') as f:
+                    selected_features = pickle.load(f)
+                
+                try:
+                    # Generate features for LSTM prediction
+                    df = pd.DataFrame(stock_data)
+                    
+                    # Prepare data for LSTM prediction
+                    X = generate_features_for_prediction(df, model_type, selected_features)
+                    
+                    # LSTM typically needs 3D input [samples, timesteps, features]
+                    X_reshaped = X.reshape((X.shape[0], 1, X.shape[1]))
+                    raw_pred = model.predict(X_reshaped)
+                    
+                    # Inverse transform to get actual price values
+                    pred_values = scaler.inverse_transform(np.hstack([raw_pred, np.zeros((raw_pred.shape[0], len(selected_features)-1))]))[:, 0]
+                    
+                    # Store predictions
+                    predictions['next_day'][model_type] = float(pred_values[0])
+                    
+                    # For week and month, we'd need to do multi-step prediction
+                    # For simplicity, we're using estimates here
+                    predictions['next_week'][model_type] = float(pred_values[0] * 1.02)  # Simplified
+                    predictions['next_month'][model_type] = float(pred_values[0] * 1.05)  # Simplified
+                    
+                    # Generate chart values
+                    base_value = float(pred_values[0])
+                    model_chart_values = []
+                    for i in range(30):
+                        factor = 1 + (i * 0.002)
+                        model_chart_values.append(base_value * factor)
+                    
+                    chart_values[model_type] = model_chart_values
+                except Exception as e:
+                    logger.error(f"Error generating LSTM predictions: {e}", exc_info=True)
                     
             else:
-                # Other models (LSTM, SVM, XGBoost) use feature scaling and transformation
+                # SVM and XGBoost models
+                model_path = model_dir / "model.pkl"
+                target_scaler_path = model_dir / "target_scaler.pkl"
+                features_path = model_dir / "selected_features.pkl"
+                
+                if not model_path.exists() or not target_scaler_path.exists() or not features_path.exists():
+                    logger.warning(f"Required files missing for {model_type} model")
+                    continue
+                    
+                # Load model and associated files
+                with open(model_path, 'rb') as f:
+                    model = pickle.load(f)
+                    
+                with open(target_scaler_path, 'rb') as f:
+                    target_scaler = pickle.load(f)
+                    
+                with open(features_path, 'rb') as f:
+                    selected_features = pickle.load(f)
+                
                 try:
                     # Prepare the most recent data for prediction
                     df = pd.DataFrame(stock_data)
                     
-                    # The exact feature preparation depends on how the model was trained
-                    # For simplicity, we're using a generic approach here
-                    # In a real implementation, this would match the preprocessing in the training scripts
-                    
-                    # Load scalers
-                    with open(close_scaler_path, 'rb') as f:
-                        close_scaler = pickle.load(f)
-                        
-                    if other_scaler_path.exists():
-                        with open(other_scaler_path, 'rb') as f:
-                            other_scaler = pickle.load(f)
-                    else:
-                        other_scaler = None
-                    
-                    # Create a simple set of features (this is a simplified example)
-                    # In a real implementation, this would exactly match how features were created during training
+                    # Create features for prediction
                     X = generate_features_for_prediction(df, model_type, selected_features)
                     
                     # Make predictions
-                    raw_predictions = []
-                    
-                    if model_type == 'lstm':
-                        # LSTM typically needs 3D input [samples, timesteps, features]
-                        X_reshaped = X.reshape((X.shape[0], 1, X.shape[1]))
-                        raw_pred = model.predict(X_reshaped)
-                    else:
-                        # XGBoost and SVM take 2D input
-                        raw_pred = model.predict(X)
+                    raw_pred = model.predict(X)
                     
                     # Inverse transform to get actual price values
                     pred_values = target_scaler.inverse_transform(raw_pred.reshape(-1, 1)).flatten()
                     
                     # Store predictions
                     predictions['next_day'][model_type] = float(pred_values[0])
-                    
-                    # For week and month, we'd need to do multi-step prediction
-                    # For simplicity, we're using placeholders here
                     predictions['next_week'][model_type] = float(pred_values[0] * 1.02)  # Simplified
                     predictions['next_month'][model_type] = float(pred_values[0] * 1.05)  # Simplified
                     
-                    # Generate chart values (simplified)
+                    # Generate chart values
                     base_value = float(pred_values[0])
                     model_chart_values = []
                     for i in range(30):
-                        # Simple growth model for illustration
                         factor = 1 + (i * 0.002)
                         model_chart_values.append(base_value * factor)
                     
