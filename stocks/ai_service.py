@@ -15,6 +15,8 @@ logger = logging.getLogger(__name__)
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 VLLM_API_BASE_URL = os.environ.get('VLLM_API_BASE_URL', 'http://localhost:8000/v1')
 VLLM_MODEL_NAME = os.environ.get('VLLM_MODEL_NAME', 'Qwen/Qwen2.5-7B-Instruct')
+GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
+GROQ_MODEL_NAME = os.environ.get('GROQ_MODEL_NAME', 'llama3-8b-8192')
 DEFAULT_AI_ANALYZER = os.environ.get('DEFAULT_AI_ANALYZER', 'gemini')
 
 def get_ai_stock_analysis(symbol, analyzer_choice=None, collected_data=None):
@@ -23,7 +25,7 @@ def get_ai_stock_analysis(symbol, analyzer_choice=None, collected_data=None):
     
     Parameters:
     - symbol: The stock symbol to analyze
-    - analyzer_choice: Which AI model to use ('gemini' or 'local'), defaults to environment setting
+    - analyzer_choice: Which AI model to use ('gemini', 'vllm', or 'groq'), defaults to environment setting
     - collected_data: Pre-collected data from the frontend (optional)
     
     Returns:
@@ -194,6 +196,10 @@ def get_ai_stock_analysis(symbol, analyzer_choice=None, collected_data=None):
             if not VLLM_API_BASE_URL:
                 return {'error': 'vLLM API base URL not configured'}
             analysis = _call_local_llm(prompt)
+        elif analyzer == 'groq':
+            if not GROQ_API_KEY:
+                return {'error': 'Groq API key not configured'}
+            analysis = _call_groq(prompt)
         else:
             return {'error': f"Invalid analyzer choice: {analyzer}"}
         
@@ -241,7 +247,7 @@ def _call_gemini(prompt):
         genai.configure(api_key=GEMINI_API_KEY)
         
         # Set up the model - use Gemini 2.5 Flash
-        model = genai.GenerativeModel('gemini-2.5-flash')
+        model = genai.GenerativeModel('gemini-2.5-flash-preview-04-17')
         
         # Generate response
         response = model.generate_content(prompt)
@@ -335,6 +341,40 @@ def _extract_json(text):
         
         raise ValueError(f"Could not extract valid JSON from the AI response: {text}")
         
+def _call_groq(prompt):
+    """Call Groq API with the given prompt for stock market analysis"""
+    try:
+        from groq import Groq
+        
+        # Initialize Groq client
+        client = Groq(api_key=GROQ_API_KEY)
+        
+        # Make the API request
+        response = client.chat.completions.create(
+            model=GROQ_MODEL_NAME,
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant specializing in financial analysis."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=1024,
+            top_p=0.9
+        )
+        
+        # Extract the generated content
+        if response.choices and len(response.choices) > 0:
+            generated_text = response.choices[0].message.content
+            return generated_text
+        else:
+            logger.error("Unexpected response format from Groq API")
+            return json.dumps({'error': "Invalid response format from Groq API"})
+            
+    except ImportError:
+        return json.dumps({'error': 'Groq client library not installed. Run: pip install groq'})
+    except Exception as e:
+        logger.error(f"Error calling Groq API: {e}")
+        return json.dumps({'error': f"Error calling Groq API: {str(e)}"})
+
 def _try_fix_json(json_str):
     """Attempt to fix common JSON formatting errors"""
     import re

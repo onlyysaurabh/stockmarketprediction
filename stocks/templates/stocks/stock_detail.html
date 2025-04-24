@@ -148,8 +148,8 @@
     <h2>AI Stock Analysis</h2>
     <div class="ai-analysis-section">
         <div class="ai-buttons">
-            <button id="analyze-gemini-btn" class="btn btn-primary" data-analyzer="gemini">
-                <i class="fas fa-robot"></i> Analyze with Gemini
+            <button id="analyze-groq-btn" class="btn btn-primary" data-analyzer="groq">
+                <i class="fas fa-robot"></i> Analyze with Groq
             </button>
             <button id="analyze-local-btn" class="btn btn-secondary" data-analyzer="local">
                 <i class="fas fa-desktop"></i> Analyze with Local LLM
@@ -1259,8 +1259,11 @@
                         verdictElement.className = 'verdict ' + data.verdict.toLowerCase();
                         
                         // Set source information
-                        document.getElementById('ai-source-text').textContent = 
-                            `Analysis provided by ${data.analyzer_used === 'gemini' ? 'Google Gemini AI' : 'Local LLM'}`;
+                        let sourceText = 'Analysis provided by Unknown';
+                        if (data.analyzer_used === 'gemini') { sourceText = 'Analysis provided by Google Gemini AI'; }
+                        else if (data.analyzer_used === 'groq') { sourceText = 'Analysis provided by Groq'; }
+                        else if (data.analyzer_used === 'local') { sourceText = 'Analysis provided by Local LLM'; }
+                        document.getElementById('ai-source-text').textContent = sourceText;
                     }
                 } catch (error) {
                     // Handle fetch errors
@@ -1272,8 +1275,9 @@
             }
             
             // Add event listeners to buttons
-            if (geminiBtn) {
-                geminiBtn.addEventListener('click', () => analyzeStock('gemini'));
+            const groqBtn = document.getElementById('analyze-groq-btn'); // Updated ID
+            if (groqBtn) {
+                groqBtn.addEventListener('click', () => analyzeStock('groq')); // Use 'groq'
             }
             
             if (localBtn) {
