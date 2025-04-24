@@ -284,7 +284,7 @@
 
                 {% if 'svm' in model_predictions.model_types %}
                 {#<dt>SVM</dt>#}
-            
+
                 {% endif %}
 
                 {% if 'xgboost' in model_predictions.model_types %}
@@ -713,6 +713,14 @@
         max-width: calc(50% - 10px); /* Try to fit two per row */
     }
 
+    /* --- ADDED RULE --- */
+    /* If a model section is the ONLY one in its row, make it take full width */
+    .prediction-row > .prediction-model-section:only-of-type {
+        max-width: 100%;
+    }
+    /* --- END ADDED RULE --- */
+
+
     .model-name {
         font-size: 1.2em;
         margin-bottom: 10px;
@@ -794,7 +802,7 @@
     /* Add responsive behavior for small screens */
     @media (max-width: 992px) { /* Adjust breakpoint if needed */
         .prediction-model-section {
-            max-width: 100%; /* Stack models vertically */
+            max-width: 100%; /* Stack models vertically - this already handles the single case too */
         }
     }
     @media (max-width: 768px) {
