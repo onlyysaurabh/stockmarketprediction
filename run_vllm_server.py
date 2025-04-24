@@ -7,7 +7,7 @@ endpoint that the Django application can connect to.
 
 Prerequisites:
 - vLLM installed: pip install vllm
-- Suitable model accessible (e.g., Qwen/Qwen2.5-7B-Instruct)
+- Suitable model accessible (e.g., meta-llama/Llama-3.2-3B-Instruct)
 - CUDA-compatible GPU (for better performance)
 
 Usage:
@@ -33,7 +33,7 @@ def run_vllm_server(model=None, port=8000, gpu_memory_utilization=0.8, tensor_pa
     """
     # Use the model from .env if not specified
     if not model:
-        model = os.environ.get('VLLM_MODEL_NAME', 'Qwen/Qwen2.5-7B-Instruct')
+        model = os.environ.get('VLLM_MODEL_NAME', 'meta-llama/Llama-3.2-3B-Instruct')
     
     # Build the command
     cmd = [

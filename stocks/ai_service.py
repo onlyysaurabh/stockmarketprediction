@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 
 # Check for environment variables
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
-VLLM_API_BASE_URL = os.environ.get('VLLM_API_BASE_URL', 'http://localhost:8000/v1')
-VLLM_MODEL_NAME = os.environ.get('VLLM_MODEL_NAME', 'Qwen/Qwen2.5-7B-Instruct')
+VLLM_API_BASE_URL = os.environ.get('VLLM_API_BASE_URL', 'http://localhost:8080/v1')
+VLLM_MODEL_NAME = os.environ.get('VLLM_MODEL_NAME', 'meta-llama/Llama-3.2-3B-Instruct')
 # Groq configuration and API keys are now handled in groq_service.py
 DEFAULT_AI_ANALYZER = os.environ.get('DEFAULT_AI_ANALYZER', 'gemini')
 

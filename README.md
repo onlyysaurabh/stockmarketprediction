@@ -520,4 +520,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 
 
-gunicorn stockmarketprediction.wsgi:application;      
+gunicorn stockmarketprediction.wsgi:application;
