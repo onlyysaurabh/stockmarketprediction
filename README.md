@@ -454,6 +454,12 @@ Each model type supports specific parameters that can be passed as additional ar
 python train-model/train.py --model xgboost --symbol AAPL --look-back 60 --features 30 --n-estimators "100,200,300" --max-depth "3,4,5" --learning-rate "0.01,0.1,0.2"
 ```
 
+The XGBoost model predicts using the following equation:
+
+$$ \hat{y}_i = \sum_{k=1}^K f_k(x_i) $$
+
+where $\hat{y}_i$ is the prediction for the $i$-th instance, $f_k$ represents the $k$-th tree, and $K$ is the total number of trees.
+
 **SVM:**
 ```bash
 python train-model/train.py --model svm --symbol MSFT --look-back 60 --features 30 --kernel rbf --c-values "0.1,1,10,100" --gamma-values "scale,auto,0.1,1,10"
@@ -510,3 +516,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - [Finnhub](https://finnhub.io/) for financial news API
 - [Chart.js](https://www.chartjs.org/) for interactive charts
 - [Django](https://www.djangoproject.com/) web framework
+
+
+
+
+gunicorn stockmarketprediction.wsgi:application;      
