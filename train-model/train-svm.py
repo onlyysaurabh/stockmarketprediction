@@ -240,15 +240,20 @@ def parse_args():
     parser.add_argument('--end-date', type=str, default=datetime.now().strftime("%Y-%m-%d"), # Default to today
                       help='End date for training data (YYYY-MM-DD format)')
 
-    # Model parameters
-    parser.add_argument('--look-back', type=int, default=30, # Reduced default
-                      help='Look-back period for time series features (default: 30)')
-    parser.add_argument('--features', type=int, default=20, # Reduced default
-                      help='Number of features to select (default: 20, 0 to skip)')
+    # Model parameters - UPDATED for better accuracy
+    parser.add_argument('--look-back', type=int, default=45, # Increased from 30 to 45
+                      help='Look-back period for time series features (default: 45)')
+    parser.add_argument('--features', type=int, default=25, # Increased from 20 to 25
+                      help='Number of features to select (default: 25, 0 to skip)')
     parser.add_argument('--kernel', type=str, default='rbf',
                       choices=['linear', 'poly', 'rbf', 'sigmoid'],
                       help='SVM kernel type (default: rbf)')
-    # Removed C and gamma ranges as we use fixed parameters now
+    parser.add_argument('--C', type=str, default="5,10,15", # New parameter for C values
+                       help='Comma-separated list of C regularization values (default: 5,10,15)')
+    parser.add_argument('--gamma', type=str, default="0.1,scale,auto", # New parameter for gamma values
+                       help='Comma-separated list of gamma values (default: 0.1,scale,auto)')
+    parser.add_argument('--epsilon', type=str, default="0.05,0.1,0.2", # New parameter for epsilon values
+                       help='Comma-separated list of epsilon values (default: 0.05,0.1,0.2)')
     parser.add_argument('--skip-shap', action='store_true', # Add flag to skip SHAP
                         help='Skip the computationally expensive SHAP value calculation.')
 

@@ -43,27 +43,27 @@ def parse_args():
     parser.add_argument('--end-date', type=str, default="2025-02-25",
                       help='End date for training data (YYYY-MM-DD format)')
     
-    # Model parameters
-    parser.add_argument('--seq-length', type=int, default=60,
-                      help='Sequence length for LSTM input (default: 60)')
-    parser.add_argument('--lstm-units', type=int, default=60,
-                      help='Number of LSTM units (default: 60)')
-    parser.add_argument('--dropout-rate', type=float, default=0.2,
-                      help='Dropout rate (default: 0.2)')
-    parser.add_argument('--epochs', type=int, default=75,
-                      help='Number of training epochs (default: 75)')
-    parser.add_argument('--batch-size', type=int, default=32,
-                      help='Training batch size (default: 32)')
-    parser.add_argument('--patience', type=int, default=15,
-                      help='Early stopping patience (default: 15)')
+    # Model parameters - UPDATED for better accuracy
+    parser.add_argument('--seq-length', type=int, default=80,  # Increased from 60 to 80
+                      help='Sequence length for LSTM input (default: 80)')
+    parser.add_argument('--lstm-units', type=int, default=128,  # Increased from 60 to 128
+                      help='Number of LSTM units (default: 128)')
+    parser.add_argument('--dropout-rate', type=float, default=0.3,  # Increased from 0.2 to 0.3
+                      help='Dropout rate (default: 0.3)')
+    parser.add_argument('--epochs', type=int, default=100,  # Increased from 75 to 100
+                      help='Number of training epochs (default: 100)')
+    parser.add_argument('--batch-size', type=int, default=64,  # Increased from 32 to 64
+                      help='Training batch size (default: 64)')
+    parser.add_argument('--patience', type=int, default=20,  # Increased from 15 to 20
+                      help='Early stopping patience (default: 20)')
                       
-    # Window parameters
-    parser.add_argument('--short-window', type=int, default=20,
-                      help='Short moving average window (default: 20)')
-    parser.add_argument('--long-window', type=int, default=50,
-                      help='Long moving average window (default: 50)')
-    parser.add_argument('--lag-days', type=int, default=1,
-                      help='Number of days for lagged features (default: 1)')
+    # Window parameters - UPDATED for better feature engineering
+    parser.add_argument('--short-window', type=int, default=15,  # Decreased from 20 to 15
+                      help='Short moving average window (default: 15)')
+    parser.add_argument('--long-window', type=int, default=60,  # Increased from 50 to 60
+                      help='Long moving average window (default: 60)')
+    parser.add_argument('--lag-days', type=int, default=2,  # Increased from 1 to 2
+                      help='Number of days for lagged features (default: 2)')
                       
     return parser.parse_args()
 

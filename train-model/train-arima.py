@@ -40,14 +40,14 @@ def parse_args():
     parser.add_argument('--end-date', type=str, default="2025-02-25",
                       help='End date for training data (YYYY-MM-DD format)')
 
-    # Model parameters
+    # Model parameters - UPDATED for better accuracy
     # Default to 'Close' as it's more standard after potential renaming
     parser.add_argument('--price-field', type=str, default="Close",
                       help='Price field to predict (default: Close) - Use capital C')
-    parser.add_argument('--max-p', type=int, default=3,
-                      help='Maximum p value for ARIMA (default: 3)')
-    parser.add_argument('--max-q', type=int, default=3,
-                      help='Maximum q value for ARIMA (default: 3)')
+    parser.add_argument('--max-p', type=int, default=5, # Increased from 3 to 5
+                      help='Maximum p value for ARIMA (default: 5)')
+    parser.add_argument('--max-q', type=int, default=5, # Increased from 3 to 5
+                      help='Maximum q value for ARIMA (default: 5)')
     parser.add_argument('--auto-diff', action='store_true',
                       help='Automatically determine differencing order')
     parser.add_argument('--diff-order', type=int, default=1,

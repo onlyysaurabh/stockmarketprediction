@@ -1,1591 +1,592 @@
-2025-04-22 10:49:27,857 - INFO - Prepared 4 training jobs with 4 max workers
-2025-04-22 10:49:27,860 - INFO - Starting job: model=xgboost, symbol=AAPL
-2025-04-22 10:49:27,861 - INFO - Starting job: model=lstm, symbol=AAPL
-2025-04-22 10:49:27,861 - INFO - Starting job: model=svm, symbol=AAPL
-2025-04-22 10:49:27,862 - INFO - Starting job: model=arima, symbol=AAPL
-2025-04-22 10:49:33,419 - INFO - Job stdout: model=arima, symbol=AAPL
-ARIMA parameters: price_field=close, feature_engineering=True
-max_p=3, max_q=3, test_size=0.2
-Training with date range: 2024-04-22 to 2025-04-21
-Training ARIMA model for 1 stock(s): AAPL
+2025-04-24 19:35:43,821 - INFO - Job stdout: model=xgboost, symbol=AACBR
+Training with date range: 2022-04-24 to 2025-04-24
+Training XGBoost model for 1 stock(s): AACBR
+Using look_back=90, num_features=40
+Hyperparameter tuning with: n_estimators=200,300,500, max_depth=4,5,6, learning_rate=0.05,0.1,0.15
 
---- Processing Stock: AAPL ---
-An error occurred for AAPL: Error loading data from MongoDB: No document found for symbol 'AAPL' in MongoDB collection 'stock_prices'.. Skipping stock.
-
---- Stock Price Prediction and Evaluation Completed for all symbols. ---
-2025-04-22 10:49:33,420 - INFO - Job completed: model=arima, symbol=AAPL
-2025-04-22 10:49:34,014 - INFO - Job stdout: model=svm, symbol=AAPL
-Training with date range: 2024-04-22 to 2025-04-21
-Training SVM model for 1 stock(s): AAPL
-Using look_back=60, num_features=30
-Using kernel=rbf, C values=0.1,1,10,100, gamma values=scale,auto,0.1,1,10
-
---- Processing Stock: AAPL ---
-An error occurred for AAPL: Error loading data from MongoDB: No document found for symbol 'AAPL' in MongoDB collection 'stock_prices'.. Skipping stock.
-
---- SVM Stock Price Prediction and Evaluation Completed. ---
-2025-04-22 10:49:34,014 - INFO - Job completed: model=svm, symbol=AAPL
-2025-04-22 10:49:46,140 - INFO - Job stdout: model=lstm, symbol=AAPL
-Training with date range: 2024-04-22 to 2025-04-21
-LSTM parameters: units=60, dropout=0.2, epochs=75, batch_size=32
-Sequence length=60, short_window=20, long_window=50, lag_days=1
-Training LSTM model for 1 stock(s): AAPL
-
---- Processing Stock: AAPL ---
-Error loading data: No document found for symbol 'AAPL' in MongoDB collection 'stock_prices'.
-No data found for AAPL between 2024-04-22 and 2025-04-21.
-Skipping to next stock due to errors processing AAPL.
-
---- LSTM Stock Price Prediction and Evaluation Completed for all symbols. ---
-2025-04-22 10:49:46,141 - WARNING - Job stderr: model=lstm, symbol=AAPL
-2025-04-22 10:49:30.988446: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:477] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
-WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
-E0000 00:00:1745318971.044062   72490 cuda_dnn.cc:8310] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
-E0000 00:00:1745318971.064943   72490 cuda_blas.cc:1418] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
-2025-04-22 10:49:31.117287: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
-To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
-2025-04-22 10:49:46,143 - INFO - Job completed: model=lstm, symbol=AAPL
-2025-04-22 10:50:00,738 - INFO - Job stdout: model=xgboost, symbol=AAPL
-Training with date range: 2024-04-22 to 2025-04-21
-Training XGBoost model for 1 stock(s): AAPL
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: AAPL ---
-Best parameters: {'colsample_bytree': 0.9, 'learning_rate': 0.1, 'max_depth': 5, 'n_estimators': 100, 'subsample': 1.0}
-
-Regression Metrics:
-  Mean Squared Error (MSE): 330.6581
-  Root Mean Squared Error (RMSE): 18.1840
-  Mean Absolute Error (MAE): 13.4971
-  MAPE: 6.96%
-  R-squared (R2): -0.5886
-
-Classification Metrics:
-  Accuracy: 0.4400
-  Confusion Matrix:
- [[4 8]
- [6 7]]
-  Classification Report:
-               precision    recall  f1-score   support
-
-           0       0.40      0.33      0.36        12
-           1       0.47      0.54      0.50        13
-
-    accuracy                           0.44        25
-   macro avg       0.43      0.44      0.43        25
-weighted avg       0.43      0.44      0.43        25
-
-
-XGBoost Feature Importance (Top 10):
-  Close: 0.4751
-  Low: 0.2849
-  Close_Lag_13: 0.0329
-  Close_Lag_10: 0.0211
-  Close_Lag_29: 0.0199
-  Close_Lag_60: 0.0172
-  High: 0.0166
-  Close_Lag_58: 0.0158
-  Close_Lag_9: 0.0137
-  EMA: 0.0104
-Evaluation results for AAPL stored in MongoDB.
-Trained XGBoost model saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/xgboost-20250422-104959/model.pkl
-Close scaler saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/xgboost-20250422-104959/close_scaler.pkl
-Other features scaler saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/xgboost-20250422-104959/other_scaler.pkl
-Target scaler saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/xgboost-20250422-104959/target_scaler.pkl
-Selected features saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/xgboost-20250422-104959/selected_features.pkl
+--- Processing Stock: AACBR ---
+An error occurred for AACBR: Error loading data from MongoDB: No document found for symbol 'AACBR' in MongoDB collection 'stock_prices'.. Skipping stock.
 
 --- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-22 10:50:00,739 - WARNING - Job stderr: model=xgboost, symbol=AAPL
-/home/skylap/Downloads/stockmarketprediction/train-model/train-xgboost.py:149: FutureWarning: Setting an item of incompatible dtype is deprecated and will raise in a future error of pandas. Value '[-0.9676112  -0.83057692 -0.51927685  0.43380826 -0.74155083 -0.78326241
- -0.26827921 -0.65830012 -0.5589611  -0.04387443 -0.85547587 -0.56065884
- -0.66471552 -0.69038861 -0.243775    0.41919541  0.45393973 -0.32526664
- -0.97037817  0.04327764 -0.43283377 -0.57880515 -0.43789634 -0.49949412
- -0.18646948 -0.32605611 -0.21109249 -0.33517333 -0.65993655 -0.69987757
- -0.43396049 -0.58495611  1.40728544 -0.28534478 -0.76392424 -0.95619455
- -0.2029142  -0.55840924 -0.34675094 -0.5134593  -0.63468885 -0.33658365
- -0.63299494 -0.31525264 -0.79155184 -0.77707312 -0.06656976 -0.07953852
-  0.12808812  0.28552979  3.60486569 -0.48184603 -1.15726782 -1.0038808
- -0.42449452 -0.68501178 -0.53466001  0.08848435 -0.50540365 -0.32139211
- -0.48195334 -0.60562795  0.31728486 -0.14567383 -0.5363999  -0.52119687
-  0.70236968  0.57702032  1.71071764  0.40985974  0.26071516  0.04852033
-  1.58781334  0.85369105 -0.30451049  0.08532647  1.82586905  0.75235153
- -0.32056048 -0.52931001 -0.90085887 -0.52597967 -0.77859458  0.0109822
- -0.3138155   0.00698504 -0.48041272 -0.1766471  -0.81352285 -0.80920376
- -0.00898448 -0.08068823 -0.20765868 -0.34484625 -0.47054819  0.13036072
- -0.23944058  0.01403661 -0.23776966 -0.3166093  -0.27433053  0.71433052
-  0.8701626   0.34934652  0.30415514  0.25584038 -0.20535543 -0.42153976
-  0.03654415 -0.17509882  1.55962239 -0.34998547 -0.72578443 -0.72683834
- -0.62609667 -0.52171041  0.45480585 -0.6522373  -0.67165979  1.91569611
-  2.77767031  4.10196319  2.58408166  5.01903546  2.62319106  1.30316361
-  1.83651539 -0.08001757  0.2414613  -0.08038547]' has dtype incompatible with int64, please explicitly cast to a compatible dtype first.
-  X.loc[:, other_features] = other_scaler.fit_transform(X[other_features].astype(np.float64))
-2025-04-22 10:50:00,739 - INFO - Job completed: model=xgboost, symbol=AAPL
-2025-04-22 10:50:00,739 - INFO - Training Summary:
-2025-04-22 10:50:00,739 - INFO -   Total jobs: 4
-2025-04-22 10:50:00,740 - INFO -   Successful: 4
-2025-04-22 10:50:00,740 - INFO -   Failed: 0
-2025-04-22 10:50:00,740 - INFO -   Total duration: 32.88 seconds
-2025-04-22 11:22:13,654 - INFO - Prepared 4 training jobs with 4 max workers
-2025-04-22 11:22:13,657 - INFO - Starting job: model=xgboost, symbol=AAPL
-2025-04-22 11:22:13,657 - INFO - Starting job: model=lstm, symbol=AAPL
-2025-04-22 11:22:13,657 - INFO - Starting job: model=svm, symbol=AAPL
-2025-04-22 11:22:13,658 - INFO - Starting job: model=arima, symbol=AAPL
-2025-04-22 11:22:18,628 - INFO - Job stdout: model=arima, symbol=AAPL
-ARIMA parameters: price_field=close, feature_engineering=True
-max_p=3, max_q=3, test_size=0.2
-Training with date range: 2024-04-22 to 2025-04-21
-Training ARIMA model for 1 stock(s): AAPL
+2025-04-24 19:35:43,821 - INFO - Job completed: model=xgboost, symbol=AACBR
+2025-04-24 19:35:43,821 - INFO - Starting job: model=xgboost, symbol=AACBU
+2025-04-24 19:35:46,585 - INFO - Job stdout: model=xgboost, symbol=AACBU
+Training with date range: 2022-04-24 to 2025-04-24
+Training XGBoost model for 1 stock(s): AACBU
+Using look_back=90, num_features=40
+Hyperparameter tuning with: n_estimators=200,300,500, max_depth=4,5,6, learning_rate=0.05,0.1,0.15
 
---- Processing Stock: AAPL ---
-An error occurred for AAPL: Error loading data from MongoDB: No document found for symbol 'AAPL' in MongoDB collection 'stock_prices'.. Skipping stock.
-
---- Stock Price Prediction and Evaluation Completed for all symbols. ---
-2025-04-22 11:22:18,654 - INFO - Job completed: model=arima, symbol=AAPL
-2025-04-22 11:22:21,579 - INFO - Job stdout: model=svm, symbol=AAPL
-Training with date range: 2024-04-22 to 2025-04-21
-Training SVM model for 1 stock(s): AAPL
-Using look_back=60, num_features=30
-Using kernel=rbf, C values=0.1,1,10,100, gamma values=scale,auto,0.1,1,10
-
---- Processing Stock: AAPL ---
-An error occurred for AAPL: Error loading data from MongoDB: No document found for symbol 'AAPL' in MongoDB collection 'stock_prices'.. Skipping stock.
-
---- SVM Stock Price Prediction and Evaluation Completed. ---
-2025-04-22 11:22:21,580 - INFO - Job completed: model=svm, symbol=AAPL
-2025-04-22 11:22:35,372 - INFO - Job stdout: model=lstm, symbol=AAPL
-Training with date range: 2024-04-22 to 2025-04-21
-LSTM parameters: units=60, dropout=0.2, epochs=75, batch_size=32
-Sequence length=60, short_window=20, long_window=50, lag_days=1
-Training LSTM model for 1 stock(s): AAPL
-
---- Processing Stock: AAPL ---
-Error loading data: No document found for symbol 'AAPL' in MongoDB collection 'stock_prices'.
-No data found for AAPL between 2024-04-22 and 2025-04-21.
-Skipping to next stock due to errors processing AAPL.
-
---- LSTM Stock Price Prediction and Evaluation Completed for all symbols. ---
-2025-04-22 11:22:35,373 - WARNING - Job stderr: model=lstm, symbol=AAPL
-2025-04-22 11:22:18.231332: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:477] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
-WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
-E0000 00:00:1745320938.480664   75247 cuda_dnn.cc:8310] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
-E0000 00:00:1745320938.548295   75247 cuda_blas.cc:1418] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
-2025-04-22 11:22:18.930424: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
-To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
-2025-04-22 11:22:35,373 - INFO - Job completed: model=lstm, symbol=AAPL
-2025-04-22 11:22:46,407 - INFO - Job stdout: model=xgboost, symbol=AAPL
-Training with date range: 2024-04-22 to 2025-04-21
-Training XGBoost model for 1 stock(s): AAPL
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: AAPL ---
-Best parameters: {'colsample_bytree': 0.9, 'learning_rate': 0.1, 'max_depth': 5, 'n_estimators': 100, 'subsample': 1.0}
-
-Regression Metrics:
-  Mean Squared Error (MSE): 330.6581
-  Root Mean Squared Error (RMSE): 18.1840
-  Mean Absolute Error (MAE): 13.4971
-  MAPE: 6.96%
-  R-squared (R2): -0.5886
-
-Classification Metrics:
-  Accuracy: 0.4400
-  Confusion Matrix:
- [[4 8]
- [6 7]]
-  Classification Report:
-               precision    recall  f1-score   support
-
-           0       0.40      0.33      0.36        12
-           1       0.47      0.54      0.50        13
-
-    accuracy                           0.44        25
-   macro avg       0.43      0.44      0.43        25
-weighted avg       0.43      0.44      0.43        25
-
-
-XGBoost Feature Importance (Top 10):
-  Close: 0.4751
-  Low: 0.2849
-  Close_Lag_13: 0.0329
-  Close_Lag_10: 0.0211
-  Close_Lag_29: 0.0199
-  Close_Lag_60: 0.0172
-  High: 0.0166
-  Close_Lag_58: 0.0158
-  Close_Lag_9: 0.0137
-  EMA: 0.0104
-Evaluation results for AAPL stored in MongoDB.
-Trained XGBoost model saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/xgboost-20250422-112244/model.pkl
-Close scaler saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/xgboost-20250422-112244/close_scaler.pkl
-Other features scaler saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/xgboost-20250422-112244/other_scaler.pkl
-Target scaler saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/xgboost-20250422-112244/target_scaler.pkl
-Selected features saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/xgboost-20250422-112244/selected_features.pkl
+--- Processing Stock: AACBU ---
+Value Error for AACBU: Found array with 0 sample(s) (shape=(0, 91)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
 
 --- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-22 11:22:46,407 - WARNING - Job stderr: model=xgboost, symbol=AAPL
-/home/skylap/Downloads/stockmarketprediction/train-model/train-xgboost.py:149: FutureWarning: Setting an item of incompatible dtype is deprecated and will raise in a future error of pandas. Value '[-0.9676112  -0.83057692 -0.51927685  0.43380826 -0.74155083 -0.78326241
- -0.26827921 -0.65830012 -0.5589611  -0.04387443 -0.85547587 -0.56065884
- -0.66471552 -0.69038861 -0.243775    0.41919541  0.45393973 -0.32526664
- -0.97037817  0.04327764 -0.43283377 -0.57880515 -0.43789634 -0.49949412
- -0.18646948 -0.32605611 -0.21109249 -0.33517333 -0.65993655 -0.69987757
- -0.43396049 -0.58495611  1.40728544 -0.28534478 -0.76392424 -0.95619455
- -0.2029142  -0.55840924 -0.34675094 -0.5134593  -0.63468885 -0.33658365
- -0.63299494 -0.31525264 -0.79155184 -0.77707312 -0.06656976 -0.07953852
-  0.12808812  0.28552979  3.60486569 -0.48184603 -1.15726782 -1.0038808
- -0.42449452 -0.68501178 -0.53466001  0.08848435 -0.50540365 -0.32139211
- -0.48195334 -0.60562795  0.31728486 -0.14567383 -0.5363999  -0.52119687
-  0.70236968  0.57702032  1.71071764  0.40985974  0.26071516  0.04852033
-  1.58781334  0.85369105 -0.30451049  0.08532647  1.82586905  0.75235153
- -0.32056048 -0.52931001 -0.90085887 -0.52597967 -0.77859458  0.0109822
- -0.3138155   0.00698504 -0.48041272 -0.1766471  -0.81352285 -0.80920376
- -0.00898448 -0.08068823 -0.20765868 -0.34484625 -0.47054819  0.13036072
- -0.23944058  0.01403661 -0.23776966 -0.3166093  -0.27433053  0.71433052
-  0.8701626   0.34934652  0.30415514  0.25584038 -0.20535543 -0.42153976
-  0.03654415 -0.17509882  1.55962239 -0.34998547 -0.72578443 -0.72683834
- -0.62609667 -0.52171041  0.45480585 -0.6522373  -0.67165979  1.91569611
-  2.77767031  4.10196319  2.58408166  5.01903546  2.62319106  1.30316361
-  1.83651539 -0.08001757  0.2414613  -0.08038547]' has dtype incompatible with int64, please explicitly cast to a compatible dtype first.
-  X.loc[:, other_features] = other_scaler.fit_transform(X[other_features].astype(np.float64))
-2025-04-22 11:22:46,407 - INFO - Job completed: model=xgboost, symbol=AAPL
-2025-04-22 11:22:46,412 - INFO - Training Summary:
-2025-04-22 11:22:46,412 - INFO -   Total jobs: 4
-2025-04-22 11:22:46,412 - INFO -   Successful: 4
-2025-04-22 11:22:46,412 - INFO -   Failed: 0
-2025-04-22 11:22:46,412 - INFO -   Total duration: 32.76 seconds
-2025-04-22 16:58:14,418 - INFO - Prepared 1 training jobs with 4 max workers
-2025-04-22 16:58:14,421 - INFO - Starting job: model=arima, symbol=AAPL
-2025-04-22 16:58:28,747 - INFO - Job stdout: model=arima, symbol=AAPL
-ARIMA parameters: price_field='Close', feature_engineering=True
-max_p=3, max_q=3, test_size=0.2
-Differencing order (d): 1 (fixed)
-Training with date range: 2020-02-25 to 2025-02-25
-Training ARIMA model for 1 stock(s): AAPL
-Connected to MongoDB: mongodb://localhost:27017/, Database: 'stock_data'
-
---- Processing Stock: AAPL ---
-Loaded 1244 data points for AAPL.
-Applied fixed differencing d=1.
-Train set size: 994, Test set size: 249
-Searching for best ARIMA(p,1,q) order (max_p=3, max_q=3)...
-Auto search complete. Best Order: ARIMA(2, 1, 3) with AIC=4703.82
-Training ARIMA(2, 1, 3) model...
-ARIMA model training finished.
-                               SARIMAX Results                                
-==============================================================================
-Dep. Variable:                  Close   No. Observations:                  994
-Model:                 ARIMA(2, 1, 3)   Log Likelihood               -2345.911
-Date:                Tue, 22 Apr 2025   AIC                           4703.822
-Time:                        16:58:28   BIC                           4733.227
-Sample:                             0   HQIC                          4715.002
-                                - 994                                         
-Covariance Type:                  opg                                         
-==============================================================================
-                 coef    std err          z      P>|z|      [0.025      0.975]
-------------------------------------------------------------------------------
-ar.L1         -1.8732      0.011   -174.038      0.000      -1.894      -1.852
-ar.L2         -0.9863      0.011    -92.348      0.000      -1.007      -0.965
-ma.L1          0.8708      1.311      0.664      0.507      -1.700       3.441
-ma.L2         -0.8932      2.452     -0.364      0.716      -5.699       3.912
-ma.L3         -0.9775      1.281     -0.763      0.445      -3.488       1.532
-sigma2         6.5501      8.580      0.763      0.445     -10.266      23.366
-===================================================================================
-Ljung-Box (L1) (Q):                   0.05   Jarque-Bera (JB):               106.40
-Prob(Q):                              0.83   Prob(JB):                         0.00
-Heteroskedasticity (H):               1.01   Skew:                            -0.05
-Prob(H) (two-sided):                  0.93   Kurtosis:                         4.60
-===================================================================================
-
-Warnings:
-[1] Covariance matrix calculated using the outer product of gradients (complex-step).
-Starting Walk-Forward Validation...
-Skipping AAPL due to an unexpected error: 'ARIMAResults' object has no attribute 'order'
-Traceback (most recent call last):
-  File "/home/skylap/Downloads/stockmarketprediction/train-model/train-arima.py", line 719, in <module>
-    evaluate_model(arima_model_fit, train_data, test_data, original_series, diff_order, stock_symbol_to_predict, best_order, evaluation_results_collection, start_date, end_date)
-  File "/home/skylap/Downloads/stockmarketprediction/train-model/train-arima.py", line 392, in evaluate_model
-    current_order = model_fit.order # Use the order from the fitted model
-                    ^^^^^^^^^^^^^^^
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/statsmodels/base/wrapper.py", line 34, in __getattribute__
-    obj = getattr(results, attr)
-          ^^^^^^^^^^^^^^^^^^^^^^
-AttributeError: 'ARIMAResults' object has no attribute 'order'
-
-
-MongoDB connection closed.
-
---- ARIMA Stock Price Prediction and Evaluation Completed for all symbols. ---
-2025-04-22 16:58:28,747 - WARNING - Job stderr: model=arima, symbol=AAPL
-AIC Search:   0%|          | 0/16 [00:00<?, ?it/s]
-AIC Search:  12%|█▎        | 2/16 [00:00<00:01,  8.36it/s]
-AIC Search:  19%|█▉        | 3/16 [00:00<00:03,  4.09it/s]
-AIC Search:  25%|██▌       | 4/16 [00:01<00:05,  2.26it/s]
-AIC Search:  38%|███▊      | 6/16 [00:02<00:03,  2.72it/s]
-AIC Search:  44%|████▍     | 7/16 [00:02<00:03,  2.46it/s]
-AIC Search:  50%|█████     | 8/16 [00:03<00:04,  1.64it/s]
-AIC Search:  62%|██████▎   | 10/16 [00:04<00:03,  1.93it/s]
-AIC Search:  69%|██████▉   | 11/16 [00:05<00:02,  1.78it/s]
-AIC Search:  75%|███████▌  | 12/16 [00:06<00:03,  1.21it/s]
-AIC Search:  88%|████████▊ | 14/16 [00:07<00:01,  1.42it/s]
-AIC Search:  94%|█████████▍| 15/16 [00:09<00:00,  1.13it/s]
-AIC Search: 100%|██████████| 16/16 [00:11<00:00,  1.09s/it]
-AIC Search: 100%|██████████| 16/16 [00:11<00:00,  1.45it/s]
-
-Walk-Forward Validation:   0%|          | 0/249 [00:00<?, ?it/s]
-Walk-Forward Validation:   0%|          | 0/249 [00:00<?, ?it/s]
-2025-04-22 16:58:28,747 - INFO - Job completed: model=arima, symbol=AAPL
-2025-04-22 16:58:28,748 - INFO - Training Summary:
-2025-04-22 16:58:28,748 - INFO -   Total jobs: 1
-2025-04-22 16:58:28,748 - INFO -   Successful: 1
-2025-04-22 16:58:28,748 - INFO -   Failed: 0
-2025-04-22 16:58:28,748 - INFO -   Total duration: 14.33 seconds
-2025-04-22 17:17:49,088 - INFO - Prepared 1 training jobs with 4 max workers
-2025-04-22 17:17:49,094 - INFO - Starting job: model=arima, symbol=AAPL
-2025-04-22 17:19:42,048 - INFO - Job stdout: model=arima, symbol=AAPL
-ARIMA parameters: price_field='Close', feature_engineering=True
-max_p=3, max_q=3, test_size=0.2
-Differencing order (d): 1 (fixed)
-Training with date range: 2020-02-25 to 2025-02-25
-Training ARIMA model for 1 stock(s): AAPL
-Connected to MongoDB: mongodb://localhost:27017/, Database: 'stock_data'
-
---- Processing Stock: AAPL ---
-Loaded 1244 data points for AAPL.
-Applied fixed differencing d=1.
-Train set size: 994, Test set size: 249
-Searching for best ARIMA(p,1,q) order (max_p=3, max_q=3)...
-Auto search complete. Best Order: ARIMA(2, 1, 3) with AIC=4703.82
-Training ARIMA(2, 1, 3) model...
-ARIMA model training finished.
-                               SARIMAX Results                                
-==============================================================================
-Dep. Variable:                  Close   No. Observations:                  994
-Model:                 ARIMA(2, 1, 3)   Log Likelihood               -2345.911
-Date:                Tue, 22 Apr 2025   AIC                           4703.822
-Time:                        17:18:02   BIC                           4733.227
-Sample:                             0   HQIC                          4715.002
-                                - 994                                         
-Covariance Type:                  opg                                         
-==============================================================================
-                 coef    std err          z      P>|z|      [0.025      0.975]
-------------------------------------------------------------------------------
-ar.L1         -1.8732      0.011   -174.038      0.000      -1.894      -1.852
-ar.L2         -0.9863      0.011    -92.348      0.000      -1.007      -0.965
-ma.L1          0.8708      1.311      0.664      0.507      -1.700       3.441
-ma.L2         -0.8932      2.452     -0.364      0.716      -5.699       3.912
-ma.L3         -0.9775      1.281     -0.763      0.445      -3.488       1.532
-sigma2         6.5501      8.580      0.763      0.445     -10.266      23.366
-===================================================================================
-Ljung-Box (L1) (Q):                   0.05   Jarque-Bera (JB):               106.40
-Prob(Q):                              0.83   Prob(JB):                         0.00
-Heteroskedasticity (H):               1.01   Skew:                            -0.05
-Prob(H) (two-sided):                  0.93   Kurtosis:                         4.60
-===================================================================================
-
-Warnings:
-[1] Covariance matrix calculated using the outer product of gradients (complex-step).
-Starting Walk-Forward Validation...
-Inverse transforming predictions...
-Calculating evaluation metrics...
-
-Model Evaluation (Original Scale - Regression Metrics):
-  RMSE: 3.1759
-  MAE:  2.3013
-  MAPE: 1.08%
-
-Model Evaluation (Direction Prediction - Classification Metrics):
-  Confusion Matrix (Rows: Actual, Cols: Predicted):
-[[42 61]
- [63 82]]
-  Accuracy:    0.5000
-  Sensitivity: 0.5655 (Recall/TPR)
-  Specificity: 0.4078 (TNR)
-  Precision:   0.5734
-  F1-Score:    0.5694
-
-Analyzing ARIMA components...
-Error extracting ARIMA component info: 'numpy.ndarray' object has no attribute 'index'
-
-Trained ARIMA model saved to: ./train-model/AAPL/arima-20250422-171941/model.pkl
-Creating MongoDB collection: arima_evaluation_results
-Evaluation results for AAPL stored in MongoDB collection 'arima_evaluation_results'.
-
-MongoDB connection closed.
-
---- ARIMA Stock Price Prediction and Evaluation Completed for all symbols. ---
-2025-04-22 17:19:42,049 - WARNING - Job stderr: model=arima, symbol=AAPL
-AIC Search:   0%|          | 0/16 [00:00<?, ?it/s]
-AIC Search:  12%|█▎        | 2/16 [00:00<00:01,  9.55it/s]
-AIC Search:  19%|█▉        | 3/16 [00:00<00:02,  4.38it/s]
-AIC Search:  25%|██▌       | 4/16 [00:01<00:04,  2.48it/s]
-AIC Search:  38%|███▊      | 6/16 [00:01<00:03,  2.87it/s]
-AIC Search:  44%|████▍     | 7/16 [00:02<00:03,  2.64it/s]
-AIC Search:  50%|█████     | 8/16 [00:03<00:04,  1.87it/s]
-AIC Search:  62%|██████▎   | 10/16 [00:04<00:02,  2.19it/s]
-AIC Search:  69%|██████▉   | 11/16 [00:04<00:02,  2.01it/s]
-AIC Search:  75%|███████▌  | 12/16 [00:06<00:02,  1.39it/s]
-AIC Search:  88%|████████▊ | 14/16 [00:06<00:01,  1.62it/s]
-AIC Search:  94%|█████████▍| 15/16 [00:08<00:00,  1.23it/s]
-AIC Search: 100%|██████████| 16/16 [00:10<00:00,  1.06s/it]
-AIC Search: 100%|██████████| 16/16 [00:10<00:00,  1.56it/s]
-
-Walk-Forward Validation:   0%|          | 0/249 [00:00<?, ?it/s]
-Walk-Forward Validation:   1%|          | 2/249 [00:00<00:24, 10.18it/s]
-Walk-Forward Validation:   2%|▏         | 4/249 [00:00<00:26,  9.21it/s]
-Walk-Forward Validation:   2%|▏         | 5/249 [00:00<00:47,  5.17it/s]
-Walk-Forward Validation:   2%|▏         | 6/249 [00:01<01:23,  2.92it/s]
-Walk-Forward Validation:   3%|▎         | 7/249 [00:01<01:08,  3.51it/s]
-Walk-Forward Validation:   3%|▎         | 8/249 [00:01<00:56,  4.27it/s]
-Walk-Forward Validation:   4%|▎         | 9/249 [00:01<00:47,  5.04it/s]
-Walk-Forward Validation:   4%|▍         | 10/249 [00:02<00:43,  5.44it/s]
-Walk-Forward Validation:   4%|▍         | 11/249 [00:02<00:39,  5.96it/s]
-Walk-Forward Validation:   5%|▍         | 12/249 [00:02<00:38,  6.20it/s]
-Walk-Forward Validation:   5%|▌         | 13/249 [00:02<00:36,  6.55it/s]
-Walk-Forward Validation:   6%|▌         | 14/249 [00:02<00:33,  7.07it/s]
-Walk-Forward Validation:   6%|▌         | 15/249 [00:02<00:32,  7.22it/s]
-Walk-Forward Validation:   6%|▋         | 16/249 [00:02<00:31,  7.31it/s]
-Walk-Forward Validation:   7%|▋         | 17/249 [00:03<00:47,  4.92it/s]
-Walk-Forward Validation:   7%|▋         | 18/249 [00:04<01:31,  2.52it/s]
-Walk-Forward Validation:   8%|▊         | 19/249 [00:04<01:15,  3.04it/s]
-Walk-Forward Validation:   8%|▊         | 20/249 [00:04<01:13,  3.10it/s]
-Walk-Forward Validation:   8%|▊         | 21/249 [00:04<01:21,  2.80it/s]
-Walk-Forward Validation:   9%|▉         | 22/249 [00:05<01:50,  2.06it/s]
-Walk-Forward Validation:   9%|▉         | 23/249 [00:05<01:28,  2.57it/s]
-Walk-Forward Validation:  10%|▉         | 24/249 [00:06<01:11,  3.13it/s]
-Walk-Forward Validation:  10%|█         | 25/249 [00:06<00:58,  3.84it/s]
-Walk-Forward Validation:  10%|█         | 26/249 [00:06<01:14,  2.99it/s]
-Walk-Forward Validation:  11%|█         | 27/249 [00:07<01:38,  2.25it/s]
-Walk-Forward Validation:  11%|█         | 28/249 [00:07<01:33,  2.37it/s]
-Walk-Forward Validation:  12%|█▏        | 29/249 [00:08<01:47,  2.04it/s]
-Walk-Forward Validation:  12%|█▏        | 30/249 [00:08<01:30,  2.42it/s]
-Walk-Forward Validation:  12%|█▏        | 31/249 [00:09<01:50,  1.97it/s]
-Walk-Forward Validation:  13%|█▎        | 32/249 [00:10<01:59,  1.82it/s]
-Walk-Forward Validation:  13%|█▎        | 33/249 [00:10<01:34,  2.27it/s]
-Walk-Forward Validation:  14%|█▎        | 34/249 [00:11<02:13,  1.61it/s]
-Walk-Forward Validation:  14%|█▍        | 35/249 [00:11<02:20,  1.52it/s]
-Walk-Forward Validation:  14%|█▍        | 36/249 [00:12<02:14,  1.58it/s]
-Walk-Forward Validation:  15%|█▍        | 37/249 [00:13<02:19,  1.52it/s]
-Walk-Forward Validation:  15%|█▌        | 38/249 [00:13<02:21,  1.49it/s]
-Walk-Forward Validation:  16%|█▌        | 39/249 [00:14<01:53,  1.85it/s]
-Walk-Forward Validation:  16%|█▌        | 40/249 [00:14<01:36,  2.18it/s]
-Walk-Forward Validation:  16%|█▋        | 41/249 [00:14<01:24,  2.46it/s]
-Walk-Forward Validation:  17%|█▋        | 42/249 [00:15<01:13,  2.81it/s]
-Walk-Forward Validation:  17%|█▋        | 43/249 [00:15<01:03,  3.22it/s]
-Walk-Forward Validation:  18%|█▊        | 44/249 [00:15<01:10,  2.90it/s]
-Walk-Forward Validation:  18%|█▊        | 45/249 [00:16<01:16,  2.67it/s]
-Walk-Forward Validation:  18%|█▊        | 46/249 [00:16<01:20,  2.52it/s]
-Walk-Forward Validation:  19%|█▉        | 47/249 [00:17<01:24,  2.38it/s]
-Walk-Forward Validation:  19%|█▉        | 48/249 [00:17<01:32,  2.18it/s]
-Walk-Forward Validation:  20%|█▉        | 49/249 [00:18<01:50,  1.80it/s]
-Walk-Forward Validation:  20%|██        | 50/249 [00:18<01:27,  2.28it/s]
-Walk-Forward Validation:  20%|██        | 51/249 [00:18<01:10,  2.81it/s]
-Walk-Forward Validation:  21%|██        | 52/249 [00:18<01:00,  3.27it/s]
-Walk-Forward Validation:  21%|██▏       | 53/249 [00:19<01:31,  2.15it/s]
-Walk-Forward Validation:  22%|██▏       | 54/249 [00:20<01:22,  2.35it/s]
-Walk-Forward Validation:  22%|██▏       | 55/249 [00:20<01:19,  2.43it/s]
-Walk-Forward Validation:  22%|██▏       | 56/249 [00:20<01:02,  3.07it/s]
-Walk-Forward Validation:  23%|██▎       | 57/249 [00:20<01:06,  2.90it/s]
-Walk-Forward Validation:  23%|██▎       | 58/249 [00:21<00:54,  3.48it/s]
-Walk-Forward Validation:  24%|██▎       | 59/249 [00:21<00:46,  4.10it/s]
-Walk-Forward Validation:  24%|██▍       | 60/249 [00:21<00:53,  3.56it/s]
-Walk-Forward Validation:  24%|██▍       | 61/249 [00:21<00:55,  3.38it/s]
-Walk-Forward Validation:  25%|██▍       | 62/249 [00:22<00:48,  3.84it/s]
-Walk-Forward Validation:  25%|██▌       | 63/249 [00:22<00:57,  3.24it/s]
-Walk-Forward Validation:  26%|██▌       | 64/249 [00:22<00:47,  3.87it/s]
-Walk-Forward Validation:  26%|██▌       | 65/249 [00:23<00:58,  3.13it/s]
-Walk-Forward Validation:  27%|██▋       | 66/249 [00:23<01:02,  2.92it/s]
-Walk-Forward Validation:  27%|██▋       | 67/249 [00:23<00:52,  3.48it/s]
-Walk-Forward Validation:  27%|██▋       | 68/249 [00:23<00:51,  3.51it/s]
-Walk-Forward Validation:  28%|██▊       | 69/249 [00:24<00:52,  3.42it/s]
-Walk-Forward Validation:  28%|██▊       | 70/249 [00:24<00:53,  3.35it/s]
-Walk-Forward Validation:  29%|██▊       | 71/249 [00:24<00:53,  3.32it/s]
-Walk-Forward Validation:  29%|██▉       | 72/249 [00:25<00:48,  3.64it/s]
-Walk-Forward Validation:  29%|██▉       | 73/249 [00:25<00:46,  3.77it/s]
-Walk-Forward Validation:  30%|██▉       | 74/249 [00:25<01:03,  2.74it/s]
-Walk-Forward Validation:  30%|███       | 75/249 [00:26<01:07,  2.59it/s]
-Walk-Forward Validation:  31%|███       | 76/249 [00:26<00:55,  3.11it/s]
-Walk-Forward Validation:  31%|███       | 77/249 [00:26<00:47,  3.63it/s]
-Walk-Forward Validation:  31%|███▏      | 78/249 [00:26<00:43,  3.90it/s]
-Walk-Forward Validation:  32%|███▏      | 79/249 [00:27<00:41,  4.09it/s]
-Walk-Forward Validation:  32%|███▏      | 80/249 [00:27<00:41,  4.07it/s]
-Walk-Forward Validation:  33%|███▎      | 81/249 [00:27<00:36,  4.57it/s]
-Walk-Forward Validation:  33%|███▎      | 82/249 [00:27<00:32,  5.17it/s]
-Walk-Forward Validation:  33%|███▎      | 83/249 [00:27<00:29,  5.68it/s]
-Walk-Forward Validation:  34%|███▎      | 84/249 [00:28<00:59,  2.76it/s]
-Walk-Forward Validation:  34%|███▍      | 85/249 [00:28<00:50,  3.24it/s]
-Walk-Forward Validation:  35%|███▍      | 86/249 [00:29<00:58,  2.77it/s]
-Walk-Forward Validation:  35%|███▍      | 87/249 [00:30<01:23,  1.95it/s]
-Walk-Forward Validation:  35%|███▌      | 88/249 [00:30<01:29,  1.80it/s]
-Walk-Forward Validation:  36%|███▌      | 89/249 [00:31<01:12,  2.21it/s]
-Walk-Forward Validation:  36%|███▌      | 90/249 [00:31<01:05,  2.42it/s]
-Walk-Forward Validation:  37%|███▋      | 91/249 [00:31<01:09,  2.27it/s]
-Walk-Forward Validation:  37%|███▋      | 92/249 [00:32<01:22,  1.91it/s]
-Walk-Forward Validation:  37%|███▋      | 93/249 [00:33<01:30,  1.72it/s]
-Walk-Forward Validation:  38%|███▊      | 94/249 [00:34<01:38,  1.58it/s]
-Walk-Forward Validation:  38%|███▊      | 95/249 [00:34<01:15,  2.04it/s]
-Walk-Forward Validation:  39%|███▊      | 96/249 [00:34<01:00,  2.51it/s]
-Walk-Forward Validation:  39%|███▉      | 97/249 [00:34<00:50,  2.99it/s]
-Walk-Forward Validation:  39%|███▉      | 98/249 [00:34<00:46,  3.24it/s]
-Walk-Forward Validation:  40%|███▉      | 99/249 [00:35<01:05,  2.28it/s]
-Walk-Forward Validation:  40%|████      | 100/249 [00:35<00:59,  2.52it/s]
-Walk-Forward Validation:  41%|████      | 101/249 [00:36<00:51,  2.86it/s]
-Walk-Forward Validation:  41%|████      | 102/249 [00:36<00:46,  3.15it/s]
-Walk-Forward Validation:  41%|████▏     | 103/249 [00:37<01:11,  2.03it/s]
-Walk-Forward Validation:  42%|████▏     | 104/249 [00:37<01:07,  2.15it/s]
-Walk-Forward Validation:  42%|████▏     | 105/249 [00:37<01:01,  2.34it/s]
-Walk-Forward Validation:  43%|████▎     | 106/249 [00:38<00:55,  2.57it/s]
-Walk-Forward Validation:  43%|████▎     | 107/249 [00:38<00:54,  2.60it/s]
-Walk-Forward Validation:  43%|████▎     | 108/249 [00:39<00:55,  2.55it/s]
-Walk-Forward Validation:  44%|████▍     | 109/249 [00:40<01:43,  1.35it/s]
-Walk-Forward Validation:  44%|████▍     | 110/249 [00:40<01:27,  1.59it/s]
-Walk-Forward Validation:  45%|████▍     | 111/249 [00:41<01:24,  1.63it/s]
-Walk-Forward Validation:  45%|████▍     | 112/249 [00:42<01:41,  1.35it/s]
-Walk-Forward Validation:  45%|████▌     | 113/249 [00:42<01:20,  1.69it/s]
-Walk-Forward Validation:  46%|████▌     | 114/249 [00:43<01:05,  2.07it/s]
-Walk-Forward Validation:  46%|████▌     | 115/249 [00:43<00:53,  2.49it/s]
-Walk-Forward Validation:  47%|████▋     | 116/249 [00:43<00:49,  2.70it/s]
-Walk-Forward Validation:  47%|████▋     | 117/249 [00:43<00:45,  2.91it/s]
-Walk-Forward Validation:  47%|████▋     | 118/249 [00:44<00:42,  3.06it/s]
-Walk-Forward Validation:  48%|████▊     | 119/249 [00:44<00:45,  2.86it/s]
-Walk-Forward Validation:  48%|████▊     | 120/249 [00:45<01:16,  1.70it/s]
-Walk-Forward Validation:  49%|████▊     | 121/249 [00:45<00:59,  2.15it/s]
-Walk-Forward Validation:  49%|████▉     | 122/249 [00:46<00:47,  2.66it/s]
-Walk-Forward Validation:  49%|████▉     | 123/249 [00:46<00:42,  2.97it/s]
-Walk-Forward Validation:  50%|████▉     | 124/249 [00:46<00:36,  3.45it/s]
-Walk-Forward Validation:  50%|█████     | 125/249 [00:47<00:47,  2.62it/s]
-Walk-Forward Validation:  51%|█████     | 126/249 [00:47<00:44,  2.77it/s]
-Walk-Forward Validation:  51%|█████     | 127/249 [00:47<00:43,  2.83it/s]
-Walk-Forward Validation:  51%|█████▏    | 128/249 [00:47<00:38,  3.18it/s]
-Walk-Forward Validation:  52%|█████▏    | 129/249 [00:48<00:33,  3.56it/s]
-Walk-Forward Validation:  52%|█████▏    | 130/249 [00:48<00:29,  4.02it/s]
-Walk-Forward Validation:  53%|█████▎    | 131/249 [00:49<00:49,  2.39it/s]
-Walk-Forward Validation:  53%|█████▎    | 132/249 [00:49<00:40,  2.87it/s]
-Walk-Forward Validation:  53%|█████▎    | 133/249 [00:49<00:34,  3.34it/s]
-Walk-Forward Validation:  54%|█████▍    | 134/249 [00:49<00:30,  3.72it/s]
-Walk-Forward Validation:  54%|█████▍    | 135/249 [00:49<00:26,  4.36it/s]
-Walk-Forward Validation:  55%|█████▍    | 136/249 [00:50<00:24,  4.58it/s]
-Walk-Forward Validation:  55%|█████▌    | 137/249 [00:50<00:24,  4.60it/s]
-Walk-Forward Validation:  55%|█████▌    | 138/249 [00:50<00:23,  4.82it/s]
-Walk-Forward Validation:  56%|█████▌    | 139/249 [00:50<00:23,  4.68it/s]
-Walk-Forward Validation:  56%|█████▌    | 140/249 [00:50<00:25,  4.27it/s]
-Walk-Forward Validation:  57%|█████▋    | 141/249 [00:51<00:47,  2.28it/s]
-Walk-Forward Validation:  57%|█████▋    | 142/249 [00:52<00:42,  2.54it/s]
-Walk-Forward Validation:  57%|█████▋    | 143/249 [00:52<00:37,  2.83it/s]
-Walk-Forward Validation:  58%|█████▊    | 144/249 [00:52<00:34,  3.07it/s]
-Walk-Forward Validation:  58%|█████▊    | 145/249 [00:53<00:45,  2.26it/s]
-Walk-Forward Validation:  59%|█████▊    | 146/249 [00:53<00:36,  2.78it/s]
-Walk-Forward Validation:  59%|█████▉    | 147/249 [00:53<00:31,  3.24it/s]
-Walk-Forward Validation:  59%|█████▉    | 148/249 [00:53<00:27,  3.68it/s]
-Walk-Forward Validation:  60%|█████▉    | 149/249 [00:54<00:24,  4.08it/s]
-Walk-Forward Validation:  60%|██████    | 150/249 [00:54<00:35,  2.81it/s]
-Walk-Forward Validation:  61%|██████    | 151/249 [00:54<00:31,  3.10it/s]
-Walk-Forward Validation:  61%|██████    | 152/249 [00:55<00:43,  2.24it/s]
-Walk-Forward Validation:  61%|██████▏   | 153/249 [00:55<00:35,  2.73it/s]
-Walk-Forward Validation:  62%|██████▏   | 154/249 [00:56<00:31,  2.99it/s]
-Walk-Forward Validation:  62%|██████▏   | 155/249 [00:57<01:13,  1.28it/s]
-Walk-Forward Validation:  63%|██████▎   | 156/249 [00:58<01:00,  1.53it/s]
-Walk-Forward Validation:  63%|██████▎   | 157/249 [00:58<00:51,  1.80it/s]
-Walk-Forward Validation:  63%|██████▎   | 158/249 [00:58<00:40,  2.26it/s]
-Walk-Forward Validation:  64%|██████▍   | 159/249 [00:59<00:39,  2.30it/s]
-Walk-Forward Validation:  64%|██████▍   | 160/249 [00:59<00:41,  2.14it/s]
-Walk-Forward Validation:  65%|██████▍   | 161/249 [01:00<00:40,  2.16it/s]
-Walk-Forward Validation:  65%|██████▌   | 162/249 [01:00<00:43,  2.00it/s]
-Walk-Forward Validation:  65%|██████▌   | 163/249 [01:01<00:36,  2.37it/s]
-Walk-Forward Validation:  66%|██████▌   | 164/249 [01:01<00:34,  2.45it/s]
-Walk-Forward Validation:  66%|██████▋   | 165/249 [01:01<00:30,  2.80it/s]
-Walk-Forward Validation:  67%|██████▋   | 166/249 [01:01<00:27,  3.03it/s]
-Walk-Forward Validation:  67%|██████▋   | 167/249 [01:02<00:30,  2.70it/s]
-Walk-Forward Validation:  67%|██████▋   | 168/249 [01:02<00:25,  3.16it/s]
-Walk-Forward Validation:  68%|██████▊   | 169/249 [01:02<00:21,  3.68it/s]
-Walk-Forward Validation:  68%|██████▊   | 170/249 [01:03<00:21,  3.70it/s]
-Walk-Forward Validation:  69%|██████▊   | 171/249 [01:03<00:19,  4.10it/s]
-Walk-Forward Validation:  69%|██████▉   | 172/249 [01:04<00:32,  2.39it/s]
-Walk-Forward Validation:  69%|██████▉   | 173/249 [01:04<00:29,  2.54it/s]
-Walk-Forward Validation:  70%|██████▉   | 174/249 [01:04<00:26,  2.84it/s]
-Walk-Forward Validation:  70%|███████   | 175/249 [01:04<00:23,  3.11it/s]
-Walk-Forward Validation:  71%|███████   | 176/249 [01:05<00:25,  2.91it/s]
-Walk-Forward Validation:  71%|███████   | 177/249 [01:05<00:21,  3.32it/s]
-Walk-Forward Validation:  71%|███████▏  | 178/249 [01:05<00:24,  2.94it/s]
-Walk-Forward Validation:  72%|███████▏  | 179/249 [01:06<00:21,  3.32it/s]
-Walk-Forward Validation:  72%|███████▏  | 180/249 [01:06<00:22,  3.05it/s]
-Walk-Forward Validation:  73%|███████▎  | 181/249 [01:06<00:19,  3.50it/s]
-Walk-Forward Validation:  73%|███████▎  | 182/249 [01:06<00:18,  3.57it/s]
-Walk-Forward Validation:  73%|███████▎  | 183/249 [01:07<00:18,  3.66it/s]
-Walk-Forward Validation:  74%|███████▍  | 184/249 [01:07<00:17,  3.65it/s]
-Walk-Forward Validation:  74%|███████▍  | 185/249 [01:07<00:17,  3.63it/s]
-Walk-Forward Validation:  75%|███████▍  | 186/249 [01:07<00:15,  4.00it/s]
-Walk-Forward Validation:  75%|███████▌  | 187/249 [01:08<00:13,  4.55it/s]
-Walk-Forward Validation:  76%|███████▌  | 188/249 [01:08<00:12,  5.02it/s]
-Walk-Forward Validation:  76%|███████▌  | 189/249 [01:08<00:13,  4.44it/s]
-Walk-Forward Validation:  76%|███████▋  | 190/249 [01:08<00:14,  4.17it/s]
-Walk-Forward Validation:  77%|███████▋  | 191/249 [01:09<00:13,  4.39it/s]
-Walk-Forward Validation:  77%|███████▋  | 192/249 [01:09<00:11,  4.88it/s]
-Walk-Forward Validation:  78%|███████▊  | 193/249 [01:09<00:10,  5.47it/s]
-Walk-Forward Validation:  78%|███████▊  | 194/249 [01:09<00:12,  4.54it/s]
-Walk-Forward Validation:  78%|███████▊  | 195/249 [01:09<00:12,  4.19it/s]
-Walk-Forward Validation:  79%|███████▊  | 196/249 [01:10<00:11,  4.54it/s]
-Walk-Forward Validation:  79%|███████▉  | 197/249 [01:10<00:10,  5.01it/s]
-Walk-Forward Validation:  80%|███████▉  | 198/249 [01:10<00:09,  5.40it/s]
-Walk-Forward Validation:  80%|███████▉  | 199/249 [01:10<00:08,  5.69it/s]
-Walk-Forward Validation:  80%|████████  | 200/249 [01:10<00:08,  5.45it/s]
-Walk-Forward Validation:  81%|████████  | 201/249 [01:11<00:11,  4.09it/s]
-Walk-Forward Validation:  81%|████████  | 202/249 [01:11<00:10,  4.43it/s]
-Walk-Forward Validation:  82%|████████▏ | 203/249 [01:11<00:09,  4.88it/s]
-Walk-Forward Validation:  82%|████████▏ | 204/249 [01:11<00:09,  4.82it/s]
-Walk-Forward Validation:  82%|████████▏ | 205/249 [01:11<00:10,  4.36it/s]
-Walk-Forward Validation:  83%|████████▎ | 206/249 [01:12<00:11,  3.77it/s]
-Walk-Forward Validation:  83%|████████▎ | 207/249 [01:12<00:11,  3.74it/s]
-Walk-Forward Validation:  84%|████████▎ | 208/249 [01:13<00:18,  2.21it/s]
-Walk-Forward Validation:  84%|████████▍ | 209/249 [01:13<00:14,  2.75it/s]
-Walk-Forward Validation:  84%|████████▍ | 210/249 [01:13<00:11,  3.38it/s]
-Walk-Forward Validation:  85%|████████▍ | 211/249 [01:13<00:09,  3.93it/s]
-Walk-Forward Validation:  85%|████████▌ | 212/249 [01:14<00:11,  3.22it/s]
-Walk-Forward Validation:  86%|████████▌ | 213/249 [01:14<00:10,  3.58it/s]
-Walk-Forward Validation:  86%|████████▌ | 214/249 [01:14<00:09,  3.79it/s]
-Walk-Forward Validation:  86%|████████▋ | 215/249 [01:15<00:11,  2.93it/s]
-Walk-Forward Validation:  87%|████████▋ | 216/249 [01:15<00:09,  3.34it/s]
-Walk-Forward Validation:  87%|████████▋ | 217/249 [01:15<00:09,  3.29it/s]
-Walk-Forward Validation:  88%|████████▊ | 218/249 [01:15<00:07,  4.01it/s]
-Walk-Forward Validation:  88%|████████▊ | 219/249 [01:16<00:07,  3.92it/s]
-Walk-Forward Validation:  88%|████████▊ | 220/249 [01:16<00:08,  3.62it/s]
-Walk-Forward Validation:  89%|████████▉ | 221/249 [01:17<00:09,  2.95it/s]
-Walk-Forward Validation:  89%|████████▉ | 222/249 [01:17<00:07,  3.40it/s]
-Walk-Forward Validation:  90%|████████▉ | 223/249 [01:17<00:08,  3.11it/s]
-Walk-Forward Validation:  90%|████████▉ | 224/249 [01:18<00:15,  1.62it/s]
-Walk-Forward Validation:  90%|█████████ | 225/249 [01:20<00:21,  1.12it/s]
-Walk-Forward Validation:  91%|█████████ | 226/249 [01:22<00:26,  1.14s/it]
-Walk-Forward Validation:  91%|█████████ | 227/249 [01:22<00:20,  1.07it/s]
-Walk-Forward Validation:  92%|█████████▏| 228/249 [01:22<00:15,  1.33it/s]
-Walk-Forward Validation:  92%|█████████▏| 229/249 [01:23<00:13,  1.50it/s]
-Walk-Forward Validation:  92%|█████████▏| 230/249 [01:24<00:13,  1.37it/s]
-Walk-Forward Validation:  93%|█████████▎| 231/249 [01:26<00:21,  1.20s/it]
-Walk-Forward Validation:  93%|█████████▎| 232/249 [01:26<00:16,  1.05it/s]
-Walk-Forward Validation:  94%|█████████▎| 233/249 [01:27<00:12,  1.26it/s]
-Walk-Forward Validation:  94%|█████████▍| 234/249 [01:27<00:11,  1.35it/s]
-Walk-Forward Validation:  94%|█████████▍| 235/249 [01:29<00:12,  1.10it/s]
-Walk-Forward Validation:  95%|█████████▍| 236/249 [01:32<00:22,  1.74s/it]
-Walk-Forward Validation:  95%|█████████▌| 237/249 [01:33<00:15,  1.27s/it]
-Walk-Forward Validation:  96%|█████████▌| 238/249 [01:33<00:11,  1.05s/it]
-Walk-Forward Validation:  96%|█████████▌| 239/249 [01:34<00:08,  1.17it/s]
-Walk-Forward Validation:  96%|█████████▋| 240/249 [01:34<00:06,  1.43it/s]
-Walk-Forward Validation:  97%|█████████▋| 241/249 [01:34<00:05,  1.52it/s]
-Walk-Forward Validation:  97%|█████████▋| 242/249 [01:35<00:04,  1.56it/s]
-Walk-Forward Validation:  98%|█████████▊| 243/249 [01:36<00:03,  1.56it/s]
-Walk-Forward Validation:  98%|█████████▊| 244/249 [01:36<00:02,  1.74it/s]
-Walk-Forward Validation:  98%|█████████▊| 245/249 [01:37<00:02,  1.86it/s]
-Walk-Forward Validation:  99%|█████████▉| 246/249 [01:37<00:01,  2.19it/s]
-Walk-Forward Validation:  99%|█████████▉| 247/249 [01:37<00:00,  2.27it/s]
-Walk-Forward Validation: 100%|█████████▉| 248/249 [01:38<00:00,  2.62it/s]
-Walk-Forward Validation: 100%|██████████| 249/249 [01:38<00:00,  2.64it/s]
-Walk-Forward Validation: 100%|██████████| 249/249 [01:38<00:00,  2.53it/s]
-2025-04-22 17:19:42,049 - INFO - Job completed: model=arima, symbol=AAPL
-2025-04-22 17:19:42,050 - INFO - Training Summary:
-2025-04-22 17:19:42,050 - INFO -   Total jobs: 1
-2025-04-22 17:19:42,050 - INFO -   Successful: 1
-2025-04-22 17:19:42,050 - INFO -   Failed: 0
-2025-04-22 17:19:42,050 - INFO -   Total duration: 112.96 seconds
-2025-04-24 17:50:01,820 - INFO - Prepared 4 training jobs with 4 max workers
-2025-04-24 17:50:01,826 - INFO - Starting job: model=xgboost, symbol=AAPL
-2025-04-24 17:50:01,827 - INFO - Starting job: model=lstm, symbol=AAPL
-2025-04-24 17:50:01,828 - INFO - Starting job: model=svm, symbol=AAPL
-2025-04-24 17:50:01,829 - INFO - Starting job: model=arima, symbol=AAPL
-2025-04-24 17:50:44,025 - INFO - Job stdout: model=lstm, symbol=AAPL
+2025-04-24 19:35:46,585 - INFO - Job completed: model=xgboost, symbol=AACBU
+2025-04-24 19:35:46,585 - INFO - Starting job: model=xgboost, symbol=AACG
+2025-04-24 19:35:49,627 - INFO - Job stdout: model=xgboost, symbol=AACG
 Training with date range: 2022-04-24 to 2025-04-24
-LSTM parameters: units=60, dropout=0.2, epochs=75, batch_size=32
-Sequence length=60, short_window=20, long_window=50, lag_days=1
-Training LSTM model for 1 stock(s): AAPL
+Training XGBoost model for 1 stock(s): AACG
+Using look_back=90, num_features=40
+Hyperparameter tuning with: n_estimators=200,300,500, max_depth=4,5,6, learning_rate=0.05,0.1,0.15
 
---- Processing Stock: AAPL ---
-An error occurred while processing AAPL: {{function_node __wrapped__Sign_device_/job:localhost/replica:0/task:0/device:GPU:0}} JIT compilation failed. [Op:Sign] name: 
-
---- LSTM Stock Price Prediction and Evaluation Completed for all symbols. ---
-2025-04-24 17:50:44,052 - WARNING - Job stderr: model=lstm, symbol=AAPL
-2025-04-24 17:50:06.449898: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:477] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
-WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
-E0000 00:00:1745517006.848483   19360 cuda_dnn.cc:8310] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
-E0000 00:00:1745517006.946732   19360 cuda_blas.cc:1418] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
-2025-04-24 17:50:07.518140: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
-To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
-I0000 00:00:1745517035.559824   19360 gpu_device.cc:2022] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 2135 MB memory:  -> device: 0, name: NVIDIA GeForce GTX 1650, pci bus id: 0000:01:00.0, compute capability: 7.5
-/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/keras/src/layers/rnn/rnn.py:200: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
-  super().__init__(**kwargs)
-WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
-W0000 00:00:1745517036.983964   19716 gpu_backend_lib.cc:579] Can't find libdevice directory ${CUDA_DIR}/nvvm/libdevice. This may result in compilation or runtime failures, if the program we try to run uses routines from libdevice.
-Searched for CUDA in the following directories:
-  ./cuda_sdk_lib
-  /home/skylap/Downloads/stockmarketprediction/train-model/train-lstm.py.runfiles/cuda_nvcc
-  /home/s/cuda_nvcc
-  
-  /usr/local/cuda
-  /home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/tensorflow/python/platform/../../../nvidia/cuda_nvcc
-  /home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/tensorflow/python/platform/../../../../nvidia/cuda_nvcc
-  /home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/tensorflow/python/platform/../../cuda
-  .
-You can choose the search directory by setting xla_gpu_cuda_data_dir in HloModule's DebugOptions.  For most apps, setting the environment variable XLA_FLAGS=--xla_gpu_cuda_data_dir=/path/to/cuda will work.
-W0000 00:00:1745517037.054303   19715 gpu_kernel_to_blob_pass.cc:190] Failed to compile generated PTX with ptxas. Falling back to compilation by driver.
-W0000 00:00:1745517037.075725   19716 gpu_kernel_to_blob_pass.cc:190] Failed to compile generated PTX with ptxas. Falling back to compilation by driver.
-W0000 00:00:1745517037.057954   19713 gpu_kernel_to_blob_pass.cc:190] Failed to compile generated PTX with ptxas. Falling back to compilation by driver.
-W0000 00:00:1745517037.061006   19710 gpu_kernel_to_blob_pass.cc:190] Failed to compile generated PTX with ptxas. Falling back to compilation by driver.
-W0000 00:00:1745517037.087630   19711 gpu_kernel_to_blob_pass.cc:190] Failed to compile generated PTX with ptxas. Falling back to compilation by driver.
-W0000 00:00:1745517037.090143   19712 gpu_kernel_to_blob_pass.cc:190] Failed to compile generated PTX with ptxas. Falling back to compilation by driver.
-W0000 00:00:1745517037.099897   19716 gpu_kernel_to_blob_pass.cc:190] Failed to compile generated PTX with ptxas. Falling back to compilation by driver.
-W0000 00:00:1745517037.115177   19714 gpu_kernel_to_blob_pass.cc:190] Failed to compile generated PTX with ptxas. Falling back to compilation by driver.
-W0000 00:00:1745517037.121079   19709 gpu_kernel_to_blob_pass.cc:190] Failed to compile generated PTX with ptxas. Falling back to compilation by driver.
-W0000 00:00:1745517037.154415   19715 gpu_kernel_to_blob_pass.cc:190] Failed to compile generated PTX with ptxas. Falling back to compilation by driver.
-W0000 00:00:1745517037.166826   19713 gpu_kernel_to_blob_pass.cc:190] Failed to compile generated PTX with ptxas. Falling back to compilation by driver.
-W0000 00:00:1745517037.176852   19710 gpu_kernel_to_blob_pass.cc:190] Failed to compile generated PTX with ptxas. Falling back to compilation by driver.
-W0000 00:00:1745517037.177421   19711 gpu_kernel_to_blob_pass.cc:190] Failed to compile generated PTX with ptxas. Falling back to compilation by driver.
-W0000 00:00:1745517039.283251   19360 gpu_backend_lib.cc:617] libdevice is required by this HLO module but was not found at ./libdevice.10.bc
-error: libdevice not found at ./libdevice.10.bc
-2025-04-24 17:50:39.284773: E tensorflow/compiler/mlir/tools/kernel_gen/tf_framework_c_interface.cc:228] INTERNAL: Generating device code failed.
-2025-04-24 17:50:39.292065: W tensorflow/core/framework/op_kernel.cc:1829] UNKNOWN: JIT compilation failed.
-2025-04-24 17:50:39.292152: I tensorflow/core/framework/local_rendezvous.cc:405] Local rendezvous is aborting with status: UNKNOWN: JIT compilation failed.
-2025-04-24 17:50:44,052 - INFO - Job completed: model=lstm, symbol=AAPL
-2025-04-24 17:51:26,212 - INFO - Job stdout: model=arima, symbol=AAPL
-ARIMA parameters: price_field='Close', feature_engineering=True
-max_p=3, max_q=3, test_size=0.2
-Differencing order (d): 1 (fixed)
-Training with date range: 2022-04-24 to 2025-04-24
-Training ARIMA model for 1 stock(s): AAPL
-Connected to MongoDB: mongodb://localhost:27017/, Database: 'stock_data'
-
---- Processing Stock: AAPL ---
-Loaded 738 data points for AAPL.
-Applied fixed differencing d=1.
-Train set size: 589, Test set size: 148
-Searching for best ARIMA(p,1,q) order (max_p=3, max_q=3)...
-Auto search complete. Best Order: ARIMA(0, 1, 1) with AIC=2871.58
-Training ARIMA(0, 1, 1) model...
-ARIMA model training finished.
-                               SARIMAX Results                                
-==============================================================================
-Dep. Variable:                  Close   No. Observations:                  589
-Model:                 ARIMA(0, 1, 1)   Log Likelihood               -1433.791
-Date:                Thu, 24 Apr 2025   AIC                           2871.582
-Time:                        17:50:58   BIC                           2880.335
-Sample:                             0   HQIC                          2874.993
-                                - 589                                         
-Covariance Type:                  opg                                         
-==============================================================================
-                 coef    std err          z      P>|z|      [0.025      0.975]
-------------------------------------------------------------------------------
-ma.L1         -0.9994      0.048    -20.683      0.000      -1.094      -0.905
-sigma2         7.6039      0.490     15.515      0.000       6.643       8.564
-===================================================================================
-Ljung-Box (L1) (Q):                   0.75   Jarque-Bera (JB):               156.39
-Prob(Q):                              0.39   Prob(JB):                         0.00
-Heteroskedasticity (H):               0.82   Skew:                             0.13
-Prob(H) (two-sided):                  0.18   Kurtosis:                         5.51
-===================================================================================
-
-Warnings:
-[1] Covariance matrix calculated using the outer product of gradients (complex-step).
-Starting Walk-Forward Validation...
-Inverse transforming predictions...
-Calculating evaluation metrics...
-
-Model Evaluation (Original Scale - Regression Metrics):
-  RMSE: 4.7744
-  MAE:  3.1756
-  MAPE: 1.44%
-
-Model Evaluation (Direction Prediction - Classification Metrics):
-  Confusion Matrix (Rows: Actual, Cols: Predicted):
-[[30 39]
- [38 40]]
-  Accuracy:    0.4762
-  Sensitivity: 0.5128 (Recall/TPR)
-  Specificity: 0.4348 (TNR)
-  Precision:   0.5063
-  F1-Score:    0.5096
-
-Analyzing ARIMA components...
-Error extracting ARIMA component info: 'numpy.ndarray' object has no attribute 'index'
-
-Trained ARIMA model saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/arima-20250424-175123/model.pkl
-Evaluation results for AAPL stored in MongoDB collection 'arima_evaluation_results'.
-
-MongoDB connection closed.
-
---- ARIMA Stock Price Prediction and Evaluation Completed for all symbols. ---
-2025-04-24 17:51:26,213 - WARNING - Job stderr: model=arima, symbol=AAPL
-AIC Search:   0%|          | 0/16 [00:00<?, ?it/s]
-AIC Search:  12%|█▎        | 2/16 [00:00<00:06,  2.31it/s]
-AIC Search:  19%|█▉        | 3/16 [00:03<00:17,  1.35s/it]
-AIC Search:  25%|██▌       | 4/16 [00:05<00:20,  1.69s/it]
-AIC Search:  31%|███▏      | 5/16 [00:05<00:12,  1.18s/it]
-AIC Search:  38%|███▊      | 6/16 [00:07<00:11,  1.14s/it]
-AIC Search:  44%|████▍     | 7/16 [00:10<00:16,  1.81s/it]
-AIC Search:  50%|█████     | 8/16 [00:17<00:27,  3.42s/it]
-AIC Search:  56%|█████▋    | 9/16 [00:17<00:17,  2.45s/it]
-AIC Search:  62%|██████▎   | 10/16 [00:18<00:12,  2.12s/it]
-AIC Search:  69%|██████▉   | 11/16 [00:21<00:12,  2.42s/it]
-AIC Search:  75%|███████▌  | 12/16 [00:30<00:16,  4.21s/it]
-AIC Search:  81%|████████▏ | 13/16 [00:30<00:09,  3.07s/it]
-AIC Search:  88%|████████▊ | 14/16 [00:36<00:07,  3.94s/it]
-AIC Search:  94%|█████████▍| 15/16 [00:42<00:04,  4.56s/it]
-AIC Search: 100%|██████████| 16/16 [00:52<00:00,  6.20s/it]
-AIC Search: 100%|██████████| 16/16 [00:52<00:00,  3.29s/it]
-
-Walk-Forward Validation:   0%|          | 0/148 [00:00<?, ?it/s]
-Walk-Forward Validation:   1%|▏         | 2/148 [00:00<00:15,  9.55it/s]
-Walk-Forward Validation:   2%|▏         | 3/148 [00:00<00:20,  7.24it/s]
-Walk-Forward Validation:   3%|▎         | 5/148 [00:00<00:15,  9.44it/s]
-Walk-Forward Validation:   5%|▍         | 7/148 [00:00<00:13, 10.20it/s]
-Walk-Forward Validation:   6%|▌         | 9/148 [00:00<00:14,  9.69it/s]
-Walk-Forward Validation:   7%|▋         | 10/148 [00:01<00:15,  9.06it/s]
-Walk-Forward Validation:   7%|▋         | 11/148 [00:01<00:16,  8.32it/s]
-Walk-Forward Validation:   8%|▊         | 12/148 [00:01<00:16,  8.07it/s]
-Walk-Forward Validation:   9%|▉         | 13/148 [00:01<00:16,  8.36it/s]
-Walk-Forward Validation:   9%|▉         | 14/148 [00:01<00:15,  8.53it/s]
-Walk-Forward Validation:  10%|█         | 15/148 [00:01<00:15,  8.62it/s]
-Walk-Forward Validation:  11%|█         | 16/148 [00:01<00:17,  7.50it/s]
-Walk-Forward Validation:  11%|█▏        | 17/148 [00:02<00:18,  6.93it/s]
-Walk-Forward Validation:  12%|█▏        | 18/148 [00:02<00:20,  6.41it/s]
-Walk-Forward Validation:  13%|█▎        | 19/148 [00:02<00:23,  5.47it/s]
-Walk-Forward Validation:  14%|█▎        | 20/148 [00:02<00:23,  5.35it/s]
-Walk-Forward Validation:  14%|█▍        | 21/148 [00:02<00:22,  5.54it/s]
-Walk-Forward Validation:  15%|█▍        | 22/148 [00:02<00:20,  6.05it/s]
-Walk-Forward Validation:  16%|█▌        | 23/148 [00:03<00:23,  5.34it/s]
-Walk-Forward Validation:  16%|█▌        | 24/148 [00:03<00:24,  5.15it/s]
-Walk-Forward Validation:  17%|█▋        | 25/148 [00:03<00:22,  5.49it/s]
-Walk-Forward Validation:  18%|█▊        | 26/148 [00:03<00:22,  5.37it/s]
-Walk-Forward Validation:  18%|█▊        | 27/148 [00:03<00:19,  6.11it/s]
-Walk-Forward Validation:  19%|█▉        | 28/148 [00:03<00:17,  6.75it/s]
-Walk-Forward Validation:  20%|█▉        | 29/148 [00:04<00:16,  7.30it/s]
-Walk-Forward Validation:  20%|██        | 30/148 [00:04<00:17,  6.56it/s]
-Walk-Forward Validation:  21%|██        | 31/148 [00:04<00:18,  6.50it/s]
-Walk-Forward Validation:  22%|██▏       | 32/148 [00:04<00:16,  6.96it/s]
-Walk-Forward Validation:  22%|██▏       | 33/148 [00:04<00:15,  7.54it/s]
-Walk-Forward Validation:  23%|██▎       | 34/148 [00:04<00:14,  7.62it/s]
-Walk-Forward Validation:  24%|██▎       | 35/148 [00:04<00:16,  7.02it/s]
-Walk-Forward Validation:  24%|██▍       | 36/148 [00:05<00:18,  6.12it/s]
-Walk-Forward Validation:  25%|██▌       | 37/148 [00:05<00:19,  5.63it/s]
-Walk-Forward Validation:  26%|██▌       | 38/148 [00:05<00:21,  5.14it/s]
-Walk-Forward Validation:  26%|██▋       | 39/148 [00:05<00:19,  5.73it/s]
-Walk-Forward Validation:  27%|██▋       | 40/148 [00:05<00:17,  6.33it/s]
-Walk-Forward Validation:  28%|██▊       | 41/148 [00:05<00:15,  6.92it/s]
-Walk-Forward Validation:  28%|██▊       | 42/148 [00:06<00:16,  6.61it/s]
-Walk-Forward Validation:  29%|██▉       | 43/148 [00:06<00:16,  6.35it/s]
-Walk-Forward Validation:  30%|██▉       | 44/148 [00:06<00:15,  6.61it/s]
-Walk-Forward Validation:  30%|███       | 45/148 [00:06<00:14,  7.04it/s]
-Walk-Forward Validation:  31%|███       | 46/148 [00:06<00:13,  7.45it/s]
-Walk-Forward Validation:  32%|███▏      | 47/148 [00:06<00:13,  7.75it/s]
-Walk-Forward Validation:  32%|███▏      | 48/148 [00:06<00:12,  7.99it/s]
-Walk-Forward Validation:  34%|███▍      | 50/148 [00:07<00:11,  8.45it/s]
-Walk-Forward Validation:  34%|███▍      | 51/148 [00:07<00:11,  8.67it/s]
-Walk-Forward Validation:  35%|███▌      | 52/148 [00:07<00:11,  8.00it/s]
-Walk-Forward Validation:  36%|███▌      | 53/148 [00:07<00:13,  6.93it/s]
-Walk-Forward Validation:  37%|███▋      | 55/148 [00:07<00:11,  7.93it/s]
-Walk-Forward Validation:  39%|███▊      | 57/148 [00:08<00:12,  7.54it/s]
-Walk-Forward Validation:  39%|███▉      | 58/148 [00:08<00:11,  7.91it/s]
-Walk-Forward Validation:  40%|███▉      | 59/148 [00:08<00:11,  7.70it/s]
-Walk-Forward Validation:  41%|████      | 61/148 [00:08<00:11,  7.36it/s]
-Walk-Forward Validation:  42%|████▏     | 62/148 [00:08<00:12,  6.92it/s]
-Walk-Forward Validation:  43%|████▎     | 64/148 [00:08<00:09,  8.46it/s]
-Walk-Forward Validation:  44%|████▍     | 65/148 [00:09<00:09,  8.75it/s]
-Walk-Forward Validation:  45%|████▌     | 67/148 [00:09<00:08,  9.19it/s]
-Walk-Forward Validation:  46%|████▌     | 68/148 [00:09<00:09,  8.51it/s]
-Walk-Forward Validation:  47%|████▋     | 70/148 [00:09<00:09,  8.42it/s]
-Walk-Forward Validation:  48%|████▊     | 71/148 [00:09<00:10,  7.61it/s]
-Walk-Forward Validation:  49%|████▊     | 72/148 [00:10<00:11,  6.62it/s]
-Walk-Forward Validation:  49%|████▉     | 73/148 [00:10<00:12,  6.21it/s]
-Walk-Forward Validation:  50%|█████     | 74/148 [00:10<00:12,  5.86it/s]
-Walk-Forward Validation:  51%|█████     | 75/148 [00:10<00:12,  5.96it/s]
-Walk-Forward Validation:  51%|█████▏    | 76/148 [00:10<00:13,  5.47it/s]
-Walk-Forward Validation:  52%|█████▏    | 77/148 [00:10<00:11,  6.07it/s]
-Walk-Forward Validation:  53%|█████▎    | 78/148 [00:11<00:10,  6.64it/s]
-Walk-Forward Validation:  53%|█████▎    | 79/148 [00:11<00:11,  6.14it/s]
-Walk-Forward Validation:  54%|█████▍    | 80/148 [00:11<00:11,  6.16it/s]
-Walk-Forward Validation:  55%|█████▍    | 81/148 [00:11<00:10,  6.18it/s]
-Walk-Forward Validation:  55%|█████▌    | 82/148 [00:11<00:09,  6.74it/s]
-Walk-Forward Validation:  56%|█████▌    | 83/148 [00:11<00:09,  6.51it/s]
-Walk-Forward Validation:  57%|█████▋    | 85/148 [00:12<00:07,  7.93it/s]
-Walk-Forward Validation:  58%|█████▊    | 86/148 [00:12<00:07,  7.96it/s]
-Walk-Forward Validation:  59%|█████▉    | 87/148 [00:12<00:07,  8.25it/s]
-Walk-Forward Validation:  60%|██████    | 89/148 [00:12<00:06,  9.70it/s]
-Walk-Forward Validation:  61%|██████    | 90/148 [00:12<00:05,  9.67it/s]
-Walk-Forward Validation:  61%|██████▏   | 91/148 [00:12<00:05,  9.67it/s]
-Walk-Forward Validation:  62%|██████▏   | 92/148 [00:12<00:06,  8.07it/s]
-Walk-Forward Validation:  63%|██████▎   | 93/148 [00:13<00:10,  5.46it/s]
-Walk-Forward Validation:  64%|██████▎   | 94/148 [00:13<00:11,  4.71it/s]
-Walk-Forward Validation:  64%|██████▍   | 95/148 [00:13<00:16,  3.31it/s]
-Walk-Forward Validation:  65%|██████▍   | 96/148 [00:14<00:13,  3.88it/s]
-Walk-Forward Validation:  66%|██████▌   | 97/148 [00:14<00:12,  4.10it/s]
-Walk-Forward Validation:  67%|██████▋   | 99/148 [00:14<00:08,  5.63it/s]
-Walk-Forward Validation:  68%|██████▊   | 100/148 [00:14<00:08,  5.90it/s]
-Walk-Forward Validation:  68%|██████▊   | 101/148 [00:14<00:08,  5.48it/s]
-Walk-Forward Validation:  69%|██████▉   | 102/148 [00:15<00:10,  4.30it/s]
-Walk-Forward Validation:  70%|██████▉   | 103/148 [00:15<00:12,  3.67it/s]
-Walk-Forward Validation:  70%|███████   | 104/148 [00:16<00:13,  3.35it/s]
-Walk-Forward Validation:  71%|███████   | 105/148 [00:16<00:14,  2.94it/s]
-Walk-Forward Validation:  72%|███████▏  | 106/148 [00:16<00:13,  3.21it/s]
-Walk-Forward Validation:  72%|███████▏  | 107/148 [00:16<00:10,  3.74it/s]
-Walk-Forward Validation:  73%|███████▎  | 108/148 [00:16<00:09,  4.37it/s]
-Walk-Forward Validation:  74%|███████▎  | 109/148 [00:17<00:08,  4.52it/s]
-Walk-Forward Validation:  74%|███████▍  | 110/148 [00:17<00:09,  3.89it/s]
-Walk-Forward Validation:  75%|███████▌  | 111/148 [00:17<00:11,  3.20it/s]
-Walk-Forward Validation:  76%|███████▌  | 112/148 [00:18<00:11,  3.21it/s]
-Walk-Forward Validation:  77%|███████▋  | 114/148 [00:18<00:07,  4.40it/s]
-Walk-Forward Validation:  78%|███████▊  | 115/148 [00:18<00:07,  4.29it/s]
-Walk-Forward Validation:  78%|███████▊  | 116/148 [00:18<00:07,  4.51it/s]
-Walk-Forward Validation:  79%|███████▉  | 117/148 [00:19<00:06,  4.64it/s]
-Walk-Forward Validation:  80%|███████▉  | 118/148 [00:19<00:05,  5.39it/s]
-Walk-Forward Validation:  80%|████████  | 119/148 [00:19<00:04,  5.81it/s]
-Walk-Forward Validation:  81%|████████  | 120/148 [00:19<00:04,  6.36it/s]
-Walk-Forward Validation:  82%|████████▏ | 121/148 [00:19<00:04,  5.53it/s]
-Walk-Forward Validation:  82%|████████▏ | 122/148 [00:20<00:06,  3.88it/s]
-Walk-Forward Validation:  83%|████████▎ | 123/148 [00:20<00:09,  2.62it/s]
-Walk-Forward Validation:  84%|████████▍ | 124/148 [00:21<00:09,  2.57it/s]
-Walk-Forward Validation:  84%|████████▍ | 125/148 [00:21<00:07,  3.02it/s]
-Walk-Forward Validation:  85%|████████▌ | 126/148 [00:21<00:06,  3.24it/s]
-Walk-Forward Validation:  86%|████████▌ | 127/148 [00:21<00:06,  3.50it/s]
-Walk-Forward Validation:  86%|████████▋ | 128/148 [00:22<00:05,  3.50it/s]
-Walk-Forward Validation:  88%|████████▊ | 130/148 [00:22<00:03,  5.58it/s]
-Walk-Forward Validation:  89%|████████▊ | 131/148 [00:22<00:02,  6.19it/s]
-Walk-Forward Validation:  90%|████████▉ | 133/148 [00:22<00:01,  7.80it/s]
-Walk-Forward Validation:  91%|█████████ | 135/148 [00:22<00:01,  9.20it/s]
-Walk-Forward Validation:  93%|█████████▎| 137/148 [00:23<00:01,  6.21it/s]
-Walk-Forward Validation:  93%|█████████▎| 138/148 [00:23<00:01,  6.24it/s]
-Walk-Forward Validation:  94%|█████████▍| 139/148 [00:23<00:01,  6.15it/s]
-Walk-Forward Validation:  95%|█████████▍| 140/148 [00:23<00:01,  5.97it/s]
-Walk-Forward Validation:  95%|█████████▌| 141/148 [00:24<00:01,  5.97it/s]
-Walk-Forward Validation:  96%|█████████▌| 142/148 [00:24<00:00,  6.14it/s]
-Walk-Forward Validation:  97%|█████████▋| 143/148 [00:24<00:00,  6.14it/s]
-Walk-Forward Validation:  98%|█████████▊| 145/148 [00:24<00:00,  7.90it/s]
-Walk-Forward Validation:  99%|█████████▊| 146/148 [00:24<00:00,  8.26it/s]
-Walk-Forward Validation: 100%|██████████| 148/148 [00:24<00:00,  8.46it/s]
-Walk-Forward Validation: 100%|██████████| 148/148 [00:24<00:00,  5.96it/s]
-2025-04-24 17:51:26,213 - INFO - Job completed: model=arima, symbol=AAPL
-2025-04-24 17:52:18,254 - INFO - Job stdout: model=xgboost, symbol=AAPL
-Training with date range: 2022-04-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): AAPL
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: AAPL ---
-Best parameters: {'colsample_bytree': 1.0, 'learning_rate': 0.2, 'max_depth': 3, 'n_estimators': 300, 'subsample': 1.0}
-
-Regression Metrics:
-  Mean Squared Error (MSE): 151.1644
-  Root Mean Squared Error (RMSE): 12.2949
-  Mean Absolute Error (MAE): 9.3773
-  MAPE: 4.02%
-  R-squared (R2): 0.4315
-
-Classification Metrics:
-  Accuracy: 0.5556
-  Confusion Matrix:
- [[38 22]
- [34 32]]
-  Classification Report:
-               precision    recall  f1-score   support
-
-           0       0.53      0.63      0.58        60
-           1       0.59      0.48      0.53        66
-
-    accuracy                           0.56       126
-   macro avg       0.56      0.56      0.55       126
-weighted avg       0.56      0.56      0.55       126
-
-
-XGBoost Feature Importance (Top 10):
-  Low: 0.5447
-  Close: 0.1963
-  High: 0.1592
-  Close_Lag_5: 0.0430
-  Open: 0.0339
-  Close_Lag_1: 0.0066
-  Close_Lag_11: 0.0020
-  Close_Lag_8: 0.0013
-  Close_Lag_3: 0.0012
-  Close_Lag_6: 0.0010
-Evaluation results for AAPL stored in MongoDB.
-Trained XGBoost model saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/xgboost-20250424-175215/model.pkl
-Close scaler saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/xgboost-20250424-175215/close_scaler.pkl
-Other features scaler saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/xgboost-20250424-175215/other_scaler.pkl
-Target scaler saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/xgboost-20250424-175215/target_scaler.pkl
-Selected features saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/xgboost-20250424-175215/selected_features.pkl
+--- Processing Stock: AACG ---
+An error occurred for AACG: name 'SelectKBest' is not defined. Skipping stock.
 
 --- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 17:52:18,254 - WARNING - Job stderr: model=xgboost, symbol=AAPL
-/home/skylap/Downloads/stockmarketprediction/train-model/train-xgboost.py:149: FutureWarning: Setting an item of incompatible dtype is deprecated and will raise in a future error of pandas. Value '[ 1.98676236e+00  1.05621750e+00  9.29740333e-01  1.45444052e+00
-  4.20233626e-02  1.46455541e-01  9.78776639e-01  5.79491804e-01
-  5.32273057e-01  1.04096285e+00  1.83395893e+00  3.93424847e+00
-  1.40934540e+00  7.45656750e-01  1.24540234e+00  1.40841206e+00
-  3.02933838e+00  8.58840418e-01  1.10573748e+00  5.39282562e-01
-  2.19950367e+00  1.25957628e+00  4.80950633e-01  1.10421844e+00
-  1.34979602e-01  7.46038399e-01  5.35949741e-01 -7.26302232e-02
- -3.34116880e-01 -8.86028258e-02 -9.61692414e-01  3.24961750e-01
-  8.73547153e-01  1.91711697e+00  4.00702192e-01  1.81423713e-01
-  3.09106287e-01  1.54209452e-01  3.42914396e-01  5.60045856e-02
-  5.83841098e-01  3.70937301e-01  1.25604318e+00  8.17901885e-01
-  1.44670550e+00  3.76022003e+00  7.15929647e-01  6.34317091e-01
-  9.55325971e-01  6.50161218e-01  1.19736290e-01  3.15960865e-01
-  9.36825412e-01  5.68979436e-01  6.19255158e-01  1.94495094e+00
-  1.07570052e+00  7.67701737e-01  1.02435165e+00  3.83335245e-01
-  1.22808381e-01  3.33006621e-01  4.05584283e-01 -1.07182738e-01
-  1.13376723e-01  3.41089280e-01 -8.93963547e-02  7.39773300e-01
-  7.97840720e-01  2.18746021e-01  1.94720990e-01 -2.47168788e-01
-  3.74455279e-01  1.27308823e-01  1.97562579e-01  6.43038352e-01
-  2.18004332e+00  3.54107003e+00  3.48098785e-01  8.56875489e-01
-  1.31268910e-01 -1.75297744e-01 -1.20748303e-01  5.86761328e-02
-  4.01075572e-02  1.86200001e-01  2.84223489e-01 -5.67596458e-02
- -6.72228908e-02 -3.64074484e-01 -4.62967075e-01 -1.95608305e-01
- -5.91280694e-01 -3.81619030e-01 -1.95253106e-01 -3.17717283e-01
-  3.81124701e-01  1.01691893e+00 -1.68688783e-01 -5.07911039e-01
- -2.57427983e-01  2.99508367e-01  8.99744942e-01  4.93110518e-01
-  6.24307292e-01  5.86263250e-01  1.44718540e+00  4.91051122e-01
-  5.02270108e-01  5.68907640e-01  2.63599296e-01 -5.47796023e-02
- -3.11966088e-01 -5.53731664e-01 -3.52949965e-01 -4.21117874e-01
-  3.06211796e-01 -1.38678276e-01 -5.42920777e-01 -3.45165825e-01
- -5.76483270e-01 -4.88560271e-01 -4.91307392e-01 -3.97259106e-01
-  2.94716964e-01 -4.25470947e-01 -7.22866675e-01 -4.05198174e-01
- -4.88435573e-01 -3.09468362e-01 -8.72462693e-02 -7.06489750e-01
- -4.50878986e-01 -5.72375813e-01  1.60825971e-01 -2.05448063e-01
- -3.08844875e-01 -4.61776782e-01  1.69656814e-01  7.78006277e-01
-  1.99025388e+00 -1.76971713e-01 -5.78871414e-01 -2.61550554e-01
- -4.20626642e-01 -5.72413600e-01 -8.83442910e-01 -7.00417365e-01
- -1.01820750e-01  1.83286617e-01 -1.84166374e-01 -6.45225542e-01
- -3.74050276e-01 -5.85801566e-01 -1.73363045e-01 -2.19587992e-01
- -1.76911253e-01  1.47290707e+00  3.11955434e-01  4.91122206e-02
-  2.31636024e+00  1.58789247e-01  4.90630973e-02 -3.94168122e-01
- -4.44961527e-01 -2.40752540e-01 -2.16032227e-01 -1.20287300e-01
-  1.80887137e-01  1.53375562e+00 -4.09879994e-01 -4.20588855e-01
- -3.55232306e-01 -2.85930784e-01 -4.74511031e-01 -3.74673763e-01
- -3.56309238e-01 -5.40313468e-01  9.22889534e-01 -1.10292922e+00
- -5.18661466e-01 -5.87660691e-01 -5.24038569e-01 -2.73575117e-02
- -5.29324983e-01  3.93019807e-03 -7.29437849e-01 -7.20686360e-01
- -3.82631724e-01 -4.64493674e-01  7.50493497e-01 -4.02429091e-02
-  4.25921295e-01 -5.76948051e-01 -8.82819423e-01 -4.97818108e-01
- -4.98260217e-01 -4.66851588e-01 -8.24593297e-01 -9.62478386e-01
- -3.87578054e-01  2.22569363e-02  2.08409056e+00  1.39547376e+00
-  2.71190722e-01 -1.01152630e-02 -2.25184260e-01 -3.27164056e-01
- -6.41269234e-01 -6.43271950e-01 -5.16976162e-01  2.04681667e-01
-  1.76846985e-02 -5.41651131e-01 -7.01403608e-01 -2.99401881e-01
- -2.15401182e-01 -3.47512403e-01 -6.35786328e-01 -2.88779931e-01
-  6.33723565e-03  5.60416612e-03 -5.63541192e-01 -5.80643628e-01
-  7.97670678e-01  1.95898129e+00  1.85349792e-01 -6.39769798e-02
-  1.12318378e+00  8.92595624e-01  9.43199825e-03  1.83489982e+00
-  2.49825902e-01 -3.33255334e-01 -8.35091262e-02  9.07535928e-02
- -1.48155278e-01 -5.46911094e-01  1.48983497e-01  2.37136997e-01
- -1.64441514e-01 -3.33735231e-01 -3.20498413e-01 -4.17607454e-01
- -2.88160222e-01 -4.57914942e-01 -1.29310857e-01 -6.89818086e-01
- -6.40422803e-01 -4.94825370e-01 -1.47486447e-01 -3.48362613e-01
- -3.07178464e-01 -1.17018717e-01 -2.22255760e-01 -5.07590560e-02
-  1.33883776e-01 -1.76317996e-01 -6.35941255e-01 -1.31846371e-01
-  3.77081482e-01 -8.11323183e-02 -3.59551370e-01 -5.97043225e-01
- -1.40238883e-01  6.30613957e-01  7.22395018e-01  1.20733869e-01
-  3.73480372e-01 -4.27216710e-01 -2.60076858e-01  2.07345656e-01
- -6.43086793e-01 -2.03215557e-02 -2.59056606e-01 -2.35537922e-01
- -3.67422421e-01 -5.34350666e-01 -8.50651274e-01 -7.94605463e-01
- -1.38292777e+00 -7.59278314e-01 -8.40036881e-01 -6.66261615e-01
- -4.47844682e-01 -5.65555244e-01 -6.52080120e-01  2.26050265e-01
- -7.38982868e-01 -4.97598943e-01 -2.74670231e-01  1.12419998e-02
- -3.00380567e-01  3.68726757e-01  2.33728602e-01  2.55480433e+00
- -1.84941010e-01 -7.53175699e-01 -3.17539684e-01 -5.35204654e-01
- -8.88880472e-01 -1.19886686e+00 -4.74548818e-01 -1.00499642e+00
- -6.80824759e-01  8.25364835e-01 -8.43291060e-02  4.28407685e-01
-  6.26173262e-02 -5.67445310e-02 -6.72776109e-01 -5.23475541e-01
- -4.35223795e-01 -7.63355541e-01  1.87303384e-01 -5.03656213e-01
-  6.55969094e-01  3.05879270e-01 -1.93579850e-02 -6.91148192e-01
- -2.65072311e-01 -2.20075445e-01 -6.06565572e-01 -5.10148035e-01
- -1.80878898e-01 -1.95676322e-01  1.60187369e-01  1.58221378e+00
-  3.40938131e-01 -6.48252288e-01 -2.72338768e-01 -7.43808279e-01
- -5.85359457e-01 -7.12826645e-01 -1.55557769e-01 -2.27315451e-01
-  1.80936260e-01 -4.13571792e-01 -2.63776214e-01 -7.22356549e-01
- -3.15673002e-01 -5.86700899e-01 -7.47382938e-01 -2.39089908e-01
- -4.41817642e-01  2.87319457e+00  4.85254582e-01  7.88386390e-01
-  1.30313345e+00  3.00086509e-01  4.20151206e-01  5.84506151e-01
- -1.91463773e-02 -3.10153020e-02 -3.08247839e-01  4.63545899e-01
-  2.30571184e+00  5.65219620e-01 -2.05221340e-01 -2.72939583e-01
-  1.72063922e+00  3.95268408e-01 -2.40246193e-01 -1.23102438e-01
- -1.40904647e-02  1.89937144e-01 -5.44349129e-01 -4.27624811e-01
- -4.89512506e-01 -2.62310075e-01 -7.02499434e-01 -8.77442320e-01
- -6.87535746e-01 -4.13273274e-01  1.14963852e+00  1.54727206e+00
-  4.86909657e-01  4.93688660e-01 -3.68234843e-01 -6.62154158e-01
-  2.69267359e-01 -4.73464329e-01 -4.19753760e-01 -4.68347957e-01
- -3.81192036e-01 -5.97330407e-01  2.84280170e-01  1.99841140e-01
- -3.87812334e-01  1.26846380e+00  3.87612059e+00  6.77277233e-01
-  6.29518131e-01 -5.89066371e-01 -4.40718037e-01 -3.73589273e-01
-  4.30720255e-01 -3.11841391e-01  3.68568051e-01 -2.94776742e-01
- -7.31682402e-01 -6.15358627e-01 -6.92893955e-01 -9.82377067e-01
- -3.64278535e-01 -9.20175739e-01 -3.16130226e-01 -2.86357778e-01
- -4.04257275e-01  5.48370357e-01 -3.99246707e-01 -4.97837001e-01
- -2.45215195e-01 -7.35502677e-01 -2.85001222e-01  1.38360862e+00
-  4.22184223e+00  5.19527543e+00  1.40630354e+00  3.58089691e-01
-  1.25007660e+00  7.29181579e-01  9.64564914e-01  7.01990438e+00
-  7.58795321e-01 -1.48589830e-01  2.10361066e-01 -4.10877573e-01
-  8.27405338e-01 -9.19325799e-03 -9.82460910e-02 -8.79547061e-01
- -8.83428064e-03 -5.89588544e-02 -4.74987148e-01  7.48754579e-02
-  1.53582186e-01 -2.87170201e-01  7.50114915e-02 -6.57944677e-01
- -1.24708390e-01  2.03612292e-01 -4.34350913e-01 -4.70237311e-01
- -7.81659607e-01  4.27526535e-02 -3.49719169e-01 -7.19650993e-01
- -9.19525801e-01 -7.18045042e-01 -4.00916896e-01  7.00878337e-02
-  1.69748707e+00  2.22575058e+00  3.40624498e-01  1.08456844e-01
- -5.09562335e-01 -6.96967404e-01 -8.54671820e-01 -6.23142768e-01
- -7.06074092e-01 -5.37793069e-01 -6.16155935e-01 -7.54169499e-01
- -1.14673201e+00 -9.77955977e-01 -6.40524829e-01 -8.30140442e-01
- -1.13527497e+00 -9.33779091e-01 -8.53761151e-01 -3.30255040e-01
- -2.89274941e-01 -3.95086348e-01 -6.35049479e-01 -9.08053641e-01
- -4.61878807e-01  2.46893624e-01 -3.42169309e-01 -6.06826302e-01
- -8.74695199e-01 -9.02340233e-01 -4.86996597e-02 -5.71601178e-01
- -2.83890993e-02  2.31827911e-01  9.75034277e+00 -2.45623296e-01
- -6.45784791e-01 -6.92920406e-01 -9.07248776e-01 -1.00589953e+00
- -2.30663387e-01  9.97129116e-02 -1.04918086e+00 -1.00521180e+00
- -8.84259111e-01 -7.98848953e-01 -1.08790885e+00 -1.02233313e+00
- -1.22667060e+00 -1.09155530e+00 -7.84614557e-01  1.55123899e-01
- -1.00377590e+00 -1.04490336e+00 -5.37131795e-01 -9.21691002e-01
- -8.23743088e-01 -3.15869495e-01 -1.11610558e+00 -8.25417056e-01
- -9.28016560e-01 -9.53330131e-01 -5.12970730e-01  1.40715682e-01
-  1.74973457e-01 -5.93321197e-01 -1.22939883e+00 -2.29937875e-01
- -6.99381999e-01 -8.43309242e-01 -7.04373673e-01 -7.65108862e-01
- -4.56467696e-01 -5.94099611e-01 -4.80745901e-01 -6.03089159e-01
- -9.23304510e-01 -9.62686215e-01 -7.00492939e-01 -8.49374070e-01
-  1.11496887e+00 -5.53958386e-01 -1.02583600e+00 -1.21541382e+00
- -4.72682136e-01 -8.23198954e-01 -6.14504639e-01 -7.78878477e-01
- -8.98410376e-01 -6.04479724e-01 -8.96740187e-01 -5.83447430e-01
- -1.05307671e+00 -1.03880075e+00 -3.38247009e-01 -3.51034160e-01
- -1.46315047e-01  8.92187255e-03  3.28177502e+00 -7.47707907e-01
- -1.41367134e+00 -1.26243230e+00 -6.91159528e-01 -9.48028603e-01
- -7.99782295e-01 -1.85364225e-01 -7.70935631e-01 -5.89500922e-01
- -7.47813711e-01 -8.69756426e-01  4.02322546e-02 -4.16243340e-01
- -8.01497828e-01 -7.86507690e-01  4.19924484e-01  2.96330473e-01
-  1.41415192e+00  1.31510747e-01 -1.55452677e-02 -2.24768602e-01
-  1.29296873e+00  5.69126805e-01 -5.72855709e-01 -1.88477881e-01
-  1.52769079e+00  4.69206405e-01 -5.88680942e-01 -7.94507217e-01
- -1.16085305e+00 -7.91223519e-01 -1.04030090e+00 -2.61781055e-01
- -5.82030415e-01 -2.65722249e-01 -7.46294670e-01 -4.46782865e-01
- -1.07474005e+00 -1.07048144e+00 -2.81468129e-01 -3.52167773e-01
- -4.77360178e-01 -6.12626621e-01 -7.36568273e-01 -1.44074273e-01
- -5.08697011e-01 -2.58769424e-01 -5.07049494e-01 -5.84785093e-01
- -5.43098377e-01  4.31717834e-01  5.85367696e-01  7.18449334e-02
-  2.72863979e-02 -2.03517854e-02 -4.75089174e-01 -6.88246143e-01
- -2.36577067e-01 -4.45256267e-01  1.26517254e+00 -6.17693869e-01
- -9.88230287e-01 -9.89269432e-01 -8.89938510e-01 -7.87014037e-01
-  1.75827445e-01 -9.15713084e-01 -9.34863581e-01  1.61625995e+00
-  2.46616338e+00  3.77191136e+00  2.27528568e+00  4.67614129e+00
-  2.31384740e+00  1.01230512e+00  1.53818804e+00 -3.51506499e-01
- -3.45295013e-02 -3.51869255e-01 -5.25380011e-01 -3.01767353e-01]' has dtype incompatible with int64, please explicitly cast to a compatible dtype first.
+2025-04-24 19:35:49,627 - WARNING - Job stderr: model=xgboost, symbol=AACG
+/home/skylap/Downloads/stockmarketprediction/train-model/train-xgboost.py:193: FutureWarning: Setting an item of incompatible dtype is deprecated and will raise in a future error of pandas. Value '[-5.12249665e-01 -4.03542103e-01 -4.45352704e-01 -5.28973905e-01
+ -5.03887545e-01 -4.36990584e-01 -1.46406909e-01 -1.58950089e-01
+ -2.90653481e-01 -4.64167474e-01 -3.97270513e-01 -2.38390231e-01
+ -4.16085283e-01 -3.95179983e-01 -8.99625982e-02 -4.41171644e-01
+ -3.76365213e-01 -4.05632633e-01 -2.65567121e-01  1.88077896e-01
+ -3.97270513e-01 -2.34209171e-01 -3.03196662e-01 -2.69748181e-01
+ -3.68003093e-01 -3.15739842e-01  1.28142510e+00  3.07091881e+00
+  6.10364963e-01 -2.13303870e-01 -7.74194180e-02  6.62628214e-01
+ -2.72466972e-02 -3.59640973e-01 -3.72184153e-01 -2.71838711e-01
+ -4.20266343e-01  1.29967554e+01  7.52583831e+00  8.08965316e-01
+  1.13299747e+00  2.52884327e-01  1.24733734e-02  3.03057048e-01
+ -3.97898774e-02 -2.11213340e-01 -2.13303870e-01 -3.13649312e-01
+ -4.24447404e-01 -4.26537934e-01 -1.69402739e-01 -3.55459912e-01
+ -3.36645142e-01 -3.19920902e-01 -4.24447404e-01 -4.07723163e-01
+ -1.88217510e-01 -6.06951778e-02 -3.95179983e-01 -3.59640973e-01
+ -3.34554612e-01 -1.75674330e-01 -3.59640973e-01 -2.69748181e-01
+ -2.76019771e-01 -1.25501609e-01 -2.90653481e-01 -3.30373552e-01
+ -4.66258004e-01 -5.10159135e-01 -4.16085283e-01 -4.18175813e-01
+ -4.05632633e-01 -4.45352704e-01 -4.59986414e-01 -2.99015602e-01
+ -9.41436583e-02  1.02428991e+00 -2.84381891e-01 -3.95179983e-01
+ -4.13994753e-01 -3.61731503e-01 -3.72184153e-01 -4.41171644e-01
+ -2.34209171e-01 -1.47035170e-02 -3.26192492e-01 -2.38390231e-01
+  1.98530546e-01 -2.72466972e-02  4.11125326e-03 -3.38735672e-01
+ -3.51278852e-01  2.82151748e-01 -2.78110301e-01 -3.07377722e-01
+ -1.86126980e-01 -3.47097792e-01 -4.51624294e-01 -2.32118640e-01
+ -3.03196662e-01 -2.71838711e-01 -3.53369382e-01  2.40341147e-01
+  1.23271465e-01 -3.24101962e-01 -1.88217510e-01 -2.34209171e-01
+ -2.63476591e-01 -3.84727333e-01 -3.40826202e-01 -3.42916732e-01
+ -4.95525425e-01 -4.01451573e-01 -4.78801184e-01 -4.55805354e-01
+ -4.41171644e-01 -4.95525425e-01 -1.77764860e-01 -4.95525425e-01
+ -4.26537934e-01 -4.64167474e-01 -3.68003093e-01 -4.74620124e-01
+ -4.49533764e-01 -1.65221679e-01 -7.74194180e-02 -4.55805354e-01
+ -4.97615955e-01 -3.97270513e-01 -3.72184153e-01 -4.78801184e-01
+ -4.09813693e-01 -2.94834541e-01 -2.02851220e-01 -3.95179983e-01
+ -4.45352704e-01 -4.18175813e-01 -1.86126980e-01 -4.78801184e-01
+ -3.63822033e-01 -4.72529594e-01 -4.80891714e-01 -4.43262174e-01
+ -5.23330576e-02  1.10728285e-01 -3.80546273e-01 -3.49188322e-01
+ -4.09813693e-01 -2.34209171e-01 -4.05632633e-01 -3.70093623e-01
+ -3.59640973e-01 -3.17830372e-01 -5.05978075e-01 -3.45007262e-01
+ -3.78455743e-01 -5.18521255e-01 -4.99706485e-01 -4.47443234e-01
+ -4.11904223e-01 -4.95525425e-01 -4.80891714e-01 -4.82982244e-01
+ -5.20611785e-01 -4.91344365e-01 -3.17830372e-01 -3.34554612e-01
+ -5.31064435e-01 -5.20611785e-01 -4.30718994e-01 -5.14340195e-01
+ -4.51624294e-01 -5.20611785e-01 -4.87163305e-01 -5.12249665e-01
+ -5.28973905e-01 -4.72529594e-01 -4.49533764e-01 -4.62076944e-01
+ -5.22702315e-01 -5.10159135e-01 -4.87163305e-01 -4.39081114e-01
+ -4.18175813e-01 -4.95525425e-01 -4.62076944e-01 -5.12249665e-01
+ -3.99361043e-01 -4.85072774e-01 -4.78801184e-01 -3.68003093e-01
+ -5.10159135e-01 -4.93434895e-01 -4.74620124e-01 -5.10159135e-01
+ -4.99706485e-01 -5.16430725e-01 -3.93089453e-01 -4.95525425e-01
+ -4.32809524e-01 -3.24101962e-01 -4.05632633e-01 -4.93434895e-01
+ -4.11904223e-01 -4.34900054e-01 -3.40826202e-01 -4.78801184e-01
+ -5.01797015e-01  1.73444186e-01 -3.15739842e-01 -4.28628464e-01
+ -3.65912563e-01 -4.22356873e-01 -4.34900054e-01 -4.57895884e-01
+ -4.93434895e-01 -4.82982244e-01 -5.22702315e-01 -4.89253835e-01
+ -4.91344365e-01 -4.64167474e-01 -4.57895884e-01 -4.51624294e-01
+ -4.62076944e-01 -3.95179983e-01 -3.38735672e-01 -4.45352704e-01
+ -1.40135319e-01 -4.89253835e-01 -1.04596308e-01 -3.93089453e-01
+ -4.91344365e-01 -3.86817863e-01 -1.08777369e-01 -4.03542103e-01
+  8.29231333e-03 -7.95099481e-02 -1.12958429e-01 -2.71838711e-01
+ -4.82982244e-01 -3.95179983e-01  1.58246143e+00  2.08209811e+00
+  1.65082066e-01 -2.21665990e-01 -4.89253835e-01 -4.24447404e-01
+ -2.53023941e-01 -1.73583800e-01 -5.12249665e-01 -2.94834541e-01
+  6.16636553e-01 -4.59986414e-01 -3.24101962e-01 -1.42225849e-01
+ -4.85072774e-01 -4.93434895e-01 -1.63131149e-01 -4.78801184e-01
+ -4.11904223e-01 -9.62341883e-02 -3.90998923e-01 -4.53714824e-01
+ -3.82636803e-01 -5.10159135e-01 -2.76019771e-01 -4.03542103e-01
+ -4.97615955e-01 -3.28283022e-01  7.62973655e-01 -2.25847050e-01
+ -5.44235877e-02 -5.44235877e-02 -2.23756520e-01  8.00603196e-01
+  8.84224397e-01  2.67518037e-01 -3.49188322e-01 -4.07723163e-01
+ -5.12249665e-01 -3.72184153e-01 -1.50587969e-01 -4.20266343e-01
+ -3.65912563e-01  8.25689556e-01  1.84795874e+00  9.00948637e-01
+ -2.13303870e-01  6.04093373e-01  2.54974857e-01 -5.44235877e-02
+ -1.12958429e-01 -2.11213340e-01 -4.25086687e-03 -5.44235877e-02
+  9.95022489e-01  3.95040369e-01  9.95022489e-01  6.35451323e-01
+  9.88750899e-01  1.08073422e+00 -4.49533764e-01 -3.88908393e-01
+  6.20817613e-01 -2.82291361e-01 -2.96925072e-01 -3.19920902e-01
+ -2.09122810e-01  1.18944178e+00  4.66118391e-01 -3.03196662e-01
+  8.13146376e-01  1.67172596e-01  8.86314927e-01  2.45630298e+00
+ -1.42225849e-01 -1.56859559e-01 -4.74620124e-01 -1.04596308e-01
+ -3.03196662e-01 -2.78110301e-01 -1.88217510e-01 -4.09813693e-01
+ -2.92744011e-01 -3.61731503e-01 -2.38390231e-01 -3.05287192e-01
+ -3.51278852e-01 -3.22011432e-01 -2.90653481e-01  5.51830122e-01
+ -1.67312209e-01 -3.97270513e-01 -4.80891714e-01 -4.39081114e-01
+  2.69608567e-01 -1.10867899e-01 -3.72184153e-01 -4.03542103e-01
+ -4.74620124e-01 -3.61731503e-01  5.42839741e-02 -4.68348534e-01
+ -3.95179983e-01 -4.16085283e-01  8.98229846e-02 -2.90653481e-01
+ -3.72184153e-01 -4.32809524e-01 -2.19575460e-01 -3.68003093e-01
+  4.59218539e-02 -3.19920902e-01 -3.55459912e-01 -2.53023941e-01
+ -2.94834541e-01 -3.97270513e-01 -4.72529594e-01 -4.70439064e-01
+ -3.30373552e-01 -3.97270513e-01 -3.32464082e-01 -4.43262174e-01
+ -3.19920902e-01 -4.13994753e-01 -1.67940471e-02 -3.26192492e-01
+ -2.94834541e-01 -2.61386061e-01 -3.15739842e-01 -4.20266343e-01
+ -4.22356873e-01 -4.55805354e-01 -4.72529594e-01 -4.18175813e-01
+ -3.93089453e-01 -1.67312209e-01  1.06819104e+00  3.72943577e+00
+  2.61518326e+00  1.05146680e+00  2.67580864e+00 -9.83247184e-02
+ -3.13649312e-01  1.39995705e-01 -2.61386061e-01 -3.42916732e-01
+ -4.16085283e-01 -3.19920902e-01 -4.76710654e-01 -3.70093623e-01
+ -3.76993474e-02 -4.45352704e-01 -4.39081114e-01 -8.16004781e-02
+  4.59218539e-02 -4.20266343e-01 -4.62076944e-01 -4.01451573e-01
+ -2.38390231e-01 -4.95525425e-01 -3.19920902e-01  1.38386108e+00
+  2.76570143e+00 -1.69402739e-01  1.19153231e+00  9.40040447e-02
+  3.72044539e-01  1.98530546e-01 -4.07723163e-01 -4.68348534e-01
+ -2.27937580e-01 -2.80200831e-01 -4.41171644e-01 -4.36990584e-01
+ -3.70093623e-01 -9.20531283e-02 -4.55805354e-01  3.88204446e+00
+  2.36013860e+00  1.77625246e-01 -1.88845771e-02 -2.59295531e-01
+ -3.09468252e-01  7.29525175e-01 -3.74274683e-01  3.45766687e+00
+  1.53019818e+00  7.52521005e-01 -3.97898774e-02  4.11125326e-03
+  1.98530546e-01  1.66190157e+00  7.06529344e-01  4.34760440e-01
+ -1.67940471e-02  2.23616907e-01 -1.73583800e-01  3.28143408e-01
+  3.57410829e-01  1.77269966e+00  2.53156206e+00  6.31270263e-01
+  2.26606475e+00  8.50775917e-01  2.34069557e-01 -5.44235877e-02
+  6.39632383e-01  4.97476341e-01  9.30216058e-01  1.88077896e-01
+  8.75862277e-01  3.29460553e+00  7.93703345e-02 -1.61040619e-01
+  4.03256263e+00  8.13146376e-01  1.81806306e-01  2.61246447e-01
+  3.96502638e-02  1.44030539e+00  1.98530546e-01  2.91976137e-02
+  2.02072323e-03 -1.19230019e-01  9.19135147e-02 -1.56859559e-01
+  3.33786737e-02  2.46612737e-01  1.56719946e-01  5.24653232e-01
+  6.37541853e-01 -2.27937580e-01  1.42567168e+00 -3.14277573e-02
+ -1.86126980e-01 -3.68003093e-01 -1.92398570e-01 -2.99015602e-01
+  2.23616907e-01 -3.36645142e-01 -3.26192492e-01 -4.55805354e-01
+ -3.61731503e-01 -2.82291361e-01 -3.32464082e-01 -2.57205001e-01
+  3.54692038e-02  4.72389981e-01 -2.88562951e-01 -3.65912563e-01
+ -4.74620124e-01  5.33015352e-01  7.93703345e-02  5.45558532e-01
+ -1.63131149e-01 -1.73583800e-01 -6.06951778e-02  1.60901006e-01
+ -1.35954259e-01 -3.35182873e-02 -1.02505778e-01 -2.57205001e-01
+ -2.53023941e-01  1.21870920e+00 -3.09468252e-01 -3.53369382e-01
+ -3.95179983e-01 -3.55459912e-01 -4.82982244e-01  5.91550193e-01
+ -7.74194180e-02 -3.74274683e-01 -1.79855390e-01 -4.24447404e-01
+ -1.90308040e-01 -4.51624294e-01 -2.48842881e-01 -4.81519976e-02
+ -1.44316379e-01 -3.59640973e-01 -1.35954259e-01 -4.01451573e-01
+ -1.86126980e-01 -4.93434895e-01 -5.22702315e-01 -1.19230019e-01
+ -3.99361043e-01 -1.71493270e-01  2.39776814e+00  8.38232736e-01
+  5.23670793e+00  8.50775917e-01 -1.35954259e-01 -3.13649312e-01
+ -5.65141177e-02  6.29869718e+00 -1.06686838e-01  4.39840538e+00
+  3.41167521e+00  8.08965316e-01 -1.26129870e-02 -1.23411079e-01
+ -1.75674330e-01 -5.65141177e-02 -2.55114471e-01 -4.24447404e-01
+ -3.26192492e-01 -3.05287192e-01  3.26052878e-01  5.05838461e-01
+  2.40341147e-01 -2.13303870e-01 -2.09122810e-01 -3.61731503e-01
+ -4.72529594e-01 -1.04596308e-01 -3.74274683e-01 -2.93372273e-02
+ -9.41436583e-02 -2.51561672e-02 -4.05632633e-01 -3.30373552e-01
+ -4.28628464e-01  3.28143408e-01  9.63664538e-01  7.30987444e-02
+  2.82151748e-01]' has dtype incompatible with int64, please explicitly cast to a compatible dtype first.
   X.loc[:, other_features] = other_scaler.fit_transform(X[other_features].astype(np.float64))
-2025-04-24 17:52:18,254 - INFO - Job completed: model=xgboost, symbol=AAPL
-2025-04-24 23:29:40,172 - INFO - Prepared 2 training jobs with 4 max workers
-2025-04-24 23:29:40,177 - INFO - Starting job: model=lstm, symbol=AAPL
-2025-04-24 23:29:40,177 - INFO - Starting job: model=svm, symbol=AAPL
-2025-04-24 23:29:53,942 - INFO - Job stdout: model=lstm, symbol=AAPL
+2025-04-24 19:35:49,627 - INFO - Job completed: model=xgboost, symbol=AACG
+2025-04-24 19:35:49,628 - INFO - Starting job: model=xgboost, symbol=AACT
+2025-04-24 19:35:52,543 - INFO - Job stdout: model=xgboost, symbol=AACT
 Training with date range: 2022-04-24 to 2025-04-24
-LSTM parameters: units=60, dropout=0.2, epochs=75, batch_size=32
-Sequence length=60, short_window=20, long_window=50, lag_days=1
-Training LSTM model for 1 stock(s): AAPL
+Training XGBoost model for 1 stock(s): AACT
+Using look_back=90, num_features=40
+Hyperparameter tuning with: n_estimators=200,300,500, max_depth=4,5,6, learning_rate=0.05,0.1,0.15
 
---- Processing Stock: AAPL ---
-An error occurred while processing AAPL: {{function_node __wrapped__Sign_device_/job:localhost/replica:0/task:0/device:GPU:0}} JIT compilation failed. [Op:Sign] name: 
+--- Processing Stock: AACT ---
+An error occurred for AACT: name 'SelectKBest' is not defined. Skipping stock.
 
---- LSTM Stock Price Prediction and Evaluation Completed for all symbols. ---
-2025-04-24 23:29:53,945 - WARNING - Job stderr: model=lstm, symbol=AAPL
-2025-04-24 23:29:42.809368: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:477] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
-WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
-E0000 00:00:1745517582.911204   22426 cuda_dnn.cc:8310] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
-E0000 00:00:1745517582.942351   22426 cuda_blas.cc:1418] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
-2025-04-24 23:29:43.223508: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
-To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
-I0000 00:00:1745517591.720305   22426 gpu_device.cc:2022] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 2537 MB memory:  -> device: 0, name: NVIDIA GeForce GTX 1650, pci bus id: 0000:01:00.0, compute capability: 7.5
-/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/keras/src/layers/rnn/rnn.py:200: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
-  super().__init__(**kwargs)
-WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
-W0000 00:00:1745517592.116443   22618 gpu_backend_lib.cc:579] Can't find libdevice directory ${CUDA_DIR}/nvvm/libdevice. This may result in compilation or runtime failures, if the program we try to run uses routines from libdevice.
-Searched for CUDA in the following directories:
-  ./cuda_sdk_lib
-  /home/skylap/Downloads/stockmarketprediction/train-model/train-lstm.py.runfiles/cuda_nvcc
-  /home/s/cuda_nvcc
-  
-  /usr/local/cuda
-  /home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/tensorflow/python/platform/../../../nvidia/cuda_nvcc
-  /home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/tensorflow/python/platform/../../../../nvidia/cuda_nvcc
-  /home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/tensorflow/python/platform/../../cuda
-  .
-You can choose the search directory by setting xla_gpu_cuda_data_dir in HloModule's DebugOptions.  For most apps, setting the environment variable XLA_FLAGS=--xla_gpu_cuda_data_dir=/path/to/cuda will work.
-W0000 00:00:1745517592.152827   22615 gpu_kernel_to_blob_pass.cc:190] Failed to compile generated PTX with ptxas. Falling back to compilation by driver.
-W0000 00:00:1745517592.154839   22620 gpu_kernel_to_blob_pass.cc:190] Failed to compile generated PTX with ptxas. Falling back to compilation by driver.
-W0000 00:00:1745517592.156931   22614 gpu_kernel_to_blob_pass.cc:190] Failed to compile generated PTX with ptxas. Falling back to compilation by driver.
-W0000 00:00:1745517592.158907   22617 gpu_kernel_to_blob_pass.cc:190] Failed to compile generated PTX with ptxas. Falling back to compilation by driver.
-W0000 00:00:1745517592.161480   22619 gpu_kernel_to_blob_pass.cc:190] Failed to compile generated PTX with ptxas. Falling back to compilation by driver.
-W0000 00:00:1745517592.164079   22618 gpu_kernel_to_blob_pass.cc:190] Failed to compile generated PTX with ptxas. Falling back to compilation by driver.
-W0000 00:00:1745517592.166016   22616 gpu_kernel_to_blob_pass.cc:190] Failed to compile generated PTX with ptxas. Falling back to compilation by driver.
-W0000 00:00:1745517592.167913   22621 gpu_kernel_to_blob_pass.cc:190] Failed to compile generated PTX with ptxas. Falling back to compilation by driver.
-W0000 00:00:1745517592.182025   22615 gpu_kernel_to_blob_pass.cc:190] Failed to compile generated PTX with ptxas. Falling back to compilation by driver.
-W0000 00:00:1745517592.184496   22620 gpu_kernel_to_blob_pass.cc:190] Failed to compile generated PTX with ptxas. Falling back to compilation by driver.
-W0000 00:00:1745517592.187614   22617 gpu_kernel_to_blob_pass.cc:190] Failed to compile generated PTX with ptxas. Falling back to compilation by driver.
-W0000 00:00:1745517592.189472   22614 gpu_kernel_to_blob_pass.cc:190] Failed to compile generated PTX with ptxas. Falling back to compilation by driver.
-W0000 00:00:1745517592.196977   22619 gpu_kernel_to_blob_pass.cc:190] Failed to compile generated PTX with ptxas. Falling back to compilation by driver.
-W0000 00:00:1745517592.747292   22426 gpu_backend_lib.cc:617] libdevice is required by this HLO module but was not found at ./libdevice.10.bc
-error: libdevice not found at ./libdevice.10.bc
-2025-04-24 23:29:52.748290: E tensorflow/compiler/mlir/tools/kernel_gen/tf_framework_c_interface.cc:228] INTERNAL: Generating device code failed.
-2025-04-24 23:29:52.749164: W tensorflow/core/framework/op_kernel.cc:1829] UNKNOWN: JIT compilation failed.
-2025-04-24 23:29:52.749195: I tensorflow/core/framework/local_rendezvous.cc:405] Local rendezvous is aborting with status: UNKNOWN: JIT compilation failed.
-2025-04-24 23:29:53,945 - INFO - Job completed: model=lstm, symbol=AAPL
-2025-04-24 23:32:24,117 - INFO - Prepared 2 training jobs with 4 max workers
-2025-04-24 23:32:24,123 - INFO - Starting job: model=lstm, symbol=AAPL
-2025-04-24 23:32:24,125 - INFO - Starting job: model=svm, symbol=AAPL
-2025-04-24 23:32:51,271 - INFO - Job stdout: model=lstm, symbol=AAPL
-INFO: GPU usage has been disabled to avoid CUDA errors. Using CPU for training.
+--- XGBoost Stock Price Prediction and Evaluation Completed. ---
+2025-04-24 19:35:52,543 - WARNING - Job stderr: model=xgboost, symbol=AACT
+/home/skylap/Downloads/stockmarketprediction/train-model/train-xgboost.py:193: FutureWarning: Setting an item of incompatible dtype is deprecated and will raise in a future error of pandas. Value '[-3.85635137e-01 -3.35290106e-01 -3.79578592e-01 -3.40337227e-01
+ -2.54409993e-01 -3.48917333e-01 -3.50683825e-01 -3.77685922e-01
+  8.31856607e-01 -3.87780164e-01 -3.41031651e-02 -3.72134089e-01
+ -1.93466008e-01 -3.56361836e-01 -3.80966551e-01 -2.45325176e-01
+ -3.82228331e-01 -2.88225704e-01 -3.21284346e-01 -3.21158168e-01
+ -3.90556080e-01 -3.77685922e-01 -1.94980145e-01 -3.87653986e-01
+  3.21402971e-02 -3.71755555e-01 -1.73908415e-01 -3.31126231e-01
+ -3.35920996e-01 -3.83616289e-01 -3.87527808e-01 -3.60147177e-01
+ -3.60525711e-01 -2.42927793e-01  6.24041403e-01 -3.79326236e-01
+ -3.01979108e-01 -3.38066023e-01 -3.73395869e-01 -1.85390615e-01
+ -3.15984869e-01 -3.52702673e-01  3.10993728e-01 -3.48917333e-01
+  3.33434534e+00 -3.75288540e-01 -3.53712098e-01 -3.46519950e-01
+ -3.04628847e-01 -3.74279115e-01 -3.86644562e-01 -3.77055032e-01
+ -3.49800579e-01 -3.61030423e-01 -3.82985399e-01 -3.85130425e-01
+ -3.79957126e-01  1.36293991e+00 -2.82295336e-01 -2.61097429e-01
+  6.25492006e-02  1.30338388e+00 -3.71377021e-01  3.39383783e-01
+  8.00690636e-01 -4.07906003e-02  3.39257605e-01 -2.47974914e-01
+  1.31915613e+00 -3.87653986e-01 -1.55864957e-01 -3.82733043e-01
+ -3.89420478e-01 -2.14663916e-01 -2.09616795e-01  1.20345089e+00
+ -6.45120686e-02 -1.52458151e-01 -3.41851363e-01 -3.15353979e-01
+  5.57167051e-01 -1.87535641e-01  1.04699014e+00 -5.63104971e-02
+ -3.84373357e-01 -1.68356582e-01  7.37980158e-01 -3.23807906e-01
+  1.95793193e-01 -3.81975975e-01 -3.82985399e-01 -3.18256073e-01
+  1.62860729e-01 -3.55352412e-01  6.39056588e-01 -3.17372827e-01
+ -3.10937748e-01 -3.76802676e-01  2.41848171e-01 -3.83363933e-01
+ -3.83994823e-01 -3.82985399e-01 -9.70659986e-02  2.72130897e-01
+ -2.83557117e-01  3.12760220e-01 -3.62039847e-01 -3.23177016e-01
+ -2.88099526e-01 -3.95288200e-02 -3.85887493e-01 -3.52324139e-01
+ -2.51634077e-01 -3.64815764e-01 -3.84247179e-01 -2.94786961e-01
+  1.33335072e-01 -3.48664977e-01 -3.78316812e-01 -2.59583292e-01
+ -3.82354509e-01 -3.85887493e-01 -3.20022565e-01  2.80881387e+00
+  1.86146928e+00 -3.04628847e-01  7.28322652e-03 -3.83616289e-01
+ -2.05326742e-01  1.93143455e-01  2.29293014e-02 -3.90303724e-01
+ -3.23681728e-01  3.46954465e-01 -3.57118904e-01 -3.78190634e-01
+ -3.88032520e-01 -3.46393772e-01 -3.89799012e-01  5.33382050e-02
+  3.57994597e-02  3.21340326e-01 -3.30369163e-01 -3.31252409e-01
+ -5.87078796e-02 -2.71822561e-01 -3.87527808e-01 -3.83363933e-01
+ -3.76676498e-01 -3.87527808e-01 -3.86896918e-01 -3.59390109e-01
+ -3.87401630e-01 -3.76424142e-01  7.40940455e-03 -3.20779634e-01
+ -3.06395339e-01 -3.80335660e-01 -3.38949269e-01 -3.85761315e-01
+ -1.68608938e-01 -3.64563408e-01 -3.36299530e-01  2.79323044e-01
+ -3.79326236e-01 -3.08666543e-01 -3.88032520e-01 -3.48538799e-01
+ -3.11820994e-01 -3.55352412e-01 -3.23555550e-01 -3.20779634e-01
+ -3.56740370e-01 -1.02113120e-01  4.02598973e-01 -3.69105816e-01
+ -8.62146886e-02 -3.87149274e-01 -2.85449787e-01 -2.18196901e-01
+ -2.35357112e-01  1.98903526e+00 -3.82228331e-01  3.28027761e-01
+  5.42214511e-02  9.85099372e-02 -2.95544029e-01 -3.76424142e-01
+ -3.88411054e-01 -1.20282755e-01 -2.70686958e-01 -2.54283815e-01
+ -3.71629377e-01 -3.84373357e-01 -3.86770740e-01 -3.47024662e-01
+ -3.84878069e-01 -3.89925190e-01 -3.49800579e-01 -3.68727282e-01
+ -3.44501102e-01 -3.75793252e-01 -8.63408666e-02 -3.54595344e-01
+ -3.40463405e-01 -9.99680931e-02 -7.72560490e-02 -3.85256603e-01
+ -3.90682258e-01 -3.78316812e-01 -3.90303724e-01 -3.74531471e-01
+ -2.87090101e-01 -3.78821524e-01 -2.06462345e-01 -3.78695346e-01
+ -8.01581435e-02 -3.72764979e-01 -3.85508959e-01 -3.64563408e-01
+ -3.89294300e-01 -1.74476660e-02 -2.58069156e-01 -3.27467069e-01
+ -2.66018372e-01 -3.78442990e-01 -3.62796915e-01 -3.75919430e-01
+ -3.76045608e-01  3.88845568e-01 -3.51693249e-01 -3.71755555e-01
+  3.28280117e-01 -3.86266028e-01 -5.01277740e-02 -3.49926757e-01
+ -2.01415224e-01 -3.83490111e-01 -3.75667074e-01 -3.07404763e-01
+  4.00832481e-01 -3.77685922e-01 -3.84247179e-01  3.05441895e-01
+ -3.54216810e-01 -3.86139850e-01 -3.69610528e-01 -3.88663410e-01
+ -3.85256603e-01  7.78735660e-01 -3.87527808e-01 -3.68222570e-01
+ -3.05512093e-01 -3.28097959e-01  5.77904454e+00 -3.76045608e-01
+ -2.63368633e-01  5.60668536e+00  2.10903056e+00  4.09810091e+00
+ -2.19332503e-01  5.01144009e-01 -3.71755555e-01 -3.47529374e-01
+  1.67308549e+00 -3.67717858e-01 -3.54342988e-01 -3.15227801e-01
+ -3.06773873e-01  3.81779599e-01 -2.36492714e-01 -3.71250843e-01
+ -3.82733043e-01 -3.48160265e-01 -3.85761315e-01  4.75025158e-01
+  3.99614907e+00  1.56425650e-01  3.18457203e+00  2.00884521e+00
+  5.85935640e-01  4.47890619e+00  4.54079606e-01  8.91204485e+00]' has dtype incompatible with int64, please explicitly cast to a compatible dtype first.
+  X.loc[:, other_features] = other_scaler.fit_transform(X[other_features].astype(np.float64))
+2025-04-24 19:35:52,543 - INFO - Job completed: model=xgboost, symbol=AACT
+2025-04-24 19:35:52,543 - INFO - Starting job: model=xgboost, symbol=AAL
+2025-04-24 19:35:55,403 - INFO - Job stdout: model=xgboost, symbol=AAL
 Training with date range: 2022-04-24 to 2025-04-24
-LSTM parameters: units=60, dropout=0.2, epochs=75, batch_size=32
-Sequence length=60, short_window=20, long_window=50, lag_days=1
-Training LSTM model for 1 stock(s): AAPL
+Training XGBoost model for 1 stock(s): AAL
+Using look_back=90, num_features=40
+Hyperparameter tuning with: n_estimators=200,300,500, max_depth=4,5,6, learning_rate=0.05,0.1,0.15
 
---- Processing Stock: AAPL ---
-Training Regression Model for AAPL...
+--- Processing Stock: AAL ---
+An error occurred for AAL: name 'SelectKBest' is not defined. Skipping stock.
 
---- Evaluation for AAPL ---
+--- XGBoost Stock Price Prediction and Evaluation Completed. ---
+2025-04-24 19:35:55,403 - WARNING - Job stderr: model=xgboost, symbol=AAL
+/home/skylap/Downloads/stockmarketprediction/train-model/train-xgboost.py:193: FutureWarning: Setting an item of incompatible dtype is deprecated and will raise in a future error of pandas. Value '[-1.05881011e-01 -2.39256752e-01  3.45712624e+00  9.69485438e-01
+ -9.57953810e-03  5.07262364e-01 -2.29683769e-02 -5.76110120e-01
+ -5.25892431e-01 -6.22259348e-01  5.88807853e-02  7.87380869e-01
+ -3.70543724e-01 -5.16212109e-01 -7.19040747e-01 -3.34096633e-01
+ -8.17592864e-02 -5.96806920e-01 -7.47732674e-01 -7.63406614e-01
+ -6.69559307e-01 -8.44923101e-01 -1.02754577e+00 -9.49023368e-01
+ -8.49875062e-01 -1.12314917e+00 -9.81483803e-01 -6.06999890e-01
+ -4.69146660e-01 -5.87775589e-01 -4.05987335e-01 -6.86051303e-01
+ -9.57509328e-01 -9.51864747e-01 -1.16277577e+00 -1.16289575e+00
+ -1.01776183e+00 -1.06601073e+00 -8.23511866e-01 -1.18082207e+00
+ -7.93314717e-01 -3.14741443e-01 -2.77949034e-02  1.20393092e-01
+  4.79508473e-01 -4.63207578e-01 -9.72150784e-02 -2.71329974e-01
+ -8.32385039e-01 -6.36624400e-01 -4.37275224e-01 -7.18800784e-01
+ -8.68483094e-01 -1.17245609e+00 -9.35001900e-01 -1.05681034e+00
+ -1.12906098e+00 -1.02169395e+00 -9.23161912e-01 -7.54686144e-01
+ -1.03535002e+00 -7.75464750e-01 -8.47131850e-01  3.48532188e+00
+  7.81927166e-01 -3.00649077e-01 -3.67767790e-01 -4.56292284e-01
+ -7.93432964e-02 -4.80539443e-01 -9.00043669e-01 -4.38016928e-01
+  3.07724043e-02  2.09339256e-02  8.35324364e-01  6.54774100e-01
+ -2.15396805e-01 -5.77086333e-01 -6.65708993e-01 -5.49059758e-01
+ -6.78574277e-01  8.37442136e-02 -7.29086466e-01 -6.31661531e-01
+ -8.72687899e-01 -8.91345014e-01 -9.84788747e-01 -6.95246244e-01
+  1.01119709e-01 -6.24277218e-01 -8.27896643e-01 -2.47279148e-01
+ -2.26435098e-01 -1.39044974e-01 -1.81687471e-01 -8.70822732e-01
+ -6.88625450e-01 -6.91612344e-02 -6.44205046e-01 -1.09622251e-01
+ -9.62690346e-01 -9.38655880e-01 -7.18795330e-01 -6.19172553e-01
+ -6.50324100e-01 -2.54658007e-01 -6.07528899e-01 -5.55478765e-01
+ -8.62571281e-01 -5.68044095e-01 -8.24886199e-01 -7.91220495e-01
+ -1.11021844e+00 -4.71442668e-01 -7.27303106e-01  4.89750526e-01
+ -3.59129126e-01 -6.94564532e-01 -7.88248228e-01 -1.09988368e+00
+ -7.47149128e-01 -3.97212328e-01 -6.06181834e-01 -6.36962529e-01
+ -5.14728702e-01 -5.26977717e-01 -1.29130144e-01 -5.35021928e-01
+ -9.93989142e-01 -8.84146127e-01 -6.89089015e-01  1.14307132e+00
+ -2.43063436e-01 -2.50513193e-01  3.81892658e-01 -6.11815509e-01
+ -4.72048029e-01 -7.88766329e-01 -6.22003024e-01 -9.32011536e-02
+ -1.72705224e-01  4.04258291e-01 -5.20716867e-01 -5.76219194e-01
+ -4.33228577e-01 -7.80247647e-01 -7.60636134e-01 -9.27214013e-01
+ -5.12907166e-01 -7.09518583e-01 -7.11127425e-01 -5.89575311e-01
+ -6.69537492e-01 -5.12378157e-01 -4.34488382e-01 -7.88150061e-01
+ -5.28510208e-01 -9.53882617e-01 -7.41493639e-01 -5.92542125e-01
+ -7.12812619e-01 -1.03930395e+00 -1.00009184e+00 -4.01444401e-01
+ -4.12373620e-01 -4.56641320e-01 -8.67675946e-01 -6.59540856e-01
+ -6.70606418e-01  1.40621791e+00 -8.67167017e-02 -4.41458214e-01
+ -6.23764570e-01 -4.21372228e-01 -2.85149655e-01 -4.43912380e-01
+ -4.57044894e-01 -4.59886273e-01 -4.13589795e-01 -1.67322420e-01
+  1.19046028e-01  4.93477139e-02  2.88574360e-01  4.16714546e-01
+  9.10045538e-01  1.75693632e-01 -6.70342905e-02  1.00410009e+00
+  2.23211739e-01  1.37310476e-01  9.39664595e-01  8.18325175e-01
+  1.19504139e-01  1.17578982e-01  1.85917514e+00  1.68242066e+00
+  9.21961877e-01  6.88745211e-01  3.40935355e-01  4.04143763e-01
+  3.79476668e-01  3.72997670e-01  2.81255492e-01  4.92733701e-01
+ -1.41897260e-01 -1.79304204e-01  1.08233890e+00  5.89806868e-03
+ -2.85324174e-01  4.26285794e-01  2.57586424e-01 -1.08809649e-01
+ -7.03726751e-01  1.35167171e-01  2.45768252e-01  7.93648907e-02
+ -4.00964475e-01 -5.00243669e-01 -4.66490707e-01  4.30092478e-01
+ -9.95167142e-01 -3.06702686e-01  4.98058249e-02 -7.02519748e-02
+  8.42186857e-02  8.61147644e-01  9.65580587e-01  3.86724638e-01
+  9.98188273e-01  8.97698356e-01 -1.56851312e-01 -2.54559840e-01
+  6.80320976e-02  3.26946609e-01  5.31874922e-01  9.13139522e-02
+ -2.49760582e-01 -5.71387214e-01 -3.54155349e-01 -1.46091157e-01
+ -4.29830921e-01 -5.94096430e-01 -5.24801690e-01 -8.70299177e-01
+ -4.80435823e-01  8.48676762e-02  4.74818289e-01 -2.15178657e-01
+  2.43226826e-01  1.53154944e+00  1.49395880e-01 -1.75617501e-01
+ -1.99170354e-04  2.58475204e+00  1.24563365e+00  2.14883936e-01
+  1.38943141e+00  3.11185409e-01  2.71493365e-01  9.22250923e-01
+  5.00008940e-01  3.44221037e+00  6.85380277e-01  2.06365253e-01
+ -4.42199917e-01 -8.24900825e-02  3.37903096e-01  4.21287471e-03
+ -4.23302839e-01  2.95125991e-02 -1.02156133e-01 -2.74160446e-01
+ -3.32166022e-01 -2.90630626e-01  1.21854684e-01 -2.63111245e-01
+ -4.21939413e-01 -6.28056634e-01 -1.52608331e-01 -5.46403805e-01
+  1.44585715e-01 -5.52811905e-01 -5.11314685e-01 -4.26913190e-01
+ -8.10243009e-01  1.11554376e-02 -3.98695735e-01  1.74527457e+00
+  5.77909622e-01 -8.95853491e-02 -5.12323620e-01 -2.51434869e-01
+ -5.14510554e-01  8.47698815e-01 -3.64097448e-01 -4.56341367e-01
+ -6.52042016e-01 -5.10333018e-01 -7.49641470e-01  5.03511951e-02
+ -4.10323028e-01 -9.21923922e-01 -6.35844520e-01 -6.62780355e-01
+ -4.50587711e-01  1.82407140e-01 -5.34558363e-01  6.02114887e-02
+  1.67073064e-02  7.87091822e-01 -1.33013179e-01 -2.47071907e-01
+ -2.84107998e-01  8.71106104e-01 -2.85618674e-01  1.35134449e-01
+ -3.05388344e-01 -3.58534672e-01  1.05602478e+00  1.04441013e-01
+ -3.07024455e-01 -2.88367340e-01  3.91900201e-01  4.35409837e-01
+  1.38042190e+00  1.89595119e-01 -2.30907134e-01 -3.96072504e-01
+ -2.52127489e-01 -4.83189943e-01 -5.99621030e-01  7.46772602e-01
+ -3.97075985e-01 -5.57311209e-01 -5.15983054e-01 -9.20075117e-01
+  1.79289357e-02 -2.77099991e-01 -3.85454146e-01 -5.67122419e-01
+ -7.95108985e-01 -3.39904825e-01 -5.64919123e-01 -7.58880041e-01
+ -2.16051249e-01 -7.34180224e-01 -1.85999615e-02  6.86779523e+00
+  1.30633881e+00  1.51705895e+00  1.08243161e+00  3.33229273e-01
+  7.03281062e-02  1.52117278e-01 -1.98512143e-01 -5.25210718e-01
+ -4.15116832e-01  4.20935712e-01  1.30151500e-02  5.02893948e-01
+ -1.62370458e-01 -7.74963009e-01 -6.37371557e-01 -2.70135613e-01
+ -4.02753289e-01 -2.45637583e-01  3.70707115e-01 -5.05588298e-01
+ -2.68881262e-01 -2.41438233e-01 -5.76099213e-01 -9.21743950e-01
+ -4.72037122e-01 -4.30652695e-02 -3.52966442e-01 -2.48108110e-01
+  2.57633698e+00  4.45829131e-03 -2.40898316e-01  8.53905128e-01
+ -3.79115209e-02  7.52820758e-01 -4.01068095e-01  3.18815139e-01
+ -1.36525364e-01  7.77733269e-01  3.44834578e+00  6.88974266e-01
+ -1.57440312e-01  1.08627647e+00  3.35623449e-01  7.68876457e-01
+  8.38552956e-01  6.27347432e-01 -2.26080607e-01 -2.19808850e-01
+  9.00105174e-02 -5.69178465e-01 -1.77798982e-01 -1.70670993e-01
+ -1.89606247e-01 -4.05783813e-02  1.27526535e-01 -1.45682130e-01
+ -5.18862609e-01 -6.99036567e-01 -4.05027483e-01 -4.58730088e-01
+ -6.55701450e-01 -5.31640633e-01 -6.82670007e-01 -5.89613487e-01
+ -3.56124136e-01 -5.27730328e-01 -5.96545142e-01  2.95369673e-01
+ -2.84058915e-01  6.24167924e-01 -7.00065582e-02  4.07688669e-01
+  2.63252821e-01  2.12947872e-01 -1.10413038e-01  2.79701187e-01
+  2.36971430e-01  8.14263901e-02  7.24146654e+00 -1.23594636e-01
+ -1.96597893e-01 -2.12380907e-01  1.59805188e+00 -1.23665534e-01
+ -3.48478045e-01  5.34247282e-01 -2.32968633e-01 -6.85814071e-03
+  1.12655206e+00 -2.96700597e-01  6.37464049e-01  6.32273860e-02
+ -3.57585728e-01 -8.37326094e-01 -6.78487018e-01  1.87789944e-01
+  1.09544414e+00 -1.58100210e-01  2.86643749e-01 -2.78070750e-01
+ -4.84738794e-01 -1.52630146e-01  1.77144689e+00  6.16238241e-01
+  2.19666833e-01 -2.36682604e-01 -5.77429916e-01 -3.65968068e-01
+ -5.56989441e-01 -4.03424095e-01 -7.60167115e-01  3.02748532e-01
+ -7.30618957e-01 -6.97645873e-01 -5.57262126e-01 -6.87916469e-01
+ -1.53611813e-01  5.33633736e-03 -5.61450569e-01 -7.78802416e-01
+ -4.21104997e-01 -4.16894739e-01 -6.70410085e-01 -6.98856595e-01
+ -8.17811012e-02 -6.23142848e-01 -1.01534039e+00 -1.28422972e+00
+ -7.78295221e-01 -9.22894681e-01 -7.98239410e-01  4.20292547e+00
+  5.47576130e-01 -1.80973036e-01  6.12695069e-02 -6.72962417e-01
+ -8.37642408e-01 -7.02276067e-01 -9.44055045e-01 -5.14248777e-01
+ -4.38033289e-01 -8.29979957e-01 -2.39224029e-01 -9.42080805e-01
+ -1.02622598e+00 -1.23648801e+00 -1.93652894e-01 -6.87981913e-01
+ -1.10965126e+00 -7.64819123e-01 -5.04159428e-01 -6.63580315e-02
+ -4.12308175e-01 -5.43066139e-01  5.94597950e-01 -2.52187479e-01
+ -3.74972130e-01 -6.89857987e-01 -6.00973549e-01 -6.87867385e-01
+ -1.26512367e-01  1.38202529e+00  3.37262658e+00  2.58022720e-01
+  4.06118003e-01 -1.76370112e-01 -4.54399849e-01  4.94642497e-01
+ -1.55667858e-01 -5.21657636e-03 -2.31305254e-01 -2.95544412e-01
+ -4.11751898e-01 -5.77740777e-01 -2.93341116e-01 -2.20436025e-01
+ -4.62384069e-01  4.65328848e-01 -2.07265335e-01 -2.52105674e-01
+ -4.63992911e-01 -2.36119138e-02  1.23511891e+00  5.27882812e-01
+  8.35057133e-01  5.52446286e-01  1.27898849e+00  9.09658325e-01
+  1.22166463e+00  2.07584528e+00  1.30540077e+00  1.36921454e+00
+  2.37603886e+00  2.74590349e+00  4.19171811e+00  3.56866536e+00
+  3.42765989e+00  1.82453868e+00  1.70827120e+00  7.55029507e-01
+  1.85800260e+00  5.58767127e-01  7.59087062e-01  6.29294404e-01
+  1.32883533e+00  7.15021148e-01  1.10854939e+00  1.45321246e+00
+  1.84900944e+00  2.26328902e+00  1.70608972e+00  2.40216755e+00
+  4.21552897e+00  2.25696273e+00  2.61686889e+00  5.50278266e+00
+  2.78555190e+00  1.09998708e+00  1.60386008e+00  1.80367282e+00
+  2.07484180e+00]' has dtype incompatible with int64, please explicitly cast to a compatible dtype first.
+  X.loc[:, other_features] = other_scaler.fit_transform(X[other_features].astype(np.float64))
+2025-04-24 19:35:55,404 - INFO - Job completed: model=xgboost, symbol=AAL
+2025-04-24 19:35:55,404 - INFO - Starting job: model=xgboost, symbol=AAM
+2025-04-24 19:35:58,139 - INFO - Job stdout: model=xgboost, symbol=AAM
+Training with date range: 2022-04-24 to 2025-04-24
+Training XGBoost model for 1 stock(s): AAM
+Using look_back=90, num_features=40
+Hyperparameter tuning with: n_estimators=200,300,500, max_depth=4,5,6, learning_rate=0.05,0.1,0.15
 
-Regression Metrics:
-  Mean Squared Error (MSE): 286.3645
-  Root Mean Squared Error (RMSE): 16.9223
-  Mean Absolute Error (MAE): 12.9201
-  MAPE: 5.90%
-  R-squared (R2): -0.0936
+--- Processing Stock: AAM ---
+Value Error for AAM: Found array with 0 sample(s) (shape=(0, 91)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
 
-Classification Metrics:
-  Accuracy: 0.2403
-  Confusion Matrix:
- [[31 98]
- [ 0  0]]
-  Sensitivity (Recall or True Positive Rate): 0.00
-  Specificity (True Negative Rate): 0.24
-  Precision: 0.00
-  F1-Score: 0.00
-  Classification Report:
-               precision    recall  f1-score   support
+--- XGBoost Stock Price Prediction and Evaluation Completed. ---
+2025-04-24 19:35:58,139 - INFO - Job completed: model=xgboost, symbol=AAM
+2025-04-24 19:35:58,139 - INFO - Starting job: model=xgboost, symbol=AAME
+2025-04-24 19:36:01,033 - INFO - Job stdout: model=xgboost, symbol=AAME
+Training with date range: 2022-04-24 to 2025-04-24
+Training XGBoost model for 1 stock(s): AAME
+Using look_back=90, num_features=40
+Hyperparameter tuning with: n_estimators=200,300,500, max_depth=4,5,6, learning_rate=0.05,0.1,0.15
 
-           0       1.00      0.24      0.39       129
-           1       0.00      0.00      0.00         0
+--- Processing Stock: AAME ---
+An error occurred for AAME: name 'SelectKBest' is not defined. Skipping stock.
 
-    accuracy                           0.24       129
-   macro avg       0.50      0.12      0.19       129
-weighted avg       1.00      0.24      0.39       129
-
-
-Generating SHAP values for LSTM model explanation...
-Error generating SHAP values for LSTM model: in user code:
-
-    File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/shap/explainers/_deep/deep_tf.py", line 265, in grad_graph  *
-        x_grad = tape.gradient(out, shap_rAnD)
-
-    LookupError: gradient registry has no entry for: shap_TensorListStack
-
-
---- Model Evaluation Summary for AAPL ---
-Regression Model Metrics:
-  RMSE: 16.9223, MAE: 12.9201, MAPE: 5.90%, R-squared: -0.0936
-Classification Metrics (from Regression):
-  Accuracy: 0.2403, Precision: 0.00, Sensitivity: 0.00, Specificity: 0.24, F1-Score: 0.00
-
-Confusion Matrix (Classification from Regression):
-[[31 98]
- [ 0  0]]
-
-Regression model saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/lstm-20250424-233233/model.h5
-Scaler saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/lstm-20250424-233233/scaler.pkl
-Feature list saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/lstm-20250424-233233/selected_features.pkl
-
-Evaluation results for AAPL stored in MongoDB.
-
---- LSTM Stock Price Prediction and Evaluation Completed for all symbols. ---
-2025-04-24 23:32:51,271 - WARNING - Job stderr: model=lstm, symbol=AAPL
-2025-04-24 23:32:26.517855: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:477] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
-WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
-E0000 00:00:1745517746.556744   23320 cuda_dnn.cc:8310] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
-E0000 00:00:1745517746.568801   23320 cuda_blas.cc:1418] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
-2025-04-24 23:32:26.602873: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
-To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
-2025-04-24 23:32:32.976014: E external/local_xla/xla/stream_executor/cuda/cuda_driver.cc:152] failed call to cuInit: INTERNAL: CUDA error: Failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected
-2025-04-24 23:32:32.976050: I external/local_xla/xla/stream_executor/cuda/cuda_diagnostics.cc:137] retrieving CUDA diagnostic information for host: skylap-aspirea7
-2025-04-24 23:32:32.976061: I external/local_xla/xla/stream_executor/cuda/cuda_diagnostics.cc:144] hostname: skylap-aspirea7
-2025-04-24 23:32:32.976563: I external/local_xla/xla/stream_executor/cuda/cuda_diagnostics.cc:168] libcuda reported version is: 570.133.7
-2025-04-24 23:32:32.976595: I external/local_xla/xla/stream_executor/cuda/cuda_diagnostics.cc:172] kernel reported version is: 570.133.7
-2025-04-24 23:32:32.976608: I external/local_xla/xla/stream_executor/cuda/cuda_diagnostics.cc:259] kernel version seems to match DSO: 570.133.7
-/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/keras/src/layers/rnn/rnn.py:200: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
-  super().__init__(**kwargs)
-WARNING:absl:You are saving your model as an HDF5 file via `model.save()` or `keras.saving.save_model(model)`. This file format is considered legacy. We recommend using instead the native Keras format, e.g. `model.save('my_model.keras')` or `keras.saving.save_model(model, 'my_model.keras')`. 
-WARNING:absl:You are saving your model as an HDF5 file via `model.save()` or `keras.saving.save_model(model)`. This file format is considered legacy. We recommend using instead the native Keras format, e.g. `model.save('my_model.keras')` or `keras.saving.save_model(model, 'my_model.keras')`. 
-WARNING:absl:You are saving your model as an HDF5 file via `model.save()` or `keras.saving.save_model(model)`. This file format is considered legacy. We recommend using instead the native Keras format, e.g. `model.save('my_model.keras')` or `keras.saving.save_model(model, 'my_model.keras')`. 
-/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/shap/explainers/_deep/deep_tf.py:94: UserWarning: Your TensorFlow version is newer than 2.4.0 and so graph support has been removed in eager mode and some static graphs may not be supported. See PR #1483 for discussion.
-  warnings.warn(
-/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/keras/src/models/functional.py:237: UserWarning: The structure of `inputs` doesn't match the expected structure.
-Expected: keras_tensor
-Received: inputs=['Tensor(shape=(100, 60, 6))']
-  warnings.warn(msg)
-/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/keras/src/models/functional.py:237: UserWarning: The structure of `inputs` doesn't match the expected structure.
-Expected: keras_tensor
-Received: inputs=['Tensor(shape=(200, 60, 6))']
-  warnings.warn(msg)
-2025-04-24 23:32:51,272 - INFO - Job completed: model=lstm, symbol=AAPL
-2025-04-24 23:37:29,515 - INFO - Prepared 1 training jobs with 4 max workers
-2025-04-24 23:37:29,522 - INFO - Starting job: model=svm, symbol=AAPL
-2025-04-24 23:40:41,139 - INFO - Prepared 1 training jobs with 4 max workers
-2025-04-24 23:40:41,141 - INFO - Starting job: model=svm, symbol=AAPL
-2025-04-24 23:41:06,147 - INFO - Prepared 1 training jobs with 4 max workers
-2025-04-24 23:41:06,149 - INFO - Starting job: model=svm, symbol=AAPL
-2025-04-24 23:56:53,378 - INFO - Prepared 1 training jobs with 4 max workers
-2025-04-24 23:56:53,382 - INFO - Starting job: model=svm, symbol=AAPL
-2025-04-24 23:56:58,021 - INFO - Job stdout: model=svm, symbol=AAPL
-Training FAST SVM (BestGuess Params) with date range: 2022-04-24 to 2025-04-24
-Processing 1 stock(s): AAPL
-Using look_back=30, num_features=20, kernel=rbf
-MongoDB connection successful.
-Storing results in 'stock_data.svm_evaluation_results_bestguess'
-
---- Processing Stock: AAPL ---
-Loading data...
-Loaded 752 data points.
-Preparing data...
-Preparing data with look_back=30, num_features=20
-Creating lagged features...
-Lagged features created.
-Scaling features...
-Feature scaling complete.
-Selecting top 20 features...
-Selected features: ['Open', 'High', 'Low', 'Close', 'SMA', 'EMA', 'Close_Lag_1', 'Close_Lag_2', 'Close_Lag_3', 'Close_Lag_4', 'Close_Lag_5', 'Close_Lag_6', 'Close_Lag_7', 'Close_Lag_8', 'Close_Lag_9', 'Close_Lag_10', 'Close_Lag_11', 'Close_Lag_12', 'Close_Lag_13', 'Close_Lag_14']
-Splitting data into train/test sets...
-Train set size: 553, Test set size: 139
-Target variable scaled.
-Using kernel='rbf' with C=10.0, gamma='scale'
-Starting SVM model training...
-SVM model training completed.
-
-Evaluating model...
-
-Regression Metrics:
-  Mean Squared Error (MSE): 1179.3661
-  Root Mean Squared Error (RMSE): 34.3419
-  Mean Absolute Error (MAE): 26.6665
-  MAPE: 11.25%
-  R-squared (R2): -3.8312
-
-Classification Metrics (Price Change Direction):
-  Accuracy: 0.5072
-  Confusion Matrix (Rows=Actual, Cols=Predicted):
- [[35 30]
- [38 35]]
-  Classification Report:
-               precision    recall  f1-score   support
-
-   Down/Same       0.48      0.54      0.51        65
-          Up       0.54      0.48      0.51        73
-
-    accuracy                           0.51       138
-   macro avg       0.51      0.51      0.51       138
-weighted avg       0.51      0.51      0.51       138
-
-
-Generating SHAP values for model explanation (using small sample)...
-
-SHAP Feature Importance (Top Features on Sample):
-  Close_Lag_2: 0.1023
-  Close_Lag_9: 0.0891
-  Close_Lag_8: 0.0521
-  Close_Lag_13: 0.0398
-  Close_Lag_1: 0.0354
-  Low: 0.0257
-  Close_Lag_6: 0.0245
-  Close_Lag_14: 0.0240
-  Close_Lag_7: 0.0217
-  High: 0.0181
-Evaluation results for AAPL stored in MongoDB.
-Saving model and scalers...
-Created model directory: /home/skylap/Downloads/stockmarketprediction/train-model/../train-model/AAPL/svm-fast-bestguess-20250424-235657
-Trained SVM model saved to: /home/skylap/Downloads/stockmarketprediction/train-model/../train-model/AAPL/svm-fast-bestguess-20250424-235657/model.pkl
-Close scaler saved to: /home/skylap/Downloads/stockmarketprediction/train-model/../train-model/AAPL/svm-fast-bestguess-20250424-235657/close_scaler.pkl
-Other features scaler saved to: /home/skylap/Downloads/stockmarketprediction/train-model/../train-model/AAPL/svm-fast-bestguess-20250424-235657/other_scaler.pkl
-Target scaler saved to: /home/skylap/Downloads/stockmarketprediction/train-model/../train-model/AAPL/svm-fast-bestguess-20250424-235657/target_scaler.pkl
-Selected features saved to: /home/skylap/Downloads/stockmarketprediction/train-model/../train-model/AAPL/svm-fast-bestguess-20250424-235657/selected_features.pkl
-MongoDB connection closed.
-
---- FAST SVM (BestGuess Params) Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 23:56:58,022 - WARNING - Job stderr: model=svm, symbol=AAPL
-/home/skylap/Downloads/stockmarketprediction/train-model/train-svm.py:173: FutureWarning: Setting an item of incompatible dtype is deprecated and will raise in a future error of pandas. Value '[ 9.23180953e-02  1.02156794e-01  1.61547845e-01 -3.26331250e-01
- -2.69706398e-01  6.08075996e-01  7.11173000e-01  1.47405345e+00
-  2.04685606e-01 -9.14622199e-02  7.53368757e-01 -2.57168786e-01
- -2.11455469e-01 -7.76349604e-02  2.92225795e-02  2.92198439e-01
- -1.94551747e-01  2.12535631e-01 -3.08844383e-01 -2.23413675e-01
-  6.42515180e-01 -2.37938103e-03  2.98770032e-01  2.49445704e-01
- -3.06773472e-01 -3.18197128e-01 -4.16258901e-01  6.20796776e-01
-  4.09705847e-01  5.81367218e-01  9.58351618e-01  4.43943174e-01
-  5.45915007e-01  4.24688182e-01  9.38109766e-01  8.43692647e-01
-  2.12139392e-01  1.59251781e+00  2.25418526e+00  9.57390924e-01
-  1.05143049e+00  3.73530567e+00  7.14742892e-01  1.69471019e+00
-  1.47068541e+00  9.08313311e-01  1.25885060e+00  1.15827682e+00
-  8.25708612e-01  3.15263191e+00  2.45909336e+00  2.33899170e+00
-  1.94224393e+00  9.52333265e-01  6.39861124e-01  2.26097485e-01
-  8.81141008e-01  4.68954851e-01  5.48752231e-01  3.02037138e-01
-  1.90158454e+00  9.81038192e-01  8.55919997e-01  1.37498238e+00
- -2.22586365e-02  8.10514394e-02  9.04429417e-01  5.09434816e-01
-  4.62723426e-01  9.65947452e-01  1.75042295e+00  3.82814531e+00
-  1.33037181e+00  6.73814354e-01  1.16819028e+00  1.32944850e+00
-  2.93295829e+00  7.85781887e-01  1.03002609e+00  4.69657615e-01
-  2.11203999e+00  1.18221192e+00  4.11952450e-01  1.02852337e+00
-  6.96988070e-02  6.74191903e-01  4.66360604e-01 -1.35680293e-01
- -3.94357329e-01 -1.51481273e-01 -1.01518969e+00  2.57639636e-01
-  8.00330601e-01  1.83268748e+00  3.32566262e-01  1.15643886e-01
-  2.41954537e-01  8.87220359e-02  2.75399384e-01 -8.42763890e-03
-  5.13737378e-01  3.03121189e-01  1.17871679e+00  7.45283230e-01
-  1.36733048e+00  3.65598677e+00  6.44406662e-01  5.63671018e-01
-  8.81230723e-01  5.79344902e-01  5.46192815e-02  2.48735464e-01
-  8.62928948e-01  4.99035401e-01  5.48770921e-01  1.86022238e+00
-  1.00031187e+00  6.95622473e-01  9.49514732e-01  3.15385920e-01
-  5.76583629e-02  2.65598067e-01  3.37395897e-01 -1.69861548e-01
-  4.83280467e-02  2.73593879e-01 -1.52266276e-01  6.67994121e-01
-  7.25437618e-01  1.52565173e-01  1.28798286e-01 -3.08343477e-01
-  3.06601367e-01  6.21104489e-02  1.31609343e-01  5.72298570e-01
-  2.09278873e+00  3.43919149e+00  2.80528068e-01  7.83838071e-01
-  6.60279855e-02 -2.37244673e-01 -1.83281354e-01 -5.78479692e-03
- -2.41538570e-02  1.20368854e-01  2.17339099e-01 -1.19980242e-01
- -1.30331061e-01 -4.23993045e-01 -5.21823056e-01 -2.57337000e-01
- -6.48757971e-01 -4.41349078e-01 -2.56985618e-01 -3.78133943e-01
-  3.13199127e-01  9.42161874e-01 -2.30706723e-01 -5.66284106e-01
- -3.18492438e-01  2.32459744e-01  8.26246900e-01  4.23981680e-01
-  5.53768771e-01  5.16133505e-01  1.36780522e+00  4.21944411e-01
-  4.33042852e-01  4.98964377e-01  1.96936509e-01 -1.18021473e-01
- -3.72444543e-01 -6.11612397e-01 -4.12988057e-01 -4.80423516e-01
-  2.39091147e-01 -2.01018673e-01 -6.00917671e-01 -4.05287556e-01
- -6.34119542e-01 -5.47141258e-01 -5.49858862e-01 -4.56821105e-01
-  2.27719824e-01 -4.84729815e-01 -7.78930087e-01 -4.64674869e-01
- -5.47017900e-01 -3.69973654e-01 -1.50139293e-01 -7.62729129e-01
- -5.09864850e-01 -6.30056219e-01  9.52674621e-02 -2.67071032e-01
- -3.69356867e-01 -5.20645552e-01  1.04003419e-01  7.05816292e-01
-  1.90503855e+00 -2.38900654e-01 -6.36482026e-01 -3.22570714e-01
- -4.79937562e-01 -6.30093600e-01 -9.37780963e-01 -7.56721990e-01
- -1.64557173e-01  1.17486773e-01 -2.46018011e-01 -7.02123193e-01
- -4.33861649e-01 -6.43337715e-01 -2.35330762e-01 -2.81059030e-01
- -2.38840845e-01  1.39325052e+00  2.44773070e-01 -1.52459469e-02
-  2.22764096e+00  9.32526222e-02 -1.52945423e-02 -4.53763333e-01
- -5.04010974e-01 -3.01996170e-01 -2.77541471e-01 -1.82825304e-01
-  1.15113075e-01  1.45344526e+00 -4.69306384e-01 -4.79900181e-01
- -4.15245874e-01 -3.46688983e-01 -5.33242974e-01 -4.34478437e-01
- -4.16311235e-01 -5.98338377e-01  8.49142808e-01 -1.15490894e+00
- -5.76919022e-01 -6.45176864e-01 -5.82238349e-01 -9.08940276e-02
- -5.87467961e-01 -5.99424978e-02 -7.85430656e-01 -7.76773199e-01
- -4.42350891e-01 -5.23333251e-01  6.78599131e-01 -1.03640974e-01
-  3.57514391e-01 -6.34579329e-01 -9.37164176e-01 -5.56299621e-01
- -5.56736979e-01 -5.25665830e-01 -8.79563678e-01 -1.01596722e+00
- -4.47244074e-01 -4.18126766e-02  1.99786697e+00  1.31664922e+00
-  2.04446367e-01 -7.38370433e-02 -2.86595168e-01 -3.87479212e-01
- -6.98209394e-01 -7.00190591e-01 -5.75251826e-01  1.38651937e-01
- -4.63357867e-02 -5.99661667e-01 -7.57697637e-01 -3.60015336e-01
- -2.76917207e-01 -4.07608920e-01 -6.92785400e-01 -3.49507516e-01
- -5.75613234e-02 -5.82865162e-02 -6.21316524e-01 -6.38235198e-01
-  7.25269403e-01  1.87410197e+00  1.19527779e-01 -1.27120027e-01
-  1.04728493e+00  8.19174401e-01 -5.44998134e-02  1.75135373e+00
-  1.83311107e-01 -3.93505041e-01 -1.46442304e-01  2.59479973e-02
- -2.10393847e-01 -6.04865113e-01  8.35522333e-02  1.70758542e-01
- -2.26505090e-01 -3.93979781e-01 -3.80885190e-01 -4.76950814e-01
- -3.48894466e-01 -5.16825206e-01 -1.91751905e-01 -7.46236599e-01
- -6.97372058e-01 -5.53339040e-01 -2.09732202e-01 -4.08449995e-01
- -3.67708361e-01 -1.79591841e-01 -2.83698134e-01 -1.14044127e-01
-  6.86147559e-02 -2.38253962e-01 -6.92938663e-01 -1.94260175e-01
-  3.09199352e-01 -1.44091035e-01 -4.19518531e-01 -6.54458585e-01
- -2.02562512e-01  5.60007672e-01  6.50802564e-01  5.56061419e-02
-  3.05636936e-01 -4.86456821e-01 -3.21112852e-01  1.41287303e-01
- -7.00007424e-01 -8.39336715e-02 -3.20103563e-01 -2.96837582e-01
- -4.27305009e-01 -5.92439644e-01 -9.05341667e-01 -8.49898057e-01
- -1.43189896e+00 -8.14950490e-01 -8.94841323e-01 -7.22933237e-01
- -5.06863150e-01 -6.23308935e-01 -7.08904120e-01  1.59790935e-01
- -7.94873115e-01 -5.56082811e-01 -3.35549423e-01 -5.27092599e-02
- -3.60983506e-01  3.00934396e-01  1.67386769e-01  2.46352302e+00
- -2.46784323e-01 -8.08913447e-01 -3.77958252e-01 -5.93284456e-01
- -9.43160100e-01 -1.24981575e+00 -5.33280355e-01 -1.05802840e+00
- -7.37339903e-01  7.52665993e-01 -1.47253474e-01  3.59974066e-01
- -1.88595084e-03 -1.19965289e-01 -7.29377734e-01 -5.81681371e-01
- -4.94377871e-01 -8.18983908e-01  1.21460381e-01 -5.62074997e-01
-  5.85090373e-01  2.38762193e-01 -8.29804541e-02 -7.47552413e-01
- -3.26054630e-01 -2.81541246e-01 -6.63878615e-01 -5.68497065e-01
- -2.42765858e-01 -2.57404286e-01  9.46357219e-02  1.50138275e+00
-  2.73444354e-01 -7.05117417e-01 -3.33243011e-01 -7.99646678e-01
- -6.42900356e-01 -7.68997935e-01 -2.17716799e-01 -2.88703460e-01
-  1.15161670e-01 -4.72958515e-01 -3.24772459e-01 -7.78425442e-01
- -3.76111627e-01 -6.44227385e-01 -8.03182928e-01 -3.00351403e-01
- -5.00900868e-01  2.77849221e+00  4.16210154e-01  7.16084873e-01
-  1.22530109e+00  2.33031674e-01  3.51806301e-01  5.14395285e-01
- -8.27711201e-02 -9.45125156e-02 -3.68766246e-01  3.94734727e-01
-  2.21710697e+00  4.95315984e-01 -2.66846746e-01 -3.33837370e-01
-  1.63832084e+00  3.27190863e-01 -3.01495264e-01 -1.85610194e-01
- -7.77695323e-02  1.24065842e-01 -6.02330676e-01 -4.86860537e-01
- -5.48083261e-01 -3.23322073e-01 -7.58781688e-01 -9.31844849e-01
- -7.43978782e-01 -4.72663205e-01  1.07345542e+00  1.46681647e+00
-  4.17847445e-01  4.24553610e-01 -4.28108702e-01 -7.18869914e-01
-  2.02543670e-01 -5.32207518e-01 -4.79074059e-01 -5.27146121e-01
- -4.40926672e-01 -6.54742681e-01  2.17395171e-01  1.33863422e-01
- -4.47475836e-01  1.19100395e+00  3.77064200e+00  6.06169561e-01
-  5.58923621e-01 -6.46567440e-01 -4.99813079e-01 -4.33405600e-01
-  3.62261787e-01 -3.72321186e-01  3.00777396e-01 -3.55439893e-01
- -7.87651092e-01 -6.72577192e-01 -7.49279419e-01 -1.03565209e+00
- -4.24194903e-01 -9.74119106e-01 -3.76563938e-01 -3.47111389e-01
- -4.63744080e-01  4.78647763e-01 -4.58787350e-01 -5.56318311e-01
- -3.06410875e-01 -7.91430318e-01 -3.45769409e-01  1.30491156e+00
-  4.11264893e+00  5.07562279e+00  1.32736263e+00  2.90411624e-01
-  1.17281432e+00  6.57516205e-01  8.90370395e-01  6.88064648e+00
-  6.86811753e-01 -2.10823729e-01  1.44270313e-01 -4.70293244e-01
-  7.54684571e-01 -7.29249450e-02 -1.61020924e-01 -9.33926975e-01
- -7.25698248e-02 -1.22155820e-01 -5.33713976e-01  1.02404698e-02
-  8.81015101e-02 -3.47915082e-01  1.03750416e-02 -7.14705663e-01
- -1.87198890e-01  1.37594053e-01 -4.93514368e-01 -5.29015174e-01
- -8.37091301e-01 -2.15371818e-02 -4.09791975e-01 -7.75748957e-01
- -9.73476152e-01 -7.74160262e-01 -4.60439593e-01  5.50428761e-03
-  1.61541746e+00  2.13800488e+00  2.73134091e-01  4.34610308e-02
- -5.67917659e-01 -7.53309098e-01 -9.09319013e-01 -6.80277693e-01
- -7.62317937e-01 -5.95845060e-01 -6.73365932e-01 -8.09896569e-01
- -1.19824108e+00 -1.03127851e+00 -6.97472987e-01 -8.85051220e-01
- -1.18690714e+00 -9.87576293e-01 -9.08418129e-01 -3.90536984e-01
- -3.49997208e-01 -4.54671693e-01 -6.92056470e-01 -9.62127257e-01
- -5.20746481e-01  1.80410336e-01 -4.02323236e-01 -6.64136545e-01
- -9.29127245e-01 -9.56475239e-01 -1.12006859e-01 -6.29289907e-01
- -9.19145309e-02  1.65506501e-01  9.58174686e+00 -3.06814591e-01
- -7.02676433e-01 -7.49305585e-01 -9.61331040e-01 -1.05892181e+00
- -2.92015423e-01  3.48110501e-02 -1.10173809e+00 -1.05824148e+00
- -9.38588395e-01 -8.54095952e-01 -1.14004996e+00 -1.07517884e+00
- -1.27732074e+00 -1.14365723e+00 -8.40014501e-01  8.96266579e-02
- -1.05682100e+00 -1.09750656e+00 -5.95190891e-01 -9.75618087e-01
- -8.78722604e-01 -3.76306008e-01 -1.16794372e+00 -8.80378585e-01
- -9.81875679e-01 -1.00691726e+00 -5.71289432e-01  7.53732542e-02
-  1.09262936e-01 -6.50776549e-01 -1.28001965e+00 -2.91297707e-01
- -7.55697749e-01 -8.98078524e-01 -7.60635789e-01 -8.20718390e-01
- -5.15393511e-01 -6.51546599e-01 -5.39410851e-01 -6.60439557e-01
- -9.77214259e-01 -1.01617282e+00 -7.56796753e-01 -9.04078187e-01
-  1.03915829e+00 -6.11836683e-01 -1.07864407e+00 -1.26618492e+00
- -5.31433730e-01 -8.78184316e-01 -6.71732379e-01 -8.34340054e-01
- -9.52587607e-01 -6.61815180e-01 -9.50935364e-01 -6.41008874e-01
- -1.10559208e+00 -1.09146951e+00 -3.98443081e-01 -4.11092837e-01
- -2.08573389e-01 -5.50044579e-02  3.18268256e+00 -8.03504405e-01
- -1.46231220e+00 -1.31269819e+00 -7.47563627e-01 -1.00167270e+00
- -8.55019264e-01 -2.47202991e-01 -8.26482552e-01 -6.46997322e-01
- -8.03609072e-01 -9.24241538e-01 -2.40304994e-02 -4.75601357e-01
- -8.56716365e-01 -8.41887293e-01  3.51582014e-01  2.29315996e-01
-  1.33512668e+00  6.62672244e-02 -7.92087037e-02 -2.86183976e-01
-  1.21524558e+00  4.99181188e-01 -6.30530959e-01 -2.50283192e-01
-  1.44744560e+00  4.00334412e-01 -6.46186153e-01 -8.49800866e-01
- -1.21221038e+00 -8.46552451e-01 -1.09295354e+00 -3.22798738e-01
- -6.39607084e-01 -3.26697584e-01 -8.02106353e-01 -5.05812741e-01
- -1.12702265e+00 -1.12280981e+00 -3.42274278e-01 -4.12214269e-01
- -5.36061507e-01 -6.69874540e-01 -7.92484465e-01 -2.06356691e-01
- -5.67061632e-01 -3.19819467e-01 -5.65431817e-01 -6.42332164e-01
- -6.01093363e-01  3.63248648e-01  5.15247573e-01  7.24250758e-03
- -3.68372556e-02 -8.39635764e-02 -5.33814904e-01 -7.44681546e-01
- -2.97865562e-01 -5.04302546e-01  1.18774806e+00 -6.74887342e-01
- -1.04144242e+00 -1.04247040e+00 -9.44206770e-01 -8.42388199e-01
-  1.10107749e-01 -9.69704401e-01 -9.88649130e-01  1.53506310e+00
-  2.37583449e+00  3.66755248e+00  2.18700773e+00  4.56206664e+00
-  2.22515512e+00  9.37597645e-01  1.45783006e+00 -4.11560100e-01
- -9.79889556e-02 -4.11918958e-01 -5.83565377e-01 -3.62355391e-01]' has dtype incompatible with int64, please explicitly cast to a compatible dtype first.
-  X.loc[:, other_features] = other_scaler.fit_transform(X[other_features])
-
-  0%|          | 0/10 [00:00<?, ?it/s]
- 40%|████      | 4/10 [00:00<00:00, 39.64it/s]
-100%|██████████| 10/10 [00:00<00:00, 51.85it/s]
-2025-04-24 23:56:58,022 - INFO - Job completed: model=svm, symbol=AAPL
-2025-04-24 23:56:58,022 - INFO - Training Summary:
-2025-04-24 23:56:58,023 - INFO -   Total jobs: 1
-2025-04-24 23:56:58,023 - INFO -   Successful: 1
-2025-04-24 23:56:58,023 - INFO -   Failed: 0
-2025-04-24 23:56:58,023 - INFO -   Total duration: 4.64 seconds
+--- XGBoost Stock Price Prediction and Evaluation Completed. ---
+2025-04-24 19:36:01,033 - WARNING - Job stderr: model=xgboost, symbol=AAME
+/home/skylap/Downloads/stockmarketprediction/train-model/train-xgboost.py:193: FutureWarning: Setting an item of incompatible dtype is deprecated and will raise in a future error of pandas. Value '[-3.84754435e-01 -1.48625480e-01 -1.48625480e-01 -5.42173737e-01
+  2.56167013e-01 -4.97196794e-01  2.33678541e-01 -5.86715930e-02
+  1.99945833e-01  1.43724653e-01 -2.27335132e-01 -4.52219850e-01
+ -5.75906445e-01  8.79382247e-03 -4.18487142e-01 -2.83556311e-01
+ -4.52219850e-01 -3.95998671e-01 -1.48625480e-01 -1.71113952e-01
+ -3.73510199e-01  6.50150021e-02 -6.65860333e-01 -5.64662209e-01
+ -4.40975614e-01  3.01143956e-01 -2.16090896e-01  1.81911581e+00
+ -2.83556311e-01 -4.18487142e-01  6.72203742e-01 -5.42173737e-01
+ -4.40975614e-01 -4.97196794e-01 -5.53417973e-01 -5.30929502e-01
+  3.23632428e-01 -2.16090896e-01 -2.72312075e-01 -5.64662209e-01
+ -4.85952558e-01 -5.53417973e-01  3.57365136e-01  7.05936449e-01
+  7.95890337e-01 -3.73510199e-01 -4.40975614e-01  4.24830551e-01
+ -3.84754435e-01 -2.49388853e-02 -2.72312075e-01 -2.49823604e-01
+ -5.75906445e-01 -3.95998671e-01 -4.40975614e-01 -4.52219850e-01
+ -4.63464086e-01 -3.95998671e-01 -2.49388853e-02 -2.49388853e-02
+ -4.63464086e-01 -4.29731378e-01 -5.75906445e-01  4.13586315e-01
+  5.14784439e-01  3.12388192e-01  8.75034739e-02  6.38471034e-01
+  5.14784439e-01 -8.11600649e-02  7.62592380e-02 -4.18487142e-01
+ -1.26137009e-01  3.57365136e-01 -1.59869716e-01 -5.08441030e-01
+ -5.75906445e-01 -6.09639153e-01 -3.51021727e-01 -3.73510199e-01
+  3.23632428e-01  2.56167013e-01 -5.42173737e-01 -5.30929502e-01
+ -3.73510199e-01 -6.43371861e-01 -1.37381244e-01 -5.53417973e-01
+ -4.29731378e-01 -6.54616097e-01 -6.09639153e-01 -6.32127625e-01
+  8.79382247e-03 -4.85952558e-01 -5.75906445e-01 -6.20883389e-01
+  5.37707661e-02  3.12822943e-02 -4.97196794e-01 -1.37381244e-01
+ -4.52219850e-01  1.09991946e-01 -5.19685266e-01 -6.54616097e-01
+ -5.87150681e-01 -5.19685266e-01 -1.03648537e-01 -6.32127625e-01
+ -6.65860333e-01 -5.98394917e-01  8.63355752e-01 -6.54616097e-01
+ -2.94800547e-01  3.79853608e-01 -2.04846660e-01  7.95890337e-01
+  6.72203742e-01  5.14784439e-01 -3.51021727e-01 -5.53417973e-01
+ -3.39777491e-01 -5.98394917e-01  7.62592380e-02  2.56167013e-01
+  4.58563259e-01  2.74114315e+00  3.78685709e+00  1.87533698e+00
+ -2.61067840e-01 -2.72312075e-01  8.85844224e-01 -4.97196794e-01
+ -2.72312075e-01  3.57365136e-01 -4.63464086e-01 -2.83556311e-01
+ -2.04846660e-01  3.91097844e-01 -6.09639153e-01  7.95890337e-01
+  7.28424921e-01  4.13586315e-01 -4.97196794e-01 -6.20883389e-01
+  1.79662733e+00 -5.86715930e-02 -4.18487142e-01 -3.39777491e-01
+  3.91097844e-01  3.79853608e-01 -4.63464086e-01  5.37707661e-02
+ -3.06044783e-01  3.12822943e-02 -4.52219850e-01 -3.62265963e-01
+ -3.51021727e-01 -4.52219850e-01  6.04738326e-01  3.79853608e-01
+ -2.61067840e-01 -3.39777491e-01 -5.08441030e-01 -5.64662209e-01
+ -1.03648537e-01 -3.84754435e-01 -3.28533255e-01 -5.64662209e-01
+ -8.11600649e-02 -2.04846660e-01 -3.06044783e-01  6.15982562e-01
+ -9.24043008e-02  6.04738326e-01 -3.06044783e-01  2.56167013e-01
+  2.78655484e-01 -5.64662209e-01 -3.84754435e-01 -6.20883389e-01
+ -3.17289019e-01 -5.19685266e-01  4.13586315e-01 -6.09639153e-01
+ -5.53417973e-01 -5.08441030e-01  2.78655484e-01  1.09991946e-01
+ -6.09639153e-01 -6.09639153e-01 -6.32127625e-01  3.34876664e-01
+  9.87477098e-02 -4.40975614e-01 -6.20883389e-01 -5.53417973e-01
+ -4.97196794e-01 -6.32127625e-01 -6.32127625e-01  6.60959506e-01
+ -4.52219850e-01 -6.20883389e-01  2.56167013e-01  7.05936449e-01
+ -5.87150681e-01 -5.42173737e-01 -3.95998671e-01  3.57365136e-01
+ -9.24043008e-02 -6.32127625e-01  1.21192707e+00  1.13321741e+00
+  6.04738326e-01 -3.61831212e-02 -4.29731378e-01  1.54968889e-01
+ -3.73510199e-01 -5.98394917e-01 -4.63464086e-01 -5.64662209e-01
+ -5.08441030e-01 -8.11600649e-02 -3.06044783e-01 -2.83556311e-01
+  1.54968889e-01 -4.52219850e-01 -4.85952558e-01 -3.73510199e-01
+ -5.30929502e-01 -5.19685266e-01 -8.11600649e-02 -3.39777491e-01
+  2.78655484e-01  1.00953082e+00  1.48178873e+00  1.99945833e-01
+  9.98286583e-01 -3.73510199e-01 -2.27335132e-01 -1.14892773e-01
+  3.46120900e-01  1.39183484e+00  1.43724653e-01  1.31312519e+00
+  1.48178873e+00  2.77487586e+00  9.87477098e-02 -1.03648537e-01
+  2.78655484e-01  1.99945833e-01 -2.61067840e-01 -3.28533255e-01
+  1.48178873e+00  1.71791768e+00  8.29623044e-01 -3.17289019e-01
+ -6.99158290e-02  2.44922777e-01 -1.03648537e-01  1.31312519e+00
+ -4.29731378e-01  4.25265302e-02 -3.95998671e-01  2.44922777e-01
+ -3.95998671e-01  1.88701597e-01 -3.06044783e-01 -4.52219850e-01
+ -6.32127625e-01  2.72989891e+00 -2.49823604e-01  1.88701597e-01
+ -5.64662209e-01 -4.52219850e-01 -3.84754435e-01  3.12822943e-02
+ -2.27335132e-01  2.44922777e-01  7.28424921e-01 -4.97196794e-01
+ -1.26137009e-01  7.62157629e-01 -3.95998671e-01 -3.39777491e-01
+  1.17819436e+00  6.50150021e-02  3.01143956e-01  1.32480418e-01
+ -5.86715930e-02 -4.29731378e-01 -3.06044783e-01 -5.64662209e-01
+  3.57365136e-01 -4.29731378e-01  6.83447977e-01 -2.72312075e-01
+  2.78655484e-01  4.58563259e-01 -4.97196794e-01  7.50913393e-01
+ -6.32127625e-01  8.40867280e-01 -6.32127625e-01 -2.83556311e-01
+  1.26814825e+00  2.14519865e+00  8.63355752e-01  1.89782546e+00
+  1.68418497e+00 -3.51021727e-01 -4.18487142e-01 -5.53417973e-01
+ -4.07242906e-01 -1.03648537e-01 -4.63464086e-01 -2.49823604e-01
+  4.02342080e-01 -2.45041345e-03  3.91097844e-01 -2.72312075e-01
+ -1.71113952e-01  5.26028675e-01 -4.74708322e-01 -3.17289019e-01
+ -1.71113952e-01 -1.37381244e-01 -4.85952558e-01 -5.75906445e-01
+  6.49715270e-01 -5.19685266e-01 -4.74708322e-01 -2.27335132e-01
+  1.34685790e+00 -1.82358188e-01  1.09991946e-01  6.50150021e-02
+  9.98286583e-01 -3.73510199e-01 -4.18487142e-01 -8.11600649e-02
+ -3.51021727e-01  2.78655484e-01  1.08824047e+00 -2.49388853e-02
+ -5.75906445e-01 -5.53417973e-01 -1.48625480e-01 -3.06044783e-01
+ -2.27335132e-01 -1.26137009e-01 -8.11600649e-02  5.26028675e-01
+  3.23632428e-01 -5.19685266e-01 -5.08441030e-01 -5.98394917e-01
+ -4.97196794e-01 -6.32127625e-01 -5.19685266e-01  5.82249854e-01
+  8.75034739e-02  6.50150021e-02 -8.11600649e-02 -2.61067840e-01
+ -6.32127625e-01 -5.64662209e-01 -2.04846660e-01 -4.74708322e-01
+  8.79382247e-03 -5.75906445e-01 -3.17289019e-01 -5.75906445e-01
+ -2.72312075e-01 -2.94800547e-01  8.79382247e-03 -3.28533255e-01
+ -6.32127625e-01 -2.49823604e-01 -2.49823604e-01 -3.73510199e-01
+  1.43724653e-01  3.12388192e-01 -5.53417973e-01  1.05450776e+00
+ -5.08441030e-01 -1.59869716e-01 -2.16090896e-01  6.94692213e-01
+  1.11072894e+00 -4.74708322e-01 -1.14892773e-01 -4.74708322e-01
+ -4.74708322e-01 -6.20883389e-01  7.84646101e-01 -6.20883389e-01
+ -3.73510199e-01 -6.32127625e-01 -4.52219850e-01 -3.95998671e-01
+  1.99945833e-01 -4.85952558e-01  4.02342080e-01  2.00380584e-02
+  7.28424921e-01 -2.72312075e-01 -5.64662209e-01 -2.04846660e-01
+ -5.08441030e-01  4.81051731e-01 -5.75906445e-01 -5.42173737e-01
+ -5.64662209e-01 -6.09639153e-01  1.54968889e-01 -2.83556311e-01
+ -2.49823604e-01 -4.52219850e-01 -4.18487142e-01  7.84646101e-01
+ -5.75906445e-01 -4.74273571e-02 -3.73510199e-01 -2.45041345e-03
+ -2.61067840e-01 -5.42173737e-01  1.20068283e+00  2.78655484e-01
+ -3.51021727e-01 -3.61831212e-02  8.52111516e-01  6.04738326e-01
+  5.82249854e-01  5.37272911e-01 -5.30929502e-01 -1.59869716e-01
+ -1.26137009e-01  5.37707661e-02 -4.18487142e-01 -5.30929502e-01
+ -5.42173737e-01 -5.30929502e-01 -5.98394917e-01 -3.51021727e-01
+  3.13469141e+00 -2.72312075e-01 -2.83556311e-01 -5.08441030e-01
+ -2.83556311e-01 -4.07242906e-01 -6.09639153e-01 -5.19685266e-01
+ -4.97196794e-01 -5.08441030e-01 -3.51021727e-01 -2.83556311e-01
+ -5.53417973e-01 -5.64662209e-01 -4.63464086e-01  4.47319023e-01
+ -2.49823604e-01 -5.86715930e-02 -1.93602424e-01 -3.51021727e-01
+ -3.17289019e-01 -5.19685266e-01 -1.26137009e-01 -3.39777491e-01
+  4.25265302e-02 -3.61831212e-02 -3.62265963e-01 -4.85952558e-01
+  4.20289382e+00  4.92295967e-01  1.99945833e-01 -4.52219850e-01
+ -2.45041345e-03 -4.40975614e-01 -5.98394917e-01  1.88701597e-01
+ -1.82358188e-01 -4.18487142e-01 -1.26137009e-01 -4.52219850e-01
+ -1.71113952e-01 -5.08441030e-01 -5.98394917e-01  3.57365136e-01
+ -1.26137009e-01 -4.18487142e-01  6.50150021e-02 -4.29731378e-01
+ -5.08441030e-01 -4.97196794e-01 -6.32127625e-01  6.49715270e-01
+ -1.48625480e-01 -5.19685266e-01 -3.06044783e-01  1.22317130e+00
+  6.38471034e-01 -4.85952558e-01 -2.16090896e-01 -2.45041345e-03
+ -4.29731378e-01  6.50150021e-02 -3.51021727e-01 -5.53417973e-01
+ -4.63464086e-01  3.46120900e-01 -4.85952558e-01 -6.09639153e-01
+  3.10095870e+00  3.79853608e-01 -1.37381244e-01 -2.61067840e-01
+ -4.07242906e-01 -2.38579368e-01  3.57365136e-01 -3.51021727e-01
+ -1.59869716e-01 -2.83556311e-01  1.36934637e+00 -1.03648537e-01
+ -4.85952558e-01 -5.64662209e-01 -5.98394917e-01 -4.85952558e-01
+ -2.27335132e-01 -4.97196794e-01 -5.19685266e-01 -6.09639153e-01
+ -1.59869716e-01 -3.28533255e-01 -4.07242906e-01 -5.75906445e-01
+ -3.95998671e-01  1.21236182e-01 -5.64662209e-01 -4.97196794e-01
+ -8.11600649e-02 -2.61067840e-01 -2.49823604e-01 -1.59869716e-01
+ -4.52219850e-01 -3.84754435e-01  3.46120900e-01 -1.37381244e-01
+  2.22434305e-01  1.21192707e+00  1.29063672e+00 -6.65860333e-01
+  4.38280159e+00  1.61671956e+00  2.56167013e-01 -5.53417973e-01
+  1.68418497e+00  7.50913393e-01  3.62943779e+00  2.10022170e+00
+ -1.14892773e-01 -3.51021727e-01  6.27226798e-01 -2.27335132e-01
+  4.24830551e-01  4.02342080e-01  1.67627053e+01  4.05671875e+00
+ -3.28533255e-01]' has dtype incompatible with int64, please explicitly cast to a compatible dtype first.
+  X.loc[:, other_features] = other_scaler.fit_transform(X[other_features].astype(np.float64))
+2025-04-24 19:36:17,732 - INFO - Job completed: model=xgboost, symbol=AAME
+2025-04-24 19:36:17,733 - INFO - Starting job: model=xgboost, symbol=AAMI
