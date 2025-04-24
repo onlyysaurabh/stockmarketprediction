@@ -1,70 +1,26 @@
 # train-xgboost.py
 
-from sklearn.preprocessing import StandardScaler
 import pandas as pd
-import numpy as np
 import xgboost as xgb
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import (mean_squared_error, mean_absolute_error,
+                             r2_score, accuracy_score, confusion_matrix,
+                             classification_report)
 from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.metrics import (mean_squared_error, mean_absolute_error, r2_score,
-                            accuracy_score, confusion_matrix, classification_report)
 import pymongo
 from pymongo import MongoClient
 import pickle
 import os
+import numpy as np
 import sys
 import argparse
 from datetime import datetime
-import shap  # For model explanation
+from sklearn.feature_selection import SelectKBest, f_regression
 
-# --- Parse Command Line Arguments ---
-def parse_args():
-    """Parse command line arguments for training parameters."""
-    parser = argparse.ArgumentParser(description='Train XGBoost model for stock price prediction')
-    
-    # Stock selection
-    stock_group = parser.add_mutually_exclusive_group()
-    stock_group.add_argument('--symbol', type=str, help='Single stock symbol to train on (e.g., AAPL)')
-    stock_group.add_argument('--symbols', type=str, help='Comma-separated list of stock symbols (e.g., AAPL,MSFT,GOOGL)')
-    
-    # Date range
-    parser.add_argument('--start-date', type=str, default="2020-02-25", 
-                      help='Start date for training data (YYYY-MM-DD format)')
-    parser.add_argument('--end-date', type=str, default="2025-02-25",
-                      help='End date for training data (YYYY-MM-DD format)')
-    
-    # Model parameters - UPDATED for better accuracy
-    parser.add_argument('--look-back', type=int, default=90, # Increased from 60 to 90
-                      help='Look-back period for time series features (default: 90)')
-    parser.add_argument('--features', type=int, default=40, # Increased from 30 to 40
-                      help='Number of features to select (default: 40)')
-    parser.add_argument('--n-estimators', type=str, default="200,300,500", # Changed from 100,200,300
-                      help='Comma-separated list of n_estimators to try (default: 200,300,500)')
-    parser.add_argument('--max-depth', type=str, default="4,5,6", # Changed from 3,4,5
-                      help='Comma-separated list of max_depth to try (default: 4,5,6)')
-    parser.add_argument('--learning-rate', type=str, default="0.05,0.1,0.15", # Changed from 0.01,0.1,0.2
-                      help='Comma-separated list of learning rates to try (default: 0.05,0.1,0.15)')
-                      
-    return parser.parse_args()
+# Add parent directory to path to import mongo_utils
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from stocks.mongo_utils import get_mongo_db, STOCKS_COLLECTION
 
-# --- Helper function to get stock symbols ---
-def get_stock_symbols(args):
-    """Get stock symbols from arguments or CSV file."""
-    if args.symbol:
-        return [args.symbol.upper()]
-    elif args.symbols:
-        return [symbol.strip().upper() for symbol in args.symbols.split(',')]
-    else:
-        # Default: load from CSV
-        stocks_file = "stock_symbols.csv"
-        try:
-            stocks_df = pd.read_csv(stocks_file)
-            return stocks_df['Symbol'].tolist()
-        except FileNotFoundError:
-            print(f"Error: {stocks_file} not found.")
-            sys.exit(1)
-        except KeyError:
-            print(f"Error: 'Symbol' column not found in {stocks_file}.")
-            sys.exit(1)
 
 # --- 1. Load Stock Price Data from MongoDB ---
 def load_data_from_mongodb(mongo_uri, db_name, stock_symbol,
@@ -217,6 +173,56 @@ def prepare_data_for_xgboost(df, look_back=60, num_features_to_select=30):
     return (X_train, X_test, y_train_scaled, y_test_scaled, close_scaler,
             other_scaler if other_features else None, target_scaler, selected_features)
 
+
+# --- Parse Command Line Arguments ---
+def parse_args():
+    """Parse command line arguments for training parameters."""
+    parser = argparse.ArgumentParser(description='Train XGBoost model for stock price prediction')
+    
+    # Stock selection
+    stock_group = parser.add_mutually_exclusive_group()
+    stock_group.add_argument('--symbol', type=str, help='Single stock symbol to train on (e.g., AAPL)')
+    stock_group.add_argument('--symbols', type=str, help='Comma-separated list of stock symbols to train on (e.g., AAPL,MSFT,GOOGL)')
+    
+    # Date range
+    parser.add_argument('--start-date', type=str, default="2020-02-25", 
+                      help='Start date for training data (YYYY-MM-DD format)')
+    parser.add_argument('--end-date', type=str, default="2025-02-25",
+                      help='End date for training data (YYYY-MM-DD format)')
+    
+    # Model parameters
+    parser.add_argument('--look-back', type=int, default=60,
+                      help='Look-back period for time series features (default: 60)')
+    parser.add_argument('--features', type=int, default=30,
+                      help='Number of features to select (default: 30)')
+    parser.add_argument('--n-estimators', type=str, default="100,200,300",
+                      help='Comma-separated list of n_estimators to try (default: 100,200,300)')
+    parser.add_argument('--max-depth', type=str, default="3,4,5",
+                      help='Comma-separated list of max_depth to try (default: 3,4,5)')
+    parser.add_argument('--learning-rate', type=str, default="0.01,0.1,0.2",
+                      help='Comma-separated list of learning rates to try (default: 0.01,0.1,0.2)')
+                      
+    return parser.parse_args()
+
+# --- Helper function to get stock symbols ---
+def get_stock_symbols(args):
+    """Get stock symbols from arguments or CSV file."""
+    if args.symbol:
+        return [args.symbol.upper()]
+    elif args.symbols:
+        return [symbol.strip().upper() for symbol in args.symbols.split(',')]
+    else:
+        # Default: load from CSV
+        stocks_file = "stock_symbols.csv"
+        try:
+            stocks_df = pd.read_csv(stocks_file)
+            return stocks_df['Symbol'].tolist()
+        except FileNotFoundError:
+            print(f"Error: {stocks_file} not found.")
+            sys.exit(1)
+        except KeyError:
+            print(f"Error: 'Symbol' column not found in {stocks_file}.")
+            sys.exit(1)
 
 # --- 3. Train XGBoost Model with Custom Parameters ---
 def train_xgboost_model(X_train, y_train, n_estimators=None, max_depth=None, learning_rate=None):
