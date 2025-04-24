@@ -108,29 +108,70 @@ def load_data_from_mongodb(mongo_uri, db_name, stock_symbol,
 
 
 # --- 2. Prepare Data for XGBoost ---
-def prepare_data_for_xgboost(df, look_back=60, num_features_to_select=30):
+def prepare_data_for_xgboost(df, look_back=60, num_features_to_select=30, short_duration=False):
     """Prepares data: creates features, scales, selects, and splits."""
 
     if 'Close' not in df.columns:
         raise ValueError("Required field 'Close' not found in DataFrame.")
+        
+    # Check if we have enough data points for the required look_back period
+    # Adjust minimum requirements based on short_duration mode
+    if short_duration:
+        # For short durations, require only look_back + small buffer
+        min_required_rows = look_back + 5
+    else:
+        # For normal mode, require more data
+        min_required_rows = look_back * 2  # Double the look_back as a reasonable buffer
+        
+    if len(df) < min_required_rows:
+        raise ValueError(
+            f"Insufficient data ({len(df)} rows) for look_back={look_back}. "
+            f"Need at least {min_required_rows} data points."
+        )
 
     # 1. Feature Engineering (on a *copy*)
     df = df.copy()
-    df['SMA'] = df['Close'].rolling(window=look_back).mean()
-    df['EMA'] = df['Close'].ewm(span=look_back, adjust=False).mean()
+    
+    # Adjust rolling window calculations for short duration
+    sma_window = min(look_back, max(5, len(df) // 10)) if short_duration else look_back
+    df['SMA'] = df['Close'].rolling(window=sma_window).mean()
+    df['EMA'] = df['Close'].ewm(span=sma_window, adjust=False).mean()
     df['Price_Range'] = df['High'] - df['Low']
     df['Volume_Change'] = df['Volume'].diff()
     df['Return'] = df['Close'].pct_change()
     df.dropna(inplace=True)  # Drop NaNs *after* feature engineering
 
-    # 2. Create Lagged Features
-    for i in range(1, look_back + 1):
+    # After feature engineering, check again if we have enough data
+    if len(df) <= 1:
+        raise ValueError(
+            f"After computing features, insufficient data remains ({len(df)} rows). "
+            f"Need more historical price data."
+        )
+
+    # 2. Create Lagged Features - Adapt number of lags for short duration
+    actual_look_back = min(look_back, max(3, len(df) // 5)) if short_duration else look_back
+    for i in range(1, actual_look_back + 1):
         df[f'Close_Lag_{i}'] = df['Close'].shift(i)
     df.dropna(inplace=True)
+    
+    # Check data after creating lagged features
+    if len(df) <= 1:
+        raise ValueError(
+            f"After creating lagged features, insufficient data remains ({len(df)} rows). "
+            f"Need more historical price data."
+        )
 
     # 3. Define Target Variable
     df['Target'] = df['Close'].shift(-1)
     df.dropna(inplace=True)
+    
+    # For short duration, require fewer rows for training
+    min_train_rows = 5 if short_duration else 10
+    if len(df) <= min_train_rows:
+        raise ValueError(
+            f"Final dataset has only {len(df)} rows, which is too few for training. "
+            f"Need more historical price data."
+        )
 
     # 4. Separate Features (X) and Target (y)
     X = df.drop('Target', axis=1)
@@ -191,16 +232,18 @@ def parse_args():
                       help='End date for training data (YYYY-MM-DD format)')
     
     # Model parameters
-    parser.add_argument('--look-back', type=int, default=60,
-                      help='Look-back period for time series features (default: 60)')
-    parser.add_argument('--features', type=int, default=30,
-                      help='Number of features to select (default: 30)')
+    parser.add_argument('--look-back', type=int, default=20,
+                      help='Look-back period for time series features (default: 20)')
+    parser.add_argument('--features', type=int, default=15,
+                      help='Number of features to select (default: 15)')
     parser.add_argument('--n-estimators', type=str, default="100,200,300",
                       help='Comma-separated list of n_estimators to try (default: 100,200,300)')
     parser.add_argument('--max-depth', type=str, default="3,4,5",
                       help='Comma-separated list of max_depth to try (default: 3,4,5)')
     parser.add_argument('--learning-rate', type=str, default="0.01,0.1,0.2",
                       help='Comma-separated list of learning rates to try (default: 0.01,0.1,0.2)')
+    parser.add_argument('--short-duration', action='store_true',
+                      help='Enable short duration mode (3-6 months of data)')
                       
     return parser.parse_args()
 
@@ -424,8 +467,16 @@ if __name__ == "__main__":
     print(f"Training XGBoost model for {len(stock_symbols)} stock(s): {', '.join(stock_symbols) if len(stock_symbols) < 5 else ', '.join(stock_symbols[:5]) + '...'}")
 
     # --- Model Parameters ---
-    look_back = args.look_back
-    num_features = args.features
+    # Apply short duration settings if the flag is set
+    if args.short_duration:
+        # Override with short duration optimized parameters 
+        look_back = min(args.look_back, 10)  # Use smaller look-back for short durations
+        num_features = min(args.features, 10)  # Reduce feature count for short durations
+        print("Short duration mode enabled: Using optimized parameters for 3-6 months of data")
+    else:
+        look_back = args.look_back
+        num_features = args.features
+        
     print(f"Using look_back={look_back}, num_features={num_features}")
     print(f"Hyperparameter tuning with: n_estimators={args.n_estimators}, max_depth={args.max_depth}, learning_rate={args.learning_rate}")
 
@@ -447,7 +498,7 @@ if __name__ == "__main__":
                 # 2. Prepare Data
                 (X_train, X_test, y_train_scaled, y_test_scaled,
                  close_scaler, other_scaler, target_scaler, selected_features) = prepare_data_for_xgboost(
-                    df, look_back=look_back, num_features_to_select=num_features
+                    df, look_back=look_back, num_features_to_select=num_features, short_duration=args.short_duration
                 )
 
                 # 3. Train Model with custom parameters

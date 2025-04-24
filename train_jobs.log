@@ -1,1856 +1,534 @@
-2025-04-24 19:41:49,059 - INFO - Prepared 6482 training jobs with 4 max workers
-2025-04-24 19:41:49,072 - INFO - Starting job: model=xgboost, symbol=A
-2025-04-24 19:41:49,077 - INFO - Starting job: model=xgboost, symbol=AACBR
-2025-04-24 19:41:49,074 - INFO - Starting job: model=xgboost, symbol=AACB
-2025-04-24 19:41:49,073 - INFO - Starting job: model=xgboost, symbol=AA
-2025-04-24 19:41:55,908 - INFO - Job stdout: model=xgboost, symbol=AACB
-Training with date range: 2022-04-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): AACB
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: AACB ---
-Value Error for AACB: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:41:55,909 - INFO - Job completed: model=xgboost, symbol=AACB
-2025-04-24 19:41:55,909 - INFO - Starting job: model=xgboost, symbol=AACBU
-2025-04-24 19:41:56,404 - INFO - Job stdout: model=xgboost, symbol=AACBR
-Training with date range: 2022-04-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): AACBR
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: AACBR ---
-An error occurred for AACBR: Error loading data from MongoDB: No document found for symbol 'AACBR' in MongoDB collection 'stock_prices'.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:41:56,404 - INFO - Job completed: model=xgboost, symbol=AACBR
-2025-04-24 19:41:56,405 - INFO - Starting job: model=xgboost, symbol=AACG
-2025-04-24 19:42:08,827 - INFO - Job stdout: model=xgboost, symbol=AACBU
-Training with date range: 2022-04-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): AACBU
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: AACBU ---
-Value Error for AACBU: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:42:08,858 - INFO - Job completed: model=xgboost, symbol=AACBU
-2025-04-24 19:42:08,864 - INFO - Starting job: model=xgboost, symbol=AACT
-2025-04-24 19:57:35,911 - INFO - Prepared 6482 training jobs with 4 max workers
-2025-04-24 19:57:35,915 - INFO - Starting job: model=xgboost, symbol=A
-2025-04-24 19:57:35,916 - INFO - Starting job: model=xgboost, symbol=AA
-2025-04-24 19:57:35,916 - INFO - Starting job: model=xgboost, symbol=AACB
-2025-04-24 19:57:35,917 - INFO - Starting job: model=xgboost, symbol=AACBR
-2025-04-24 19:57:39,337 - INFO - Job stdout: model=xgboost, symbol=AACB
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): AACB
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: AACB ---
-Value Error for AACB: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:57:39,338 - INFO - Job completed: model=xgboost, symbol=AACB
-2025-04-24 19:57:39,337 - INFO - Job stdout: model=xgboost, symbol=AACBR
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): AACBR
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: AACBR ---
-An error occurred for AACBR: Error loading data from MongoDB: No document found for symbol 'AACBR' in MongoDB collection 'stock_prices'.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:57:39,339 - INFO - Job stdout: model=xgboost, symbol=AA
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): AA
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: AA ---
-Value Error for AA: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:57:39,340 - INFO - Starting job: model=xgboost, symbol=AACBU
-2025-04-24 19:57:39,340 - INFO - Job stdout: model=xgboost, symbol=A
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): A
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: A ---
-Value Error for A: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:57:39,340 - INFO - Job completed: model=xgboost, symbol=AACBR
-2025-04-24 19:57:39,341 - INFO - Job completed: model=xgboost, symbol=AA
-2025-04-24 19:57:39,341 - INFO - Job completed: model=xgboost, symbol=A
-2025-04-24 19:57:39,342 - INFO - Starting job: model=xgboost, symbol=AACG
-2025-04-24 19:57:39,342 - INFO - Starting job: model=xgboost, symbol=AACT
-2025-04-24 19:57:39,343 - INFO - Starting job: model=xgboost, symbol=AAL
-2025-04-24 19:57:42,322 - INFO - Job stdout: model=xgboost, symbol=AACG
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): AACG
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: AACG ---
-Value Error for AACG: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:57:42,322 - INFO - Job completed: model=xgboost, symbol=AACG
-2025-04-24 19:57:42,322 - INFO - Starting job: model=xgboost, symbol=AAM
-2025-04-24 19:57:42,409 - INFO - Job stdout: model=xgboost, symbol=AACT
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): AACT
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: AACT ---
-Value Error for AACT: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:57:42,409 - INFO - Job completed: model=xgboost, symbol=AACT
-2025-04-24 19:57:42,409 - INFO - Starting job: model=xgboost, symbol=AAME
-2025-04-24 19:57:42,417 - INFO - Job stdout: model=xgboost, symbol=AAL
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): AAL
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: AAL ---
-Value Error for AAL: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:57:42,417 - INFO - Job completed: model=xgboost, symbol=AAL
-2025-04-24 19:57:42,418 - INFO - Starting job: model=xgboost, symbol=AAMI
-2025-04-24 19:57:42,481 - INFO - Job stdout: model=xgboost, symbol=AACBU
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): AACBU
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: AACBU ---
-Value Error for AACBU: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:57:42,481 - INFO - Job completed: model=xgboost, symbol=AACBU
-2025-04-24 19:57:42,482 - INFO - Starting job: model=xgboost, symbol=AAOI
-2025-04-24 19:57:45,019 - INFO - Job stdout: model=xgboost, symbol=AAMI
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): AAMI
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: AAMI ---
-Value Error for AAMI: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:57:45,019 - INFO - Job completed: model=xgboost, symbol=AAMI
-2025-04-24 19:57:45,019 - INFO - Starting job: model=xgboost, symbol=AAON
-2025-04-24 19:57:45,142 - INFO - Job stdout: model=xgboost, symbol=AAM
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): AAM
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: AAM ---
-Value Error for AAM: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:57:45,142 - INFO - Job completed: model=xgboost, symbol=AAM
-2025-04-24 19:57:45,143 - INFO - Starting job: model=xgboost, symbol=AAP
-2025-04-24 19:57:45,162 - INFO - Job stdout: model=xgboost, symbol=AAOI
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): AAOI
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: AAOI ---
-Value Error for AAOI: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:57:45,162 - INFO - Job completed: model=xgboost, symbol=AAOI
-2025-04-24 19:57:45,163 - INFO - Starting job: model=xgboost, symbol=AAPG
-2025-04-24 19:57:45,203 - INFO - Job stdout: model=xgboost, symbol=AAME
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): AAME
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: AAME ---
-Value Error for AAME: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:57:45,203 - INFO - Job completed: model=xgboost, symbol=AAME
-2025-04-24 19:57:45,203 - INFO - Starting job: model=xgboost, symbol=AAPL
-2025-04-24 19:57:47,821 - INFO - Job stdout: model=xgboost, symbol=AAPL
-Training with date range: 2025-03-24 to 2025-04-24
+2025-04-24 20:21:07,789 - INFO - Prepared 1 training jobs with 4 max workers
+2025-04-24 20:21:07,791 - INFO - Starting job: model=xgboost, symbol=AAPL
+2025-04-24 20:21:25,933 - INFO - Job stdout: model=xgboost, symbol=AAPL
+Training with date range: 2024-10-25 to 2025-04-25
 Training XGBoost model for 1 stock(s): AAPL
-Using look_back=60, num_features=30
+Using look_back=20, num_features=15
 Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
 
 --- Processing Stock: AAPL ---
-Value Error for AAPL: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:57:47,821 - INFO - Job completed: model=xgboost, symbol=AAPL
-2025-04-24 19:57:47,821 - INFO - Starting job: model=xgboost, symbol=AARD
-2025-04-24 19:57:47,822 - INFO - Job stdout: model=xgboost, symbol=AAP
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): AAP
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: AAP ---
-Value Error for AAP: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:57:47,822 - INFO - Job completed: model=xgboost, symbol=AAP
-2025-04-24 19:57:47,822 - INFO - Starting job: model=xgboost, symbol=AAT
-2025-04-24 19:57:47,904 - INFO - Job stdout: model=xgboost, symbol=AAON
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): AAON
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: AAON ---
-Value Error for AAON: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:57:47,904 - INFO - Job completed: model=xgboost, symbol=AAON
-2025-04-24 19:57:47,905 - INFO - Starting job: model=xgboost, symbol=AB
-2025-04-24 19:57:48,078 - INFO - Job stdout: model=xgboost, symbol=AAPG
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): AAPG
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: AAPG ---
-Value Error for AAPG: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:57:48,078 - INFO - Job completed: model=xgboost, symbol=AAPG
-2025-04-24 19:57:48,079 - INFO - Starting job: model=xgboost, symbol=ABAT
-2025-04-24 19:57:50,236 - INFO - Job stdout: model=xgboost, symbol=AAT
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): AAT
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: AAT ---
-Value Error for AAT: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:57:50,236 - INFO - Job completed: model=xgboost, symbol=AAT
-2025-04-24 19:57:50,236 - INFO - Starting job: model=xgboost, symbol=ABBV
-2025-04-24 19:57:50,320 - INFO - Job stdout: model=xgboost, symbol=AB
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): AB
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: AB ---
-Value Error for AB: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:57:50,320 - INFO - Job completed: model=xgboost, symbol=AB
-2025-04-24 19:57:50,320 - INFO - Starting job: model=xgboost, symbol=ABCB
-2025-04-24 19:57:50,402 - INFO - Job stdout: model=xgboost, symbol=AARD
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): AARD
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: AARD ---
-Value Error for AARD: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:57:50,402 - INFO - Job completed: model=xgboost, symbol=AARD
-2025-04-24 19:57:50,403 - INFO - Starting job: model=xgboost, symbol=ABCL
-2025-04-24 19:57:50,676 - INFO - Job stdout: model=xgboost, symbol=ABAT
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ABAT
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ABAT ---
-Value Error for ABAT: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:57:50,676 - INFO - Job completed: model=xgboost, symbol=ABAT
-2025-04-24 19:57:50,677 - INFO - Starting job: model=xgboost, symbol=ABEO
-2025-04-24 19:57:53,027 - INFO - Job stdout: model=xgboost, symbol=ABBV
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ABBV
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ABBV ---
-Value Error for ABBV: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:57:53,028 - INFO - Job completed: model=xgboost, symbol=ABBV
-2025-04-24 19:57:53,028 - INFO - Starting job: model=xgboost, symbol=ABEV
-2025-04-24 19:57:53,259 - INFO - Job stdout: model=xgboost, symbol=ABCB
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ABCB
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ABCB ---
-Value Error for ABCB: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:57:53,259 - INFO - Job completed: model=xgboost, symbol=ABCB
-2025-04-24 19:57:53,260 - INFO - Starting job: model=xgboost, symbol=ABG
-2025-04-24 19:57:53,330 - INFO - Job stdout: model=xgboost, symbol=ABCL
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ABCL
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ABCL ---
-Value Error for ABCL: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:57:53,330 - INFO - Job completed: model=xgboost, symbol=ABCL
-2025-04-24 19:57:53,330 - INFO - Starting job: model=xgboost, symbol=ABL
-2025-04-24 19:57:53,390 - INFO - Job stdout: model=xgboost, symbol=ABEO
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ABEO
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ABEO ---
-Value Error for ABEO: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:57:53,390 - INFO - Job completed: model=xgboost, symbol=ABEO
-2025-04-24 19:57:53,392 - INFO - Starting job: model=xgboost, symbol=ABLLL
-2025-04-24 19:57:55,932 - INFO - Job stdout: model=xgboost, symbol=ABEV
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ABEV
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ABEV ---
-Value Error for ABEV: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:57:55,932 - INFO - Job completed: model=xgboost, symbol=ABEV
-2025-04-24 19:57:55,932 - INFO - Starting job: model=xgboost, symbol=ABLLW
-2025-04-24 19:57:56,329 - INFO - Job stdout: model=xgboost, symbol=ABLLL
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ABLLL
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ABLLL ---
-Value Error for ABLLL: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:57:56,329 - INFO - Job completed: model=xgboost, symbol=ABLLL
-2025-04-24 19:57:56,329 - INFO - Starting job: model=xgboost, symbol=ABLV
-2025-04-24 19:57:56,444 - INFO - Job stdout: model=xgboost, symbol=ABG
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ABG
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ABG ---
-Value Error for ABG: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:57:56,444 - INFO - Job completed: model=xgboost, symbol=ABG
-2025-04-24 19:57:56,444 - INFO - Starting job: model=xgboost, symbol=ABLVW
-2025-04-24 19:57:56,534 - INFO - Job stdout: model=xgboost, symbol=ABL
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ABL
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ABL ---
-Value Error for ABL: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:57:56,535 - INFO - Job completed: model=xgboost, symbol=ABL
-2025-04-24 19:57:56,536 - INFO - Starting job: model=xgboost, symbol=ABM
-2025-04-24 19:57:58,919 - INFO - Job stdout: model=xgboost, symbol=ABLLW
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ABLLW
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ABLLW ---
-An error occurred for ABLLW: Error loading data from MongoDB: No document found for symbol 'ABLLW' in MongoDB collection 'stock_prices'.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:57:58,919 - INFO - Job completed: model=xgboost, symbol=ABLLW
-2025-04-24 19:57:58,919 - INFO - Starting job: model=xgboost, symbol=ABNB
-2025-04-24 19:57:58,974 - INFO - Job stdout: model=xgboost, symbol=ABLVW
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ABLVW
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ABLVW ---
-An error occurred for ABLVW: Error loading data from MongoDB: No document found for symbol 'ABLVW' in MongoDB collection 'stock_prices'.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:57:58,974 - INFO - Job completed: model=xgboost, symbol=ABLVW
-2025-04-24 19:57:58,974 - INFO - Starting job: model=xgboost, symbol=ABOS
-2025-04-24 19:57:59,447 - INFO - Job stdout: model=xgboost, symbol=ABLV
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ABLV
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ABLV ---
-Value Error for ABLV: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:57:59,448 - INFO - Job completed: model=xgboost, symbol=ABLV
-2025-04-24 19:57:59,448 - INFO - Starting job: model=xgboost, symbol=ABP
-2025-04-24 19:57:59,458 - INFO - Job stdout: model=xgboost, symbol=ABM
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ABM
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ABM ---
-Value Error for ABM: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:57:59,458 - INFO - Job completed: model=xgboost, symbol=ABM
-2025-04-24 19:57:59,458 - INFO - Starting job: model=xgboost, symbol=ABPWW
-2025-04-24 19:58:01,462 - INFO - Job stdout: model=xgboost, symbol=ABNB
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ABNB
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ABNB ---
-Value Error for ABNB: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:01,462 - INFO - Job completed: model=xgboost, symbol=ABNB
-2025-04-24 19:58:01,462 - INFO - Starting job: model=xgboost, symbol=ABR
-2025-04-24 19:58:01,545 - INFO - Job stdout: model=xgboost, symbol=ABOS
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ABOS
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ABOS ---
-Value Error for ABOS: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:01,545 - INFO - Job completed: model=xgboost, symbol=ABOS
-2025-04-24 19:58:01,545 - INFO - Starting job: model=xgboost, symbol=ABSI
-2025-04-24 19:58:02,145 - INFO - Job stdout: model=xgboost, symbol=ABPWW
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ABPWW
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ABPWW ---
-An error occurred for ABPWW: Error loading data from MongoDB: No document found for symbol 'ABPWW' in MongoDB collection 'stock_prices'.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:02,145 - INFO - Job completed: model=xgboost, symbol=ABPWW
-2025-04-24 19:58:02,145 - INFO - Starting job: model=xgboost, symbol=ABT
-2025-04-24 19:58:02,167 - INFO - Job stdout: model=xgboost, symbol=ABP
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ABP
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ABP ---
-Value Error for ABP: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:02,167 - INFO - Job completed: model=xgboost, symbol=ABP
-2025-04-24 19:58:02,167 - INFO - Starting job: model=xgboost, symbol=ABTS
-2025-04-24 19:58:04,295 - INFO - Job stdout: model=xgboost, symbol=ABR
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ABR
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ABR ---
-Value Error for ABR: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:04,295 - INFO - Job completed: model=xgboost, symbol=ABR
-2025-04-24 19:58:04,295 - INFO - Starting job: model=xgboost, symbol=ABUS
-2025-04-24 19:58:04,296 - INFO - Job stdout: model=xgboost, symbol=ABSI
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ABSI
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ABSI ---
-Value Error for ABSI: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:04,296 - INFO - Job completed: model=xgboost, symbol=ABSI
-2025-04-24 19:58:04,296 - INFO - Starting job: model=xgboost, symbol=ABVC
-2025-04-24 19:58:04,660 - INFO - Job stdout: model=xgboost, symbol=ABTS
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ABTS
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ABTS ---
-Value Error for ABTS: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:04,660 - INFO - Job completed: model=xgboost, symbol=ABTS
-2025-04-24 19:58:04,661 - INFO - Starting job: model=xgboost, symbol=ABVE
-2025-04-24 19:58:04,872 - INFO - Job stdout: model=xgboost, symbol=ABT
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ABT
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ABT ---
-Value Error for ABT: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:04,872 - INFO - Job completed: model=xgboost, symbol=ABT
-2025-04-24 19:58:04,872 - INFO - Starting job: model=xgboost, symbol=ABVEW
-2025-04-24 19:58:07,016 - INFO - Job stdout: model=xgboost, symbol=ABUS
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ABUS
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ABUS ---
-Value Error for ABUS: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:07,016 - INFO - Job completed: model=xgboost, symbol=ABUS
-2025-04-24 19:58:07,016 - INFO - Starting job: model=xgboost, symbol=ABVX
-2025-04-24 19:58:07,037 - INFO - Job stdout: model=xgboost, symbol=ABVC
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ABVC
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ABVC ---
-Value Error for ABVC: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:07,037 - INFO - Job completed: model=xgboost, symbol=ABVC
-2025-04-24 19:58:07,037 - INFO - Starting job: model=xgboost, symbol=AC
-2025-04-24 19:58:07,529 - INFO - Job stdout: model=xgboost, symbol=ABVE
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ABVE
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ABVE ---
-Value Error for ABVE: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:07,529 - INFO - Job completed: model=xgboost, symbol=ABVE
-2025-04-24 19:58:07,529 - INFO - Starting job: model=xgboost, symbol=ACA
-2025-04-24 19:58:07,598 - INFO - Job stdout: model=xgboost, symbol=ABVEW
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ABVEW
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ABVEW ---
-An error occurred for ABVEW: Error loading data from MongoDB: No document found for symbol 'ABVEW' in MongoDB collection 'stock_prices'.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:07,598 - INFO - Job completed: model=xgboost, symbol=ABVEW
-2025-04-24 19:58:07,598 - INFO - Starting job: model=xgboost, symbol=ACAD
-2025-04-24 19:58:09,550 - INFO - Job stdout: model=xgboost, symbol=ABVX
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ABVX
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ABVX ---
-Value Error for ABVX: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:09,551 - INFO - Job completed: model=xgboost, symbol=ABVX
-2025-04-24 19:58:09,551 - INFO - Starting job: model=xgboost, symbol=ACB
-2025-04-24 19:58:09,707 - INFO - Job stdout: model=xgboost, symbol=AC
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): AC
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: AC ---
-Value Error for AC: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:09,707 - INFO - Job completed: model=xgboost, symbol=AC
-2025-04-24 19:58:09,707 - INFO - Starting job: model=xgboost, symbol=ACCO
-2025-04-24 19:58:09,960 - INFO - Job stdout: model=xgboost, symbol=ACA
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACA
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACA ---
-Value Error for ACA: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:09,960 - INFO - Job completed: model=xgboost, symbol=ACA
-2025-04-24 19:58:09,960 - INFO - Starting job: model=xgboost, symbol=ACCS
-2025-04-24 19:58:10,219 - INFO - Job stdout: model=xgboost, symbol=ACAD
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACAD
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACAD ---
-Value Error for ACAD: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:10,219 - INFO - Job completed: model=xgboost, symbol=ACAD
-2025-04-24 19:58:10,219 - INFO - Starting job: model=xgboost, symbol=ACDC
-2025-04-24 19:58:12,148 - INFO - Job stdout: model=xgboost, symbol=ACB
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACB
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACB ---
-Value Error for ACB: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:12,148 - INFO - Job completed: model=xgboost, symbol=ACB
-2025-04-24 19:58:12,148 - INFO - Starting job: model=xgboost, symbol=ACEL
-2025-04-24 19:58:12,294 - INFO - Job stdout: model=xgboost, symbol=ACCO
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACCO
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACCO ---
-Value Error for ACCO: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:12,295 - INFO - Job completed: model=xgboost, symbol=ACCO
-2025-04-24 19:58:12,295 - INFO - Starting job: model=xgboost, symbol=ACET
-2025-04-24 19:58:12,742 - INFO - Job stdout: model=xgboost, symbol=ACCS
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACCS
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACCS ---
-Value Error for ACCS: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:12,743 - INFO - Job completed: model=xgboost, symbol=ACCS
-2025-04-24 19:58:12,743 - INFO - Starting job: model=xgboost, symbol=ACGL
-2025-04-24 19:58:12,899 - INFO - Job stdout: model=xgboost, symbol=ACDC
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACDC
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACDC ---
-Value Error for ACDC: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:12,899 - INFO - Job completed: model=xgboost, symbol=ACDC
-2025-04-24 19:58:12,900 - INFO - Starting job: model=xgboost, symbol=ACGLN
-2025-04-24 19:58:14,936 - INFO - Job stdout: model=xgboost, symbol=ACEL
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACEL
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACEL ---
-Value Error for ACEL: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:14,936 - INFO - Job completed: model=xgboost, symbol=ACEL
-2025-04-24 19:58:14,937 - INFO - Starting job: model=xgboost, symbol=ACGLO
-2025-04-24 19:58:15,260 - INFO - Job stdout: model=xgboost, symbol=ACET
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACET
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACET ---
-Value Error for ACET: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:15,260 - INFO - Job completed: model=xgboost, symbol=ACET
-2025-04-24 19:58:15,260 - INFO - Starting job: model=xgboost, symbol=ACHC
-2025-04-24 19:58:15,647 - INFO - Job stdout: model=xgboost, symbol=ACGL
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACGL
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACGL ---
-Value Error for ACGL: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:15,648 - INFO - Job completed: model=xgboost, symbol=ACGL
-2025-04-24 19:58:15,648 - INFO - Starting job: model=xgboost, symbol=ACHR
-2025-04-24 19:58:15,723 - INFO - Job stdout: model=xgboost, symbol=ACGLN
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACGLN
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACGLN ---
-Value Error for ACGLN: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:15,723 - INFO - Job completed: model=xgboost, symbol=ACGLN
-2025-04-24 19:58:15,723 - INFO - Starting job: model=xgboost, symbol=ACHV
-2025-04-24 19:58:17,466 - INFO - Job stdout: model=xgboost, symbol=ACGLO
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACGLO
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACGLO ---
-Value Error for ACGLO: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:17,467 - INFO - Job completed: model=xgboost, symbol=ACGLO
-2025-04-24 19:58:17,467 - INFO - Starting job: model=xgboost, symbol=ACI
-2025-04-24 19:58:17,771 - INFO - Job stdout: model=xgboost, symbol=ACHC
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACHC
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACHC ---
-Value Error for ACHC: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:17,771 - INFO - Job completed: model=xgboost, symbol=ACHC
-2025-04-24 19:58:17,771 - INFO - Starting job: model=xgboost, symbol=ACIC
-2025-04-24 19:58:18,297 - INFO - Job stdout: model=xgboost, symbol=ACHR
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACHR
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACHR ---
-Value Error for ACHR: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:18,297 - INFO - Job completed: model=xgboost, symbol=ACHR
-2025-04-24 19:58:18,297 - INFO - Starting job: model=xgboost, symbol=ACIU
-2025-04-24 19:58:18,300 - INFO - Job stdout: model=xgboost, symbol=ACHV
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACHV
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACHV ---
-Value Error for ACHV: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:18,300 - INFO - Job completed: model=xgboost, symbol=ACHV
-2025-04-24 19:58:18,300 - INFO - Starting job: model=xgboost, symbol=ACIW
-2025-04-24 19:58:20,070 - INFO - Job stdout: model=xgboost, symbol=ACI
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACI
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACI ---
-Value Error for ACI: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:20,070 - INFO - Job completed: model=xgboost, symbol=ACI
-2025-04-24 19:58:20,070 - INFO - Starting job: model=xgboost, symbol=ACLS
-2025-04-24 19:58:20,330 - INFO - Job stdout: model=xgboost, symbol=ACIC
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACIC
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACIC ---
-Value Error for ACIC: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:20,330 - INFO - Job completed: model=xgboost, symbol=ACIC
-2025-04-24 19:58:20,330 - INFO - Starting job: model=xgboost, symbol=ACLX
-2025-04-24 19:58:20,866 - INFO - Job stdout: model=xgboost, symbol=ACIW
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACIW
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACIW ---
-Value Error for ACIW: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:20,867 - INFO - Job completed: model=xgboost, symbol=ACIW
-2025-04-24 19:58:20,867 - INFO - Starting job: model=xgboost, symbol=ACM
-2025-04-24 19:58:21,101 - INFO - Job stdout: model=xgboost, symbol=ACIU
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACIU
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACIU ---
-Value Error for ACIU: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:21,101 - INFO - Job completed: model=xgboost, symbol=ACIU
-2025-04-24 19:58:21,101 - INFO - Starting job: model=xgboost, symbol=ACMR
-2025-04-24 19:58:22,917 - INFO - Job stdout: model=xgboost, symbol=ACLS
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACLS
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACLS ---
-Value Error for ACLS: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:22,917 - INFO - Job completed: model=xgboost, symbol=ACLS
-2025-04-24 19:58:22,917 - INFO - Starting job: model=xgboost, symbol=ACN
-2025-04-24 19:58:23,404 - INFO - Job stdout: model=xgboost, symbol=ACLX
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACLX
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACLX ---
-Value Error for ACLX: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:23,404 - INFO - Job completed: model=xgboost, symbol=ACLX
-2025-04-24 19:58:23,404 - INFO - Starting job: model=xgboost, symbol=ACNB
-2025-04-24 19:58:23,729 - INFO - Job stdout: model=xgboost, symbol=ACM
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACM
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACM ---
-Value Error for ACM: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:23,729 - INFO - Job completed: model=xgboost, symbol=ACM
-2025-04-24 19:58:23,733 - INFO - Starting job: model=xgboost, symbol=ACNT
-2025-04-24 19:58:23,883 - INFO - Job stdout: model=xgboost, symbol=ACMR
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACMR
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACMR ---
-Value Error for ACMR: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:23,883 - INFO - Job completed: model=xgboost, symbol=ACMR
-2025-04-24 19:58:23,884 - INFO - Starting job: model=xgboost, symbol=ACOG
-2025-04-24 19:58:25,682 - INFO - Job stdout: model=xgboost, symbol=ACN
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACN
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACN ---
-Value Error for ACN: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:25,682 - INFO - Job completed: model=xgboost, symbol=ACN
-2025-04-24 19:58:25,683 - INFO - Starting job: model=xgboost, symbol=ACON
-2025-04-24 19:58:26,290 - INFO - Job stdout: model=xgboost, symbol=ACNB
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACNB
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACNB ---
-Value Error for ACNB: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:26,290 - INFO - Job completed: model=xgboost, symbol=ACNB
-2025-04-24 19:58:26,290 - INFO - Starting job: model=xgboost, symbol=ACP
-2025-04-24 19:58:26,459 - INFO - Job stdout: model=xgboost, symbol=ACNT
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACNT
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACNT ---
-Value Error for ACNT: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:26,459 - INFO - Job completed: model=xgboost, symbol=ACNT
-2025-04-24 19:58:26,460 - INFO - Starting job: model=xgboost, symbol=ACR
-2025-04-24 19:58:26,725 - INFO - Job stdout: model=xgboost, symbol=ACOG
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACOG
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACOG ---
-Value Error for ACOG: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:26,725 - INFO - Job completed: model=xgboost, symbol=ACOG
-2025-04-24 19:58:26,725 - INFO - Starting job: model=xgboost, symbol=ACRE
-2025-04-24 19:58:28,471 - INFO - Job stdout: model=xgboost, symbol=ACON
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACON
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACON ---
-Value Error for ACON: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:28,471 - INFO - Job completed: model=xgboost, symbol=ACON
-2025-04-24 19:58:28,471 - INFO - Starting job: model=xgboost, symbol=ACRS
-2025-04-24 19:58:28,869 - INFO - Job stdout: model=xgboost, symbol=ACP
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACP
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACP ---
-Value Error for ACP: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:28,869 - INFO - Job completed: model=xgboost, symbol=ACP
-2025-04-24 19:58:28,869 - INFO - Starting job: model=xgboost, symbol=ACRV
-2025-04-24 19:58:29,169 - INFO - Job stdout: model=xgboost, symbol=ACR
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACR
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACR ---
-Value Error for ACR: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:29,169 - INFO - Job completed: model=xgboost, symbol=ACR
-2025-04-24 19:58:29,169 - INFO - Starting job: model=xgboost, symbol=ACT
-2025-04-24 19:58:29,366 - INFO - Job stdout: model=xgboost, symbol=ACRE
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACRE
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACRE ---
-Value Error for ACRE: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:29,366 - INFO - Job completed: model=xgboost, symbol=ACRE
-2025-04-24 19:58:29,366 - INFO - Starting job: model=xgboost, symbol=ACTG
-2025-04-24 19:58:31,088 - INFO - Job stdout: model=xgboost, symbol=ACRS
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACRS
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACRS ---
-Value Error for ACRS: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:31,088 - INFO - Job completed: model=xgboost, symbol=ACRS
-2025-04-24 19:58:31,088 - INFO - Starting job: model=xgboost, symbol=ACTU
-2025-04-24 19:58:31,543 - INFO - Job stdout: model=xgboost, symbol=ACRV
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACRV
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACRV ---
-Value Error for ACRV: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:31,543 - INFO - Job completed: model=xgboost, symbol=ACRV
-2025-04-24 19:58:31,543 - INFO - Starting job: model=xgboost, symbol=ACU
-2025-04-24 19:58:31,673 - INFO - Job stdout: model=xgboost, symbol=ACT
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACT
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACT ---
-Value Error for ACT: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:31,673 - INFO - Job completed: model=xgboost, symbol=ACT
-2025-04-24 19:58:31,674 - INFO - Starting job: model=xgboost, symbol=ACV
-2025-04-24 19:58:32,087 - INFO - Job stdout: model=xgboost, symbol=ACTG
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACTG
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACTG ---
-Value Error for ACTG: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:32,087 - INFO - Job completed: model=xgboost, symbol=ACTG
-2025-04-24 19:58:32,087 - INFO - Starting job: model=xgboost, symbol=ACVA
-2025-04-24 19:58:33,968 - INFO - Job stdout: model=xgboost, symbol=ACTU
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACTU
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACTU ---
-Value Error for ACTU: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:33,968 - INFO - Job completed: model=xgboost, symbol=ACTU
-2025-04-24 19:58:33,968 - INFO - Starting job: model=xgboost, symbol=ACXP
-2025-04-24 19:58:34,229 - INFO - Job stdout: model=xgboost, symbol=ACV
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACV
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACV ---
-Value Error for ACV: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:34,230 - INFO - Job completed: model=xgboost, symbol=ACV
-2025-04-24 19:58:34,230 - INFO - Starting job: model=xgboost, symbol=ADAG
-2025-04-24 19:58:34,396 - INFO - Job stdout: model=xgboost, symbol=ACU
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACU
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACU ---
-Value Error for ACU: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:34,396 - INFO - Job completed: model=xgboost, symbol=ACU
-2025-04-24 19:58:34,397 - INFO - Starting job: model=xgboost, symbol=ADAP
-2025-04-24 19:58:34,842 - INFO - Job stdout: model=xgboost, symbol=ACVA
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACVA
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACVA ---
-Value Error for ACVA: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:34,843 - INFO - Job completed: model=xgboost, symbol=ACVA
-2025-04-24 19:58:34,843 - INFO - Starting job: model=xgboost, symbol=ADBE
-2025-04-24 19:58:36,791 - INFO - Job stdout: model=xgboost, symbol=ACXP
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ACXP
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ACXP ---
-Value Error for ACXP: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:36,791 - INFO - Job completed: model=xgboost, symbol=ACXP
-2025-04-24 19:58:36,791 - INFO - Starting job: model=xgboost, symbol=ADC
-2025-04-24 19:58:37,116 - INFO - Job stdout: model=xgboost, symbol=ADAG
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ADAG
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ADAG ---
-Value Error for ADAG: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:37,116 - INFO - Job completed: model=xgboost, symbol=ADAG
-2025-04-24 19:58:37,117 - INFO - Starting job: model=xgboost, symbol=ADCT
-2025-04-24 19:58:37,252 - INFO - Job stdout: model=xgboost, symbol=ADAP
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ADAP
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ADAP ---
-Value Error for ADAP: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:37,253 - INFO - Job completed: model=xgboost, symbol=ADAP
-2025-04-24 19:58:37,253 - INFO - Starting job: model=xgboost, symbol=ADD
-2025-04-24 19:58:37,489 - INFO - Job stdout: model=xgboost, symbol=ADBE
-Training with date range: 2025-03-24 to 2025-04-24
-Training XGBoost model for 1 stock(s): ADBE
-Using look_back=60, num_features=30
-Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
-
---- Processing Stock: ADBE ---
-Value Error for ADBE: Found array with 0 sample(s) (shape=(0, 61)) while a minimum of 1 is required by StandardScaler.. Skipping stock.
-
---- XGBoost Stock Price Prediction and Evaluation Completed. ---
-2025-04-24 19:58:37,489 - INFO - Job completed: model=xgboost, symbol=ADBE
-2025-04-24 19:58:37,489 - INFO - Starting job: model=xgboost, symbol=ADEA
-2025-04-24 19:58:38,623 - ERROR - Error in job model=xgboost, symbol=ADEA: Command '['/home/skylap/.pyenv/versions/3.11.11/bin/python', '/home/skylap/Downloads/stockmarketprediction/train-model/train-xgboost.py', '--symbol', 'ADEA', '--start-date', '2025-03-24', '--end-date', '2025-04-24']' died with <Signals.SIGINT: 2>.
-2025-04-24 19:58:38,623 - ERROR - Job stderr on error: model=xgboost, symbol=ADEA
-Traceback (most recent call last):
-  File "/home/skylap/Downloads/stockmarketprediction/train-model/train-xgboost.py", line 4, in <module>
-    import xgboost as xgb
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/xgboost/__init__.py", line 6, in <module>
-    from . import tracker  # noqa
-    ^^^^^^^^^^^^^^^^^^^^^
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/xgboost/tracker.py", line 9, in <module>
-    from .core import _LIB, _check_call, _deprecate_positional_args, make_jcargs
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/xgboost/core.py", line 39, in <module>
-    from ._data_utils import (
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/xgboost/_data_utils.py", line 11, in <module>
-    from .compat import import_cupy
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/xgboost/compat.py", line 5, in <module>
-    import logging
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/logging/__init__.py", line 421, in <module>
-    class PercentStyle(object):
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/logging/__init__.py", line 426, in PercentStyle
-    validation_pattern = re.compile(r'%\(\w+\)[#0+ -]*(\*|\d+)?(\.(\*|\d+))?[diouxefgcrsa%]', re.I)
-                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/re/__init__.py", line 227, in compile
-    return _compile(pattern, flags)
-           ^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/re/__init__.py", line 294, in _compile
-    p = _compiler.compile(pattern, flags)
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/re/_compiler.py", line 749, in compile
-    code = _code(p, flags)
-           ^^^^^^^^^^^^^^^
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/re/_compiler.py", line 582, in _code
-    _compile(code, p.data, flags)
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/re/_compiler.py", line 86, in _compile
-    charset, hascased = _optimize_charset(av, iscased, tolower, fixes)
-                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/re/_compiler.py", line 306, in _optimize_charset
-    break
-KeyboardInterrupt
-2025-04-24 19:58:38,623 - INFO - Starting job: model=xgboost, symbol=ADGM
-2025-04-24 19:58:38,710 - ERROR - Error in job model=xgboost, symbol=ADD: Command '['/home/skylap/.pyenv/versions/3.11.11/bin/python', '/home/skylap/Downloads/stockmarketprediction/train-model/train-xgboost.py', '--symbol', 'ADD', '--start-date', '2025-03-24', '--end-date', '2025-04-24']' died with <Signals.SIGINT: 2>.
-2025-04-24 19:58:38,711 - ERROR - Job stderr on error: model=xgboost, symbol=ADD
-Traceback (most recent call last):
-  File "/home/skylap/Downloads/stockmarketprediction/train-model/train-xgboost.py", line 4, in <module>
-    import xgboost as xgb
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/xgboost/__init__.py", line 6, in <module>
-    from . import tracker  # noqa
-    ^^^^^^^^^^^^^^^^^^^^^
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/xgboost/tracker.py", line 9, in <module>
-    from .core import _LIB, _check_call, _deprecate_positional_args, make_jcargs
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/xgboost/core.py", line 39, in <module>
-    from ._data_utils import (
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/xgboost/_data_utils.py", line 11, in <module>
-    from .compat import import_cupy
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/xgboost/compat.py", line 47, in <module>
-    from sklearn import __version__ as _sklearn_version
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/sklearn/__init__.py", line 73, in <module>
-    from .base import clone  # noqa: E402
-    ^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/sklearn/base.py", line 19, in <module>
-    from .utils._estimator_html_repr import _HTMLDocumentationLinkMixin, estimator_html_repr
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/sklearn/utils/__init__.py", line 15, in <module>
-    from ._chunking import gen_batches, gen_even_slices
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/sklearn/utils/_chunking.py", line 11, in <module>
-    from ._param_validation import Interval, validate_params
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/sklearn/utils/_param_validation.py", line 17, in <module>
-    from .validation import _is_arraylike_not_scalar
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/sklearn/utils/validation.py", line 21, in <module>
-    from ..utils._array_api import _asarray_with_order, _is_numpy_namespace, get_namespace
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/sklearn/utils/_array_api.py", line 17, in <module>
-    from .fixes import parse_version
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/sklearn/utils/fixes.py", line 17, in <module>
-    import scipy.stats
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/scipy/stats/__init__.py", line 624, in <module>
-    from ._stats_py import *
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/scipy/stats/_stats_py.py", line 52, in <module>
-    from . import distributions
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/scipy/stats/distributions.py", line 10, in <module>
-    from . import _continuous_distns
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/scipy/stats/_continuous_distns.py", line 1969, in <module>
-    dpareto_lognorm = dpareto_lognorm_gen(a=0, name='dpareto_lognorm')
-                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/scipy/stats/_distn_infrastructure.py", line 1894, in __init__
-    self._construct_doc(docdict, dct.get(self.name))
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/scipy/stats/_distn_infrastructure.py", line 854, in _construct_doc
-    self.__doc__ = doccer.docformat(self.__doc__, tempdict)
-                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/scipy/_lib/doccer.py", line 77, in docformat
-    lines = dstr.expandtabs().splitlines()
-            ^^^^^^^^^^^^^^^^^
-KeyboardInterrupt
-2025-04-24 19:58:38,756 - ERROR - Error in job model=xgboost, symbol=ADCT: Command '['/home/skylap/.pyenv/versions/3.11.11/bin/python', '/home/skylap/Downloads/stockmarketprediction/train-model/train-xgboost.py', '--symbol', 'ADCT', '--start-date', '2025-03-24', '--end-date', '2025-04-24']' died with <Signals.SIGINT: 2>.
-2025-04-24 19:58:38,831 - ERROR - Error in job model=xgboost, symbol=ADC: Command '['/home/skylap/.pyenv/versions/3.11.11/bin/python', '/home/skylap/Downloads/stockmarketprediction/train-model/train-xgboost.py', '--symbol', 'ADC', '--start-date', '2025-03-24', '--end-date', '2025-04-24']' died with <Signals.SIGINT: 2>.
-2025-04-24 19:58:38,849 - INFO - Starting job: model=xgboost, symbol=ADI
-2025-04-24 19:58:38,849 - ERROR - Job stderr on error: model=xgboost, symbol=ADCT
-Traceback (most recent call last):
-  File "/home/skylap/Downloads/stockmarketprediction/train-model/train-xgboost.py", line 4, in <module>
-    import xgboost as xgb
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/xgboost/__init__.py", line 6, in <module>
-    from . import tracker  # noqa
-    ^^^^^^^^^^^^^^^^^^^^^
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/xgboost/tracker.py", line 9, in <module>
-    from .core import _LIB, _check_call, _deprecate_positional_args, make_jcargs
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/xgboost/core.py", line 39, in <module>
-    from ._data_utils import (
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/xgboost/_data_utils.py", line 11, in <module>
-    from .compat import import_cupy
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/xgboost/compat.py", line 47, in <module>
-    from sklearn import __version__ as _sklearn_version
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/sklearn/__init__.py", line 73, in <module>
-    from .base import clone  # noqa: E402
-    ^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/sklearn/base.py", line 19, in <module>
-    from .utils._estimator_html_repr import _HTMLDocumentationLinkMixin, estimator_html_repr
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/sklearn/utils/__init__.py", line 15, in <module>
-    from ._chunking import gen_batches, gen_even_slices
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/sklearn/utils/_chunking.py", line 11, in <module>
-    from ._param_validation import Interval, validate_params
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/sklearn/utils/_param_validation.py", line 17, in <module>
-    from .validation import _is_arraylike_not_scalar
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/sklearn/utils/validation.py", line 21, in <module>
-    from ..utils._array_api import _asarray_with_order, _is_numpy_namespace, get_namespace
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/sklearn/utils/_array_api.py", line 17, in <module>
-    from .fixes import parse_version
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/sklearn/utils/fixes.py", line 17, in <module>
-    import scipy.stats
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/scipy/stats/__init__.py", line 624, in <module>
-    from ._stats_py import *
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/scipy/stats/_stats_py.py", line 52, in <module>
-    from . import distributions
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/scipy/stats/distributions.py", line 10, in <module>
-    from . import _continuous_distns
-  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
-  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
-  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
-  File "<frozen importlib._bootstrap_external>", line 936, in exec_module
-  File "<frozen importlib._bootstrap_external>", line 1069, in get_code
-  File "<frozen importlib._bootstrap_external>", line 729, in _compile_bytecode
-KeyboardInterrupt
-2025-04-24 19:58:38,850 - INFO - Starting job: model=xgboost, symbol=ADIL
-2025-04-24 19:58:38,849 - ERROR - Job stderr on error: model=xgboost, symbol=ADC
-Traceback (most recent call last):
-  File "/home/skylap/Downloads/stockmarketprediction/train-model/train-xgboost.py", line 10, in <module>
-    import pymongo
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/pymongo/__init__.py", line 91, in <module>
-    from pymongo.mongo_client import MongoClient
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/pymongo/mongo_client.py", line 46, in <module>
-    from pymongo import (common,
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/pymongo/uri_parser.py", line 31, in <module>
-    from pymongo.srv_resolver import _HAVE_DNSPYTHON, _SrvResolver
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/pymongo/srv_resolver.py", line 18, in <module>
-    from dns import resolver
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/dns/resolver.py", line 30, in <module>
-    import dns._ddr
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/dns/_ddr.py", line 11, in <module>
-    import dns.name
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/dns/name.py", line 27, in <module>
-    import dns._features
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/dns/_features.py", line 3, in <module>
-    import importlib.metadata
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/importlib/metadata/__init__.py", line 17, in <module>
-    from . import _adapters, _meta
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/importlib/metadata/_adapters.py", line 3, in <module>
-    import email.message
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/email/message.py", line 19, in <module>
-    from email._encoded_words import decode_b
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/email/_encoded_words.py", line 64, in <module>
-    _q_byte_subber = functools.partial(re.compile(br'=([a-fA-F0-9]{2})').sub,
-                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/re/__init__.py", line 227, in compile
-    return _compile(pattern, flags)
-           ^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/re/__init__.py", line 294, in _compile
-    p = _compiler.compile(pattern, flags)
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/re/_compiler.py", line 749, in compile
-    code = _code(p, flags)
-           ^^^^^^^^^^^^^^^
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/re/_compiler.py", line 579, in _code
-    _compile_info(code, p, flags)
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/re/_compiler.py", line 527, in _compile_info
-    prefix, prefix_skip, got_all = _get_literal_prefix(pattern, flags)
-                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/re/_compiler.py", line 436, in _get_literal_prefix
-    def _get_literal_prefix(pattern, flags):
-    
-KeyboardInterrupt
-2025-04-24 19:58:38,851 - INFO - Starting job: model=xgboost, symbol=ADM
-2025-04-24 19:58:40,089 - ERROR - Error in job model=xgboost, symbol=ADM: Command '['/home/skylap/.pyenv/versions/3.11.11/bin/python', '/home/skylap/Downloads/stockmarketprediction/train-model/train-xgboost.py', '--symbol', 'ADM', '--start-date', '2025-03-24', '--end-date', '2025-04-24']' died with <Signals.SIGINT: 2>.
-2025-04-24 19:58:40,089 - ERROR - Job stderr on error: model=xgboost, symbol=ADM
-Traceback (most recent call last):
-  File "/home/skylap/Downloads/stockmarketprediction/train-model/train-xgboost.py", line 4, in <module>
-    import xgboost as xgb
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/xgboost/__init__.py", line 6, in <module>
-    from . import tracker  # noqa
-    ^^^^^^^^^^^^^^^^^^^^^
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/xgboost/tracker.py", line 9, in <module>
-    from .core import _LIB, _check_call, _deprecate_positional_args, make_jcargs
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/xgboost/core.py", line 39, in <module>
-    from ._data_utils import (
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/xgboost/_data_utils.py", line 11, in <module>
-    from .compat import import_cupy
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/xgboost/compat.py", line 47, in <module>
-    from sklearn import __version__ as _sklearn_version
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/sklearn/__init__.py", line 73, in <module>
-    from .base import clone  # noqa: E402
-    ^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/sklearn/base.py", line 19, in <module>
-    from .utils._estimator_html_repr import _HTMLDocumentationLinkMixin, estimator_html_repr
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/sklearn/utils/__init__.py", line 13, in <module>
-    from . import _joblib, metadata_routing
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/sklearn/utils/_joblib.py", line 12, in <module>
-    import joblib
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/joblib/__init__.py", line 114, in <module>
-    from .memory import Memory
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/joblib/memory.py", line 29, in <module>
-    from ._store_backends import CacheWarning  # noqa
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/joblib/_store_backends.py", line 18, in <module>
-    from .disk import mkdirp, memstr_to_bytes, rm_subdirs
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/joblib/disk.py", line 17, in <module>
-    from multiprocessing import util
-  File "<frozen importlib._bootstrap>", line 1207, in _handle_fromlist
-KeyboardInterrupt
-2025-04-24 19:58:40,090 - INFO - Starting job: model=xgboost, symbol=ADMA
-2025-04-24 19:58:40,090 - INFO - Starting job: model=xgboost, symbol=ADN
-2025-04-24 19:58:40,090 - INFO - Starting job: model=xgboost, symbol=ADNT
-2025-04-24 19:58:40,090 - INFO - Starting job: model=xgboost, symbol=ADNWW
-2025-04-24 19:58:40,090 - INFO - Starting job: model=xgboost, symbol=ADP
-2025-04-24 19:58:40,090 - INFO - Starting job: model=xgboost, symbol=ADPT
-2025-04-24 19:58:40,090 - INFO - Starting job: model=xgboost, symbol=ADSE
-2025-04-24 19:58:40,090 - INFO - Starting job: model=xgboost, symbol=ADSK
-2025-04-24 19:58:40,090 - INFO - Starting job: model=xgboost, symbol=ADT
-2025-04-24 19:58:40,091 - INFO - Starting job: model=xgboost, symbol=ADTN
-2025-04-24 19:58:40,091 - INFO - Starting job: model=xgboost, symbol=ADTX
-2025-04-24 19:58:40,091 - INFO - Starting job: model=xgboost, symbol=ADUR
-2025-04-24 19:58:40,091 - INFO - Starting job: model=xgboost, symbol=ADUS
-2025-04-24 19:58:40,091 - INFO - Starting job: model=xgboost, symbol=ADV
-2025-04-24 19:58:40,091 - INFO - Starting job: model=xgboost, symbol=ADVB
-2025-04-24 19:58:40,091 - INFO - Starting job: model=xgboost, symbol=ADVM
-2025-04-24 19:58:40,091 - INFO - Starting job: model=xgboost, symbol=ADVWW
-2025-04-24 19:58:40,091 - INFO - Starting job: model=xgboost, symbol=ADX
-2025-04-24 19:58:40,091 - INFO - Starting job: model=xgboost, symbol=ADXN
-2025-04-24 19:58:40,092 - INFO - Starting job: model=xgboost, symbol=AEE
-2025-04-24 19:58:40,092 - INFO - Starting job: model=xgboost, symbol=AEF
-2025-04-24 19:58:40,092 - INFO - Starting job: model=xgboost, symbol=AEFC
-2025-04-24 19:58:40,092 - INFO - Starting job: model=xgboost, symbol=AEG
-2025-04-24 19:58:40,092 - INFO - Starting job: model=xgboost, symbol=AEHL
-2025-04-24 19:58:40,092 - ERROR - Error in job model=xgboost, symbol=ADIL: Command '['/home/skylap/.pyenv/versions/3.11.11/bin/python', '/home/skylap/Downloads/stockmarketprediction/train-model/train-xgboost.py', '--symbol', 'ADIL', '--start-date', '2025-03-24', '--end-date', '2025-04-24']' died with <Signals.SIGINT: 2>.
-2025-04-24 19:58:40,092 - INFO - Starting job: model=xgboost, symbol=AEHR
-2025-04-24 19:58:40,092 - ERROR - Job stderr on error: model=xgboost, symbol=ADIL
-Traceback (most recent call last):
-  File "/home/skylap/Downloads/stockmarketprediction/train-model/train-xgboost.py", line 4, in <module>
-    import xgboost as xgb
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/xgboost/__init__.py", line 6, in <module>
-    from . import tracker  # noqa
-    ^^^^^^^^^^^^^^^^^^^^^
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/xgboost/tracker.py", line 9, in <module>
-    from .core import _LIB, _check_call, _deprecate_positional_args, make_jcargs
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/xgboost/core.py", line 37, in <module>
-    import scipy.sparse
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/scipy/sparse/__init__.py", line 315, in <module>
-    from . import csgraph
-  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
-  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
-  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
-  File "<frozen importlib._bootstrap_external>", line 936, in exec_module
-  File "<frozen importlib._bootstrap_external>", line 1069, in get_code
-  File "<frozen importlib._bootstrap_external>", line 729, in _compile_bytecode
-KeyboardInterrupt
-2025-04-24 19:58:40,092 - INFO - Starting job: model=xgboost, symbol=AEI
-2025-04-24 19:58:40,093 - INFO - Starting job: model=xgboost, symbol=AEIS
-2025-04-24 19:58:40,093 - INFO - Starting job: model=xgboost, symbol=AEM
-2025-04-24 19:58:40,093 - INFO - Starting job: model=xgboost, symbol=AEMD
-2025-04-24 19:58:40,093 - INFO - Starting job: model=xgboost, symbol=AENT
-2025-04-24 19:58:40,093 - INFO - Starting job: model=xgboost, symbol=AENTW
-2025-04-24 19:58:40,093 - INFO - Starting job: model=xgboost, symbol=AEO
-2025-04-24 19:58:40,093 - INFO - Starting job: model=xgboost, symbol=AEON
-2025-04-24 19:58:40,093 - INFO - Starting job: model=xgboost, symbol=AEP
-2025-04-24 19:58:40,093 - INFO - Starting job: model=xgboost, symbol=AER
-2025-04-24 19:58:40,094 - INFO - Starting job: model=xgboost, symbol=AERT
-2025-04-24 19:58:40,094 - INFO - Starting job: model=xgboost, symbol=AES
-2025-04-24 19:58:40,094 - INFO - Starting job: model=xgboost, symbol=AESI
-2025-04-24 19:58:40,094 - INFO - Starting job: model=xgboost, symbol=AEVA
-2025-04-24 19:58:40,094 - INFO - Starting job: model=xgboost, symbol=AEVAW
-2025-04-24 19:58:40,094 - INFO - Starting job: model=xgboost, symbol=AEYE
-2025-04-24 19:58:40,094 - INFO - Starting job: model=xgboost, symbol=AFB
-2025-04-24 19:58:40,094 - INFO - Starting job: model=xgboost, symbol=AFBI
-2025-04-24 19:58:40,095 - INFO - Starting job: model=xgboost, symbol=AFCG
-2025-04-24 19:58:40,095 - INFO - Starting job: model=xgboost, symbol=AFG
-2025-04-24 19:58:40,095 - INFO - Starting job: model=xgboost, symbol=AFGB
-2025-04-24 19:58:40,095 - INFO - Starting job: model=xgboost, symbol=AFGC
-2025-04-24 19:58:40,095 - INFO - Starting job: model=xgboost, symbol=AFGD
-2025-04-24 19:58:40,095 - INFO - Starting job: model=xgboost, symbol=AFGE
-2025-04-24 19:58:40,095 - INFO - Starting job: model=xgboost, symbol=AFJK
-2025-04-24 19:58:40,095 - INFO - Starting job: model=xgboost, symbol=AFL
-2025-04-24 19:58:40,095 - INFO - Starting job: model=xgboost, symbol=AFMD
-2025-04-24 19:58:40,096 - INFO - Starting job: model=xgboost, symbol=AFRI
-2025-04-24 19:58:40,096 - INFO - Starting job: model=xgboost, symbol=AFRM
-2025-04-24 19:58:40,096 - INFO - Starting job: model=xgboost, symbol=AFYA
-2025-04-24 19:58:40,096 - INFO - Starting job: model=xgboost, symbol=AG
-2025-04-24 19:58:40,096 - INFO - Starting job: model=xgboost, symbol=AGAE
-2025-04-24 19:58:40,096 - INFO - Starting job: model=xgboost, symbol=AGCO
-2025-04-24 19:58:40,096 - INFO - Starting job: model=xgboost, symbol=AGD
-2025-04-24 19:58:40,096 - INFO - Starting job: model=xgboost, symbol=AGEN
-2025-04-24 19:58:40,096 - INFO - Starting job: model=xgboost, symbol=AGFY
-2025-04-24 19:58:40,097 - INFO - Starting job: model=xgboost, symbol=AGH
-2025-04-24 19:58:40,098 - INFO - Starting job: model=xgboost, symbol=AGI
-2025-04-24 19:58:40,098 - INFO - Starting job: model=xgboost, symbol=AGIO
-2025-04-24 19:58:40,098 - INFO - Starting job: model=xgboost, symbol=AGL
-2025-04-24 19:58:40,098 - INFO - Starting job: model=xgboost, symbol=AGM
-2025-04-24 19:58:40,098 - INFO - Starting job: model=xgboost, symbol=AGMH
-2025-04-24 19:58:40,098 - INFO - Starting job: model=xgboost, symbol=AGNC
-2025-04-24 19:58:40,098 - INFO - Starting job: model=xgboost, symbol=AGNCL
-2025-04-24 19:58:40,099 - INFO - Starting job: model=xgboost, symbol=AGNCM
-2025-04-24 19:58:40,099 - INFO - Starting job: model=xgboost, symbol=AGNCN
-2025-04-24 19:58:40,099 - INFO - Starting job: model=xgboost, symbol=AGNCO
-2025-04-24 19:58:40,099 - INFO - Starting job: model=xgboost, symbol=AGNCP
-2025-04-24 19:58:40,099 - INFO - Starting job: model=xgboost, symbol=AGO
-2025-04-24 19:58:40,099 - INFO - Starting job: model=xgboost, symbol=AGRI
-2025-04-24 19:58:40,100 - INFO - Starting job: model=xgboost, symbol=AGRO
-2025-04-24 19:58:40,100 - INFO - Starting job: model=xgboost, symbol=AGS
-2025-04-24 19:58:40,100 - INFO - Starting job: model=xgboost, symbol=AGX
-2025-04-24 19:58:40,100 - INFO - Starting job: model=xgboost, symbol=AGYS
-2025-04-24 19:58:40,100 - INFO - Starting job: model=xgboost, symbol=AHCO
-2025-04-24 19:58:40,100 - INFO - Starting job: model=xgboost, symbol=AHG
-2025-04-24 19:58:40,100 - INFO - Starting job: model=xgboost, symbol=AHH
-2025-04-24 19:58:40,100 - INFO - Starting job: model=xgboost, symbol=AHL
-2025-04-24 19:58:40,101 - INFO - Starting job: model=xgboost, symbol=AHR
-2025-04-24 19:58:40,101 - INFO - Starting job: model=xgboost, symbol=AHT
-2025-04-24 19:58:40,101 - INFO - Starting job: model=xgboost, symbol=AI
-2025-04-24 19:58:40,101 - INFO - Starting job: model=xgboost, symbol=AIEV
-2025-04-24 19:58:40,101 - INFO - Starting job: model=xgboost, symbol=AIFE
-2025-04-24 19:58:40,101 - INFO - Starting job: model=xgboost, symbol=AIFEU
-2025-04-24 19:58:40,102 - INFO - Starting job: model=xgboost, symbol=AIFF
-2025-04-24 19:58:40,102 - INFO - Starting job: model=xgboost, symbol=AIFU
-2025-04-24 19:58:40,102 - INFO - Starting job: model=xgboost, symbol=AIG
-2025-04-24 19:58:40,102 - INFO - Starting job: model=xgboost, symbol=AIHS
-2025-04-24 19:58:40,102 - INFO - Starting job: model=xgboost, symbol=AIMAU
-2025-04-24 19:58:40,102 - INFO - Starting job: model=xgboost, symbol=AIMAW
-2025-04-24 19:58:40,102 - INFO - Starting job: model=xgboost, symbol=AIMBU
-2025-04-24 19:58:40,103 - INFO - Starting job: model=xgboost, symbol=AIMD
-2025-04-24 19:58:40,103 - INFO - Starting job: model=xgboost, symbol=AIMDW
-2025-04-24 19:58:40,103 - INFO - Starting job: model=xgboost, symbol=AIO
-2025-04-24 19:58:40,103 - INFO - Starting job: model=xgboost, symbol=AIOT
-2025-04-24 19:58:40,103 - INFO - Starting job: model=xgboost, symbol=AIN
-2025-04-24 19:58:40,103 - INFO - Starting job: model=xgboost, symbol=AIP
-2025-04-24 19:58:40,103 - INFO - Starting job: model=xgboost, symbol=AIR
-2025-04-24 19:58:40,103 - INFO - Starting job: model=xgboost, symbol=AIRE
-2025-04-24 19:58:40,103 - INFO - Starting job: model=xgboost, symbol=AIRG
-2025-04-24 19:58:40,104 - INFO - Starting job: model=xgboost, symbol=AIRI
-2025-04-24 19:58:40,104 - INFO - Starting job: model=xgboost, symbol=AIRJ
-2025-04-24 19:58:40,104 - INFO - Starting job: model=xgboost, symbol=AIRJW
-2025-04-24 19:58:40,104 - INFO - Starting job: model=xgboost, symbol=AIRS
-2025-04-24 19:58:40,104 - INFO - Starting job: model=xgboost, symbol=AIRT
-2025-04-24 19:58:40,104 - INFO - Starting job: model=xgboost, symbol=AIRTP
-2025-04-24 19:58:40,104 - INFO - Starting job: model=xgboost, symbol=AISP
-2025-04-24 19:58:40,104 - INFO - Starting job: model=xgboost, symbol=AISPW
-2025-04-24 19:58:40,104 - INFO - Starting job: model=xgboost, symbol=AIT
-2025-04-24 19:58:40,105 - INFO - Starting job: model=xgboost, symbol=AITR
-2025-04-24 19:58:40,105 - INFO - Starting job: model=xgboost, symbol=AITRR
-2025-04-24 19:58:40,105 - INFO - Starting job: model=xgboost, symbol=AIV
-2025-04-24 19:58:40,105 - INFO - Starting job: model=xgboost, symbol=AIXI
-2025-04-24 19:58:40,105 - INFO - Starting job: model=xgboost, symbol=AIZ
-2025-04-24 19:58:40,105 - INFO - Starting job: model=xgboost, symbol=AIZN
-2025-04-24 19:58:40,105 - INFO - Starting job: model=xgboost, symbol=AJG
-2025-04-24 19:58:40,105 - INFO - Starting job: model=xgboost, symbol=AKA
-2025-04-24 19:58:40,106 - INFO - Starting job: model=xgboost, symbol=AKAM
-2025-04-24 19:58:40,106 - INFO - Starting job: model=xgboost, symbol=AKAN
-2025-04-24 19:58:40,106 - INFO - Starting job: model=xgboost, symbol=AKBA
-2025-04-24 19:58:40,106 - INFO - Starting job: model=xgboost, symbol=AKO
-2025-04-24 19:58:40,106 - INFO - Starting job: model=xgboost, symbol=AKR
-2025-04-24 19:58:40,106 - INFO - Starting job: model=xgboost, symbol=AKRO
-2025-04-24 19:58:40,106 - INFO - Starting job: model=xgboost, symbol=AKTX
-2025-04-24 19:58:40,106 - INFO - Starting job: model=xgboost, symbol=AKYA
-2025-04-24 19:58:40,107 - INFO - Starting job: model=xgboost, symbol=AL
-2025-04-24 19:58:40,107 - INFO - Starting job: model=xgboost, symbol=ALAB
-2025-04-24 19:58:40,107 - INFO - Starting job: model=xgboost, symbol=ALAR
-2025-04-24 19:58:40,107 - INFO - Starting job: model=xgboost, symbol=ALB
-2025-04-24 19:58:40,107 - INFO - Starting job: model=xgboost, symbol=ALBT
-2025-04-24 19:58:40,107 - INFO - Starting job: model=xgboost, symbol=ALC
-2025-04-24 19:58:40,107 - INFO - Starting job: model=xgboost, symbol=ALCY
-2025-04-24 19:58:40,108 - INFO - Starting job: model=xgboost, symbol=ALDF
-2025-04-24 19:58:40,107 - INFO - Starting job: model=xgboost, symbol=ALCO
-2025-04-24 19:58:40,108 - INFO - Starting job: model=xgboost, symbol=ALDFU
-2025-04-24 19:58:40,108 - INFO - Starting job: model=xgboost, symbol=ALDX
-2025-04-24 19:58:40,108 - INFO - Starting job: model=xgboost, symbol=ALE
-2025-04-24 19:58:40,108 - INFO - Starting job: model=xgboost, symbol=ALEC
-2025-04-24 19:58:40,108 - INFO - Starting job: model=xgboost, symbol=ALEX
-2025-04-24 19:58:40,108 - INFO - Starting job: model=xgboost, symbol=ALF
-2025-04-24 19:58:40,108 - INFO - Starting job: model=xgboost, symbol=ALFUU
-2025-04-24 19:58:40,109 - INFO - Starting job: model=xgboost, symbol=ALFUW
-2025-04-24 19:58:40,109 - INFO - Starting job: model=xgboost, symbol=ALG
-2025-04-24 19:58:40,109 - INFO - Starting job: model=xgboost, symbol=ALGM
-2025-04-24 19:58:40,109 - INFO - Starting job: model=xgboost, symbol=ALGN
-2025-04-24 19:58:40,109 - INFO - Starting job: model=xgboost, symbol=ALGS
-2025-04-24 19:58:40,109 - INFO - Starting job: model=xgboost, symbol=ALGT
-2025-04-24 19:58:40,109 - INFO - Starting job: model=xgboost, symbol=ALHC
-2025-04-24 19:58:40,109 - INFO - Starting job: model=xgboost, symbol=ALIT
-2025-04-24 19:58:40,110 - INFO - Starting job: model=xgboost, symbol=ALK
-2025-04-24 19:58:40,110 - INFO - Starting job: model=xgboost, symbol=ALKS
-2025-04-24 19:58:40,110 - INFO - Starting job: model=xgboost, symbol=ALKT
-2025-04-24 19:58:40,110 - INFO - Starting job: model=xgboost, symbol=ALL
-2025-04-24 19:58:40,110 - INFO - Starting job: model=xgboost, symbol=ALLE
-2025-04-24 19:58:40,110 - INFO - Starting job: model=xgboost, symbol=ALLK
-2025-04-24 19:58:40,110 - INFO - Starting job: model=xgboost, symbol=ALLO
-2025-04-24 19:58:40,110 - INFO - Starting job: model=xgboost, symbol=ALLR
-2025-04-24 19:58:40,111 - INFO - Starting job: model=xgboost, symbol=ALLT
-2025-04-24 19:58:40,111 - INFO - Starting job: model=xgboost, symbol=ALLY
-2025-04-24 19:58:40,111 - INFO - Starting job: model=xgboost, symbol=ALMS
-2025-04-24 19:58:40,111 - INFO - Starting job: model=xgboost, symbol=ALMU
-2025-04-24 19:58:40,111 - INFO - Starting job: model=xgboost, symbol=ALNT
-2025-04-24 19:58:40,111 - INFO - Starting job: model=xgboost, symbol=ALNY
-2025-04-24 19:58:40,111 - INFO - Starting job: model=xgboost, symbol=ALOT
-2025-04-24 19:58:40,111 - INFO - Starting job: model=xgboost, symbol=ALRM
-2025-04-24 19:58:40,111 - INFO - Starting job: model=xgboost, symbol=ALRS
-2025-04-24 19:58:40,111 - INFO - Starting job: model=xgboost, symbol=ALSN
-2025-04-24 19:58:40,112 - INFO - Starting job: model=xgboost, symbol=ALT
-2025-04-24 19:58:40,112 - INFO - Starting job: model=xgboost, symbol=ALTG
-2025-04-24 19:58:40,112 - INFO - Starting job: model=xgboost, symbol=ALTI
-2025-04-24 19:58:40,112 - INFO - Starting job: model=xgboost, symbol=ALTO
-2025-04-24 19:58:40,112 - INFO - Starting job: model=xgboost, symbol=ALTS
-2025-04-24 19:58:40,112 - INFO - Starting job: model=xgboost, symbol=ALUR
-2025-04-24 19:58:40,112 - INFO - Starting job: model=xgboost, symbol=ALV
-2025-04-24 19:58:40,112 - INFO - Starting job: model=xgboost, symbol=ALVO
-2025-04-24 19:58:40,113 - INFO - Starting job: model=xgboost, symbol=ALVOW
-2025-04-24 19:58:40,113 - INFO - Starting job: model=xgboost, symbol=ALX
-2025-04-24 19:58:40,113 - INFO - Starting job: model=xgboost, symbol=ALXO
-2025-04-24 19:58:40,113 - INFO - Starting job: model=xgboost, symbol=ALZN
-2025-04-24 19:58:40,113 - INFO - Starting job: model=xgboost, symbol=AM
-2025-04-24 19:58:40,113 - INFO - Starting job: model=xgboost, symbol=AMAL
-2025-04-24 19:58:40,113 - INFO - Starting job: model=xgboost, symbol=AMAT
-2025-04-24 19:58:40,113 - INFO - Starting job: model=xgboost, symbol=AMBA
-2025-04-24 19:58:40,114 - INFO - Starting job: model=xgboost, symbol=AMBC
-2025-04-24 19:58:40,114 - INFO - Starting job: model=xgboost, symbol=AMBI
-2025-04-24 19:58:40,114 - INFO - Starting job: model=xgboost, symbol=AMBO
-2025-04-24 19:58:40,114 - INFO - Starting job: model=xgboost, symbol=AMBP
-2025-04-24 19:58:40,114 - INFO - Starting job: model=xgboost, symbol=AMBR
-2025-04-24 19:58:40,114 - INFO - Starting job: model=xgboost, symbol=AMC
-2025-04-24 19:58:40,115 - INFO - Starting job: model=xgboost, symbol=AMCR
-2025-04-24 19:58:40,115 - INFO - Starting job: model=xgboost, symbol=AMCX
-2025-04-24 19:58:40,115 - INFO - Starting job: model=xgboost, symbol=AMD
-2025-04-24 19:58:40,115 - INFO - Starting job: model=xgboost, symbol=AME
-2025-04-24 19:58:40,115 - INFO - Starting job: model=xgboost, symbol=AMED
-2025-04-24 19:58:40,115 - INFO - Starting job: model=xgboost, symbol=AMG
-2025-04-24 19:58:40,116 - INFO - Starting job: model=xgboost, symbol=AMGN
-2025-04-24 19:58:40,116 - INFO - Starting job: model=xgboost, symbol=AMH
-2025-04-24 19:58:40,116 - INFO - Starting job: model=xgboost, symbol=AMIX
-2025-04-24 19:58:40,116 - INFO - Starting job: model=xgboost, symbol=AMLX
-2025-04-24 19:58:40,116 - INFO - Starting job: model=xgboost, symbol=AMKR
-2025-04-24 19:58:40,116 - INFO - Starting job: model=xgboost, symbol=AMN
-2025-04-24 19:58:40,116 - INFO - Starting job: model=xgboost, symbol=AMOD
-2025-04-24 19:58:40,117 - INFO - Starting job: model=xgboost, symbol=AMODW
-2025-04-24 19:58:40,117 - INFO - Starting job: model=xgboost, symbol=AMP
-2025-04-24 19:58:40,117 - INFO - Starting job: model=xgboost, symbol=AMPG
-2025-04-24 19:58:40,117 - INFO - Starting job: model=xgboost, symbol=AMPGW
-2025-04-24 19:58:40,117 - INFO - Starting job: model=xgboost, symbol=AMPH
-2025-04-24 19:58:40,117 - INFO - Starting job: model=xgboost, symbol=AMPL
-2025-04-24 19:58:40,117 - INFO - Starting job: model=xgboost, symbol=AMPS
-2025-04-24 19:58:40,117 - INFO - Starting job: model=xgboost, symbol=AMPX
-2025-04-24 19:58:40,117 - INFO - Starting job: model=xgboost, symbol=AMPY
-2025-04-24 19:58:40,118 - INFO - Starting job: model=xgboost, symbol=AMR
-2025-04-24 19:58:40,118 - INFO - Starting job: model=xgboost, symbol=AMRC
-2025-04-24 19:58:40,118 - INFO - Starting job: model=xgboost, symbol=AMRK
-2025-04-24 19:58:40,118 - INFO - Starting job: model=xgboost, symbol=AMRN
-2025-04-24 19:58:40,118 - INFO - Starting job: model=xgboost, symbol=AMRX
-2025-04-24 19:58:40,118 - INFO - Starting job: model=xgboost, symbol=AMS
-2025-04-24 19:58:40,118 - INFO - Starting job: model=xgboost, symbol=AMSC
-2025-04-24 19:58:40,118 - INFO - Starting job: model=xgboost, symbol=AMSF
-2025-04-24 19:58:40,119 - INFO - Starting job: model=xgboost, symbol=AMST
-2025-04-24 19:58:40,119 - INFO - Starting job: model=xgboost, symbol=AMT
-2025-04-24 19:58:40,119 - INFO - Starting job: model=xgboost, symbol=AMTB
-2025-04-24 19:58:40,119 - INFO - Starting job: model=xgboost, symbol=AMTD
-2025-04-24 19:58:40,119 - INFO - Starting job: model=xgboost, symbol=AMTM
-2025-04-24 19:58:40,119 - INFO - Starting job: model=xgboost, symbol=AMTX
-2025-04-24 19:58:40,119 - INFO - Starting job: model=xgboost, symbol=AMWD
-2025-04-24 19:58:40,119 - INFO - Starting job: model=xgboost, symbol=AMWL
-2025-04-24 19:58:40,120 - INFO - Starting job: model=xgboost, symbol=AMX
-2025-04-24 19:58:40,120 - INFO - Starting job: model=xgboost, symbol=AMZE
-2025-04-24 19:58:40,120 - INFO - Starting job: model=xgboost, symbol=AMZN
-2025-04-24 19:58:40,120 - INFO - Starting job: model=xgboost, symbol=AN
-2025-04-24 19:58:40,120 - INFO - Starting job: model=xgboost, symbol=ANAB
-2025-04-24 19:58:40,120 - INFO - Starting job: model=xgboost, symbol=ANDE
-2025-04-24 19:58:40,120 - INFO - Starting job: model=xgboost, symbol=ANEB
-2025-04-24 19:58:40,120 - INFO - Starting job: model=xgboost, symbol=ANET
-2025-04-24 19:58:40,120 - INFO - Starting job: model=xgboost, symbol=ANF
-2025-04-24 19:58:40,121 - INFO - Starting job: model=xgboost, symbol=ANG
-2025-04-24 19:58:40,121 - INFO - Starting job: model=xgboost, symbol=ANGH
-2025-04-24 19:58:40,121 - INFO - Starting job: model=xgboost, symbol=ANGHW
-2025-04-24 19:58:40,121 - INFO - Starting job: model=xgboost, symbol=ANGI
-2025-04-24 19:58:40,121 - INFO - Starting job: model=xgboost, symbol=ANGO
-2025-04-24 19:58:40,121 - INFO - Starting job: model=xgboost, symbol=ANIK
-2025-04-24 19:58:40,121 - INFO - Starting job: model=xgboost, symbol=ANIP
-2025-04-24 19:58:40,121 - INFO - Starting job: model=xgboost, symbol=ANIX
-2025-04-24 19:58:40,122 - INFO - Starting job: model=xgboost, symbol=ANL
-2025-04-24 19:58:40,122 - INFO - Starting job: model=xgboost, symbol=ANNA
-2025-04-24 19:58:40,122 - INFO - Starting job: model=xgboost, symbol=ANNAW
-2025-04-24 19:58:40,122 - INFO - Starting job: model=xgboost, symbol=ANNX
-2025-04-24 19:58:40,122 - INFO - Starting job: model=xgboost, symbol=ANRO
-2025-04-24 19:58:40,122 - INFO - Starting job: model=xgboost, symbol=ANSC
-2025-04-24 19:58:40,122 - INFO - Starting job: model=xgboost, symbol=ANSCU
-2025-04-24 19:58:40,122 - INFO - Starting job: model=xgboost, symbol=ANSCW
-2025-04-24 19:58:40,123 - INFO - Starting job: model=xgboost, symbol=ANSS
-2025-04-24 19:58:40,123 - INFO - Starting job: model=xgboost, symbol=ANTE
-2025-04-24 19:58:40,123 - INFO - Starting job: model=xgboost, symbol=ANTX
-2025-04-24 19:58:40,123 - INFO - Starting job: model=xgboost, symbol=ANVS
-2025-04-24 19:58:40,123 - INFO - Starting job: model=xgboost, symbol=ANY
-2025-04-24 19:58:40,123 - INFO - Starting job: model=xgboost, symbol=AOD
-2025-04-24 19:58:40,123 - INFO - Starting job: model=xgboost, symbol=AOMN
-2025-04-24 19:58:40,123 - INFO - Starting job: model=xgboost, symbol=AOMR
-2025-04-24 19:58:40,124 - INFO - Starting job: model=xgboost, symbol=AON
-2025-04-24 19:58:40,124 - INFO - Starting job: model=xgboost, symbol=AORT
-2025-04-24 19:58:40,124 - INFO - Starting job: model=xgboost, symbol=AOS
-2025-04-24 19:58:40,124 - INFO - Starting job: model=xgboost, symbol=AOSL
-2025-04-24 19:58:40,124 - INFO - Starting job: model=xgboost, symbol=AOUT
-2025-04-24 19:58:40,124 - INFO - Starting job: model=xgboost, symbol=AP
-2025-04-24 19:58:40,124 - INFO - Starting job: model=xgboost, symbol=APA
-2025-04-24 19:58:40,124 - INFO - Starting job: model=xgboost, symbol=APAM
-2025-04-24 19:58:40,124 - INFO - Starting job: model=xgboost, symbol=APCX
-2025-04-24 19:58:40,125 - INFO - Starting job: model=xgboost, symbol=APCXW
-2025-04-24 19:58:40,125 - INFO - Starting job: model=xgboost, symbol=APD
-2025-04-24 19:58:40,125 - ERROR - Error in job model=xgboost, symbol=ADGM: Command '['/home/skylap/.pyenv/versions/3.11.11/bin/python', '/home/skylap/Downloads/stockmarketprediction/train-model/train-xgboost.py', '--symbol', 'ADGM', '--start-date', '2025-03-24', '--end-date', '2025-04-24']' died with <Signals.SIGINT: 2>.
-2025-04-24 19:58:40,125 - INFO - Starting job: model=xgboost, symbol=APDN
-2025-04-24 19:58:40,125 - INFO - Starting job: model=xgboost, symbol=APEI
-2025-04-24 19:58:40,125 - ERROR - Job stderr on error: model=xgboost, symbol=ADGM
-Traceback (most recent call last):
-  File "/home/skylap/Downloads/stockmarketprediction/train-model/train-xgboost.py", line 4, in <module>
-    import xgboost as xgb
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/xgboost/__init__.py", line 6, in <module>
-    from . import tracker  # noqa
-    ^^^^^^^^^^^^^^^^^^^^^
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/xgboost/tracker.py", line 9, in <module>
-    from .core import _LIB, _check_call, _deprecate_positional_args, make_jcargs
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/xgboost/core.py", line 39, in <module>
-    from ._data_utils import (
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/xgboost/_data_utils.py", line 11, in <module>
-    from .compat import import_cupy
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/xgboost/compat.py", line 47, in <module>
-    from sklearn import __version__ as _sklearn_version
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/sklearn/__init__.py", line 73, in <module>
-    from .base import clone  # noqa: E402
-    ^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/sklearn/base.py", line 19, in <module>
-    from .utils._estimator_html_repr import _HTMLDocumentationLinkMixin, estimator_html_repr
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/sklearn/utils/__init__.py", line 15, in <module>
-    from ._chunking import gen_batches, gen_even_slices
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/sklearn/utils/_chunking.py", line 11, in <module>
-    from ._param_validation import Interval, validate_params
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/sklearn/utils/_param_validation.py", line 17, in <module>
-    from .validation import _is_arraylike_not_scalar
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/sklearn/utils/validation.py", line 21, in <module>
-    from ..utils._array_api import _asarray_with_order, _is_numpy_namespace, get_namespace
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/sklearn/utils/_array_api.py", line 17, in <module>
-    from .fixes import parse_version
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/sklearn/utils/fixes.py", line 17, in <module>
-    import scipy.stats
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/scipy/stats/__init__.py", line 624, in <module>
-    from ._stats_py import *
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/scipy/stats/_stats_py.py", line 41, in <module>
-    from scipy.optimize import milp, LinearConstraint
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/scipy/optimize/__init__.py", line 435, in <module>
-    from ._linprog import linprog, linprog_verbose_callback
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/scipy/optimize/_linprog.py", line 24, in <module>
-    from ._linprog_rs import _linprog_rs
-  File "/home/skylap/.pyenv/versions/3.11.11/lib/python3.11/site-packages/scipy/optimize/_linprog_rs.py", line 25, in <module>
-    from ._bglu_dense import LU
-  File "<frozen importlib._bootstrap>", line 405, in parent
-KeyboardInterrupt
-2025-04-24 19:58:40,125 - INFO - Starting job: model=xgboost, symbol=APG
-2025-04-24 19:58:40,126 - INFO - Starting job: model=xgboost, symbol=APGE
-2025-04-24 19:58:40,126 - INFO - Starting job: model=xgboost, symbol=APH
-2025-04-24 19:58:40,126 - INFO - Starting job: model=xgboost, symbol=API
-2025-04-24 19:58:40,126 - INFO - Starting job: model=xgboost, symbol=APLD
-2025-04-24 19:58:40,126 - INFO - Starting job: model=xgboost, symbol=APLE
-2025-04-24 19:58:40,126 - INFO - Starting job: model=xgboost, symbol=APLM
-2025-04-24 19:58:40,126 - INFO - Starting job: model=xgboost, symbol=APLMW
-2025-04-24 19:58:40,127 - INFO - Starting job: model=xgboost, symbol=APLS
-2025-04-24 19:58:40,127 - INFO - Starting job: model=xgboost, symbol=APLT
-2025-04-24 19:58:40,127 - INFO - Starting job: model=xgboost, symbol=APM
-2025-04-24 19:58:40,127 - INFO - Starting job: model=xgboost, symbol=APO
-2025-04-24 19:58:40,127 - INFO - Starting job: model=xgboost, symbol=APOG
-2025-04-24 19:58:40,127 - INFO - Starting job: model=xgboost, symbol=APOS
-2025-04-24 19:58:40,127 - INFO - Starting job: model=xgboost, symbol=APP
-2025-04-24 19:58:40,127 - INFO - Starting job: model=xgboost, symbol=APPF
-2025-04-24 19:58:40,128 - INFO - Starting job: model=xgboost, symbol=APPN
-2025-04-24 19:58:40,128 - INFO - Starting job: model=xgboost, symbol=APPS
-2025-04-24 19:58:40,128 - INFO - Starting job: model=xgboost, symbol=APRE
-2025-04-24 19:58:40,128 - INFO - Starting job: model=xgboost, symbol=APT
-2025-04-24 19:58:40,128 - INFO - Starting job: model=xgboost, symbol=APTV
-2025-04-24 19:58:40,128 - INFO - Starting job: model=xgboost, symbol=APVO
-2025-04-24 19:58:40,129 - INFO - Starting job: model=xgboost, symbol=APWC
-2025-04-24 19:58:40,129 - INFO - Starting job: model=xgboost, symbol=APYX
-2025-04-24 19:58:40,129 - INFO - Starting job: model=xgboost, symbol=AQB
-2025-04-24 19:58:40,129 - INFO - Starting job: model=xgboost, symbol=AQMS
-2025-04-24 19:58:40,129 - INFO - Starting job: model=xgboost, symbol=AQN
-2025-04-24 19:58:40,129 - INFO - Starting job: model=xgboost, symbol=AQNB
-2025-04-24 19:58:40,129 - INFO - Starting job: model=xgboost, symbol=AQST
-2025-04-24 19:58:40,129 - INFO - Starting job: model=xgboost, symbol=AR
-2025-04-24 19:58:40,130 - INFO - Starting job: model=xgboost, symbol=ARAY
-2025-04-24 19:58:40,130 - INFO - Starting job: model=xgboost, symbol=ARBB
-2025-04-24 19:58:40,130 - INFO - Starting job: model=xgboost, symbol=ARBE
-2025-04-24 19:58:40,130 - INFO - Starting job: model=xgboost, symbol=ARBEW
-2025-04-24 19:58:40,130 - INFO - Starting job: model=xgboost, symbol=ARBK
-2025-04-24 19:58:40,130 - INFO - Starting job: model=xgboost, symbol=ARBKL
-2025-04-24 19:58:40,130 - INFO - Starting job: model=xgboost, symbol=ARCB
-2025-04-24 19:58:40,131 - INFO - Starting job: model=xgboost, symbol=ARCC
-2025-04-24 19:58:40,131 - INFO - Starting job: model=xgboost, symbol=ARCO
-2025-04-24 19:58:40,131 - INFO - Starting job: model=xgboost, symbol=ARCT
-2025-04-24 19:58:40,131 - INFO - Starting job: model=xgboost, symbol=ARDC
-2025-04-24 19:58:40,131 - INFO - Starting job: model=xgboost, symbol=ARDT
-2025-04-24 19:58:40,131 - INFO - Starting job: model=xgboost, symbol=ARDX
-2025-04-24 19:58:40,131 - INFO - Starting job: model=xgboost, symbol=ARE
-2025-04-24 19:58:40,132 - INFO - Starting job: model=xgboost, symbol=AREB
-2025-04-24 19:58:40,132 - INFO - Starting job: model=xgboost, symbol=AREBW
-2025-04-24 19:58:40,132 - INFO - Starting job: model=xgboost, symbol=AREC
-2025-04-24 19:58:40,132 - INFO - Starting job: model=xgboost, symbol=AREN
-2025-04-24 19:58:40,132 - INFO - Starting job: model=xgboost, symbol=ARES
-2025-04-24 19:58:40,132 - INFO - Starting job: model=xgboost, symbol=ARGD
-2025-04-24 19:58:40,133 - INFO - Starting job: model=xgboost, symbol=ARGO
-2025-04-24 19:58:40,133 - INFO - Starting job: model=xgboost, symbol=ARGX
-2025-04-24 19:58:40,133 - INFO - Starting job: model=xgboost, symbol=ARHS
-2025-04-24 19:58:40,133 - INFO - Starting job: model=xgboost, symbol=ARI
-2025-04-24 19:58:40,133 - INFO - Starting job: model=xgboost, symbol=ARIS
-2025-04-24 19:58:40,133 - INFO - Starting job: model=xgboost, symbol=ARKO
-2025-04-24 19:58:40,133 - INFO - Starting job: model=xgboost, symbol=ARKOW
-2025-04-24 19:58:40,134 - INFO - Starting job: model=xgboost, symbol=ARKR
-2025-04-24 19:58:40,134 - INFO - Starting job: model=xgboost, symbol=ARL
-2025-04-24 19:58:40,134 - INFO - Starting job: model=xgboost, symbol=ARLO
-2025-04-24 19:58:40,134 - INFO - Starting job: model=xgboost, symbol=ARLP
-2025-04-24 19:58:40,134 - INFO - Starting job: model=xgboost, symbol=ARM
-2025-04-24 19:58:40,134 - INFO - Starting job: model=xgboost, symbol=ARMK
-2025-04-24 19:58:40,134 - INFO - Starting job: model=xgboost, symbol=ARMN
-2025-04-24 19:58:40,134 - INFO - Starting job: model=xgboost, symbol=ARMP
-2025-04-24 19:58:40,134 - INFO - Starting job: model=xgboost, symbol=AROC
-2025-04-24 19:58:40,135 - INFO - Starting job: model=xgboost, symbol=AROW
-2025-04-24 19:58:40,135 - INFO - Starting job: model=xgboost, symbol=ARQ
-2025-04-24 19:58:40,135 - INFO - Starting job: model=xgboost, symbol=ARQQ
-2025-04-24 19:58:40,135 - INFO - Starting job: model=xgboost, symbol=ARQQW
-2025-04-24 19:58:40,135 - INFO - Starting job: model=xgboost, symbol=ARQT
-2025-04-24 19:58:40,135 - INFO - Starting job: model=xgboost, symbol=ARR
-2025-04-24 19:58:40,135 - INFO - Starting job: model=xgboost, symbol=ARRY
-2025-04-24 19:58:40,135 - INFO - Starting job: model=xgboost, symbol=ARTL
-2025-04-24 19:58:40,136 - INFO - Starting job: model=xgboost, symbol=ARTNA
-2025-04-24 19:58:40,136 - INFO - Starting job: model=xgboost, symbol=ARTV
-2025-04-24 19:58:40,136 - INFO - Starting job: model=xgboost, symbol=ARTW
-2025-04-24 19:58:40,136 - INFO - Starting job: model=xgboost, symbol=ARVN
-2025-04-24 19:58:40,136 - INFO - Starting job: model=xgboost, symbol=ARW
-2025-04-24 19:58:40,136 - INFO - Starting job: model=xgboost, symbol=ARWR
-2025-04-24 19:58:40,136 - INFO - Starting job: model=xgboost, symbol=AS
-2025-04-24 19:58:40,136 - INFO - Starting job: model=xgboost, symbol=ASA
-2025-04-24 19:58:40,136 - INFO - Starting job: model=xgboost, symbol=ASAN
-2025-04-24 19:58:40,137 - INFO - Starting job: model=xgboost, symbol=ASB
-2025-04-24 19:58:40,137 - INFO - Starting job: model=xgboost, symbol=ASBA
-2025-04-24 19:58:40,137 - INFO - Starting job: model=xgboost, symbol=ASBP
-2025-04-24 19:58:40,137 - INFO - Starting job: model=xgboost, symbol=ASBPW
-2025-04-24 19:58:40,137 - INFO - Starting job: model=xgboost, symbol=ASC
-2025-04-24 19:58:40,137 - INFO - Starting job: model=xgboost, symbol=ASG
-2025-04-24 19:58:40,137 - INFO - Starting job: model=xgboost, symbol=ASGI
-2025-04-24 19:58:40,137 - INFO - Starting job: model=xgboost, symbol=ASGN
-2025-04-24 19:58:40,137 - INFO - Starting job: model=xgboost, symbol=ASH
-2025-04-24 19:58:40,137 - INFO - Starting job: model=xgboost, symbol=ASIX
-2025-04-24 19:58:40,138 - INFO - Starting job: model=xgboost, symbol=ASLE
-2025-04-24 19:58:40,138 - INFO - Starting job: model=xgboost, symbol=ASM
-2025-04-24 19:58:40,138 - INFO - Starting job: model=xgboost, symbol=ASMB
-2025-04-24 19:58:40,138 - INFO - Starting job: model=xgboost, symbol=ASML
-2025-04-24 19:58:40,138 - INFO - Starting job: model=xgboost, symbol=ASND
-2025-04-24 19:58:40,138 - INFO - Starting job: model=xgboost, symbol=ASNS
-2025-04-24 19:58:40,138 - INFO - Starting job: model=xgboost, symbol=ASO
-2025-04-24 19:58:40,138 - INFO - Starting job: model=xgboost, symbol=ASPC
-2025-04-24 19:58:40,138 - INFO - Starting job: model=xgboost, symbol=ASPI
-2025-04-24 19:58:40,138 - INFO - Starting job: model=xgboost, symbol=ASPN
-2025-04-24 19:58:40,139 - INFO - Starting job: model=xgboost, symbol=ASPS
-2025-04-24 19:58:40,139 - INFO - Starting job: model=xgboost, symbol=ASR
-2025-04-24 19:58:40,139 - INFO - Starting job: model=xgboost, symbol=ASRT
-2025-04-24 19:58:40,139 - INFO - Starting job: model=xgboost, symbol=ASRV
-2025-04-24 19:58:40,139 - INFO - Starting job: model=xgboost, symbol=ASST
-2025-04-24 19:58:40,139 - INFO - Starting job: model=xgboost, symbol=ASTC
-2025-04-24 19:58:40,139 - INFO - Starting job: model=xgboost, symbol=ASTE
-2025-04-24 19:58:40,139 - INFO - Starting job: model=xgboost, symbol=ASTH
-2025-04-24 19:58:40,139 - INFO - Starting job: model=xgboost, symbol=ASTI
-2025-04-24 19:58:40,140 - INFO - Starting job: model=xgboost, symbol=ASTL
-2025-04-24 19:58:40,140 - INFO - Starting job: model=xgboost, symbol=ASTLW
-2025-04-24 19:58:40,140 - INFO - Starting job: model=xgboost, symbol=ASTS
-2025-04-24 19:58:40,140 - INFO - Starting job: model=xgboost, symbol=ASUR
-2025-04-24 19:58:40,140 - INFO - Starting job: model=xgboost, symbol=ASX
-2025-04-24 19:58:40,140 - INFO - Starting job: model=xgboost, symbol=ASYS
-2025-04-24 19:58:40,140 - INFO - Starting job: model=xgboost, symbol=ATAI
-2025-04-24 19:58:40,140 - INFO - Starting job: model=xgboost, symbol=ATAT
-2025-04-24 19:58:40,140 - INFO - Starting job: model=xgboost, symbol=ATCH
-2025-04-24 19:58:40,141 - INFO - Starting job: model=xgboost, symbol=ATCO
-2025-04-24 19:58:40,141 - INFO - Starting job: model=xgboost, symbol=ATCOL
-2025-04-24 19:58:40,141 - INFO - Starting job: model=xgboost, symbol=ATEC
-2025-04-24 19:58:40,141 - INFO - Starting job: model=xgboost, symbol=ATEN
-2025-04-24 19:58:40,141 - INFO - Starting job: model=xgboost, symbol=ATER
-2025-04-24 19:58:40,141 - INFO - Starting job: model=xgboost, symbol=ATEX
-2025-04-24 19:58:40,141 - INFO - Starting job: model=xgboost, symbol=ATGE
-2025-04-24 19:58:40,141 - INFO - Starting job: model=xgboost, symbol=ATGL
-2025-04-24 19:58:40,141 - INFO - Starting job: model=xgboost, symbol=ATH
-2025-04-24 19:58:40,141 - INFO - Starting job: model=xgboost, symbol=ATHA
-2025-04-24 19:58:40,141 - INFO - Starting job: model=xgboost, symbol=ATHE
-2025-04-24 19:58:40,141 - INFO - Starting job: model=xgboost, symbol=ATHM
-2025-04-24 19:58:40,142 - INFO - Starting job: model=xgboost, symbol=ATHR
-2025-04-24 19:58:40,142 - INFO - Starting job: model=xgboost, symbol=ATHS
-2025-04-24 19:58:40,142 - INFO - Starting job: model=xgboost, symbol=ATI
-2025-04-24 19:58:40,142 - INFO - Starting job: model=xgboost, symbol=ATII
-2025-04-24 19:58:40,142 - INFO - Starting job: model=xgboost, symbol=ATIIU
-2025-04-24 19:58:40,142 - INFO - Starting job: model=xgboost, symbol=ATIIW
-2025-04-24 19:58:40,142 - INFO - Starting job: model=xgboost, symbol=ATKR
-2025-04-24 19:58:40,142 - INFO - Starting job: model=xgboost, symbol=ATLC
-2025-04-24 19:58:40,142 - INFO - Starting job: model=xgboost, symbol=ATLCL
-2025-04-24 19:58:40,142 - INFO - Starting job: model=xgboost, symbol=ATLCP
-2025-04-24 19:58:40,142 - INFO - Starting job: model=xgboost, symbol=ATLCZ
-2025-04-24 19:58:40,142 - INFO - Starting job: model=xgboost, symbol=ATLN
-2025-04-24 19:58:40,143 - INFO - Starting job: model=xgboost, symbol=ATLO
-2025-04-24 19:58:40,143 - INFO - Starting job: model=xgboost, symbol=ATLX
-2025-04-24 19:58:40,143 - INFO - Starting job: model=xgboost, symbol=ATMC
-2025-04-24 19:58:40,143 - INFO - Starting job: model=xgboost, symbol=ATMU
-2025-04-24 19:58:40,143 - INFO - Starting job: model=xgboost, symbol=ATMV
-2025-04-24 19:58:40,143 - INFO - Starting job: model=xgboost, symbol=ATMVR
-2025-04-24 19:58:40,143 - INFO - Starting job: model=xgboost, symbol=ATNF
-2025-04-24 19:58:40,143 - INFO - Starting job: model=xgboost, symbol=ATNFW
-2025-04-24 19:58:40,143 - INFO - Starting job: model=xgboost, symbol=ATNI
-2025-04-24 19:58:40,143 - INFO - Starting job: model=xgboost, symbol=ATNM
-2025-04-24 19:58:40,143 - INFO - Starting job: model=xgboost, symbol=ATO
-2025-04-24 19:58:40,143 - INFO - Starting job: model=xgboost, symbol=ATOM
-2025-04-24 19:58:40,144 - INFO - Starting job: model=xgboost, symbol=ATOS
-2025-04-24 19:58:40,144 - INFO - Starting job: model=xgboost, symbol=ATPC
-2025-04-24 19:58:40,144 - INFO - Starting job: model=xgboost, symbol=ATR
-2025-04-24 19:58:40,144 - INFO - Starting job: model=xgboost, symbol=ATRA
-2025-04-24 19:58:40,144 - INFO - Starting job: model=xgboost, symbol=ATRC
-2025-04-24 19:58:40,144 - INFO - Starting job: model=xgboost, symbol=ATRO
-2025-04-24 19:58:40,144 - INFO - Starting job: model=xgboost, symbol=ATS
-2025-04-24 19:58:40,144 - INFO - Starting job: model=xgboost, symbol=ATSG
-2025-04-24 19:58:40,144 - INFO - Starting job: model=xgboost, symbol=ATUS
-2025-04-24 19:58:40,144 - INFO - Starting job: model=xgboost, symbol=ATXG
-2025-04-24 19:58:40,144 - INFO - Starting job: model=xgboost, symbol=ATXS
-2025-04-24 19:58:40,145 - INFO - Starting job: model=xgboost, symbol=ATYR
-2025-04-24 19:58:40,145 - INFO - Starting job: model=xgboost, symbol=AU
-2025-04-24 19:58:40,145 - INFO - Starting job: model=xgboost, symbol=AUB
-2025-04-24 19:58:40,145 - INFO - Starting job: model=xgboost, symbol=AUBN
-2025-04-24 19:58:40,145 - INFO - Starting job: model=xgboost, symbol=AUDC
-2025-04-24 19:58:40,145 - INFO - Starting job: model=xgboost, symbol=AUID
-2025-04-24 19:58:40,145 - INFO - Starting job: model=xgboost, symbol=AUNA
-2025-04-24 19:58:40,145 - INFO - Starting job: model=xgboost, symbol=AUPH
-2025-04-24 19:58:40,145 - INFO - Starting job: model=xgboost, symbol=AUR
-2025-04-24 19:58:40,145 - INFO - Starting job: model=xgboost, symbol=AURA
-2025-04-24 19:58:40,146 - INFO - Starting job: model=xgboost, symbol=AUROW
-2025-04-24 19:58:40,146 - INFO - Starting job: model=xgboost, symbol=AUST
-2025-04-24 19:58:40,146 - INFO - Starting job: model=xgboost, symbol=AUTL
-2025-04-24 19:58:40,146 - INFO - Starting job: model=xgboost, symbol=AUUD
-2025-04-24 19:58:40,146 - INFO - Starting job: model=xgboost, symbol=AUUDW
-2025-04-24 19:58:40,146 - INFO - Starting job: model=xgboost, symbol=AVA
-2025-04-24 19:58:40,146 - INFO - Starting job: model=xgboost, symbol=AVAH
-2025-04-24 19:58:40,146 - INFO - Starting job: model=xgboost, symbol=AVAL
-2025-04-24 19:58:40,147 - INFO - Starting job: model=xgboost, symbol=AVAV
+Best parameters: {'colsample_bytree': 1.0, 'learning_rate': 0.2, 'max_depth': 4, 'n_estimators': 200, 'subsample': 1.0}
+
+Regression Metrics:
+  Mean Squared Error (MSE): 520.5738
+  Root Mean Squared Error (RMSE): 22.8161
+  Mean Absolute Error (MAE): 20.5341
+  MAPE: 10.65%
+  R-squared (R2): -1.8670
+
+Classification Metrics:
+  Accuracy: 0.5625
+  Confusion Matrix:
+ [[5 3]
+ [4 4]]
+  Classification Report:
+               precision    recall  f1-score   support
+
+           0       0.56      0.62      0.59         8
+           1       0.57      0.50      0.53         8
+
+    accuracy                           0.56        16
+   macro avg       0.56      0.56      0.56        16
+weighted avg       0.56      0.56      0.56        16
+
+
+XGBoost Feature Importance (Top 10):
+  Close: 0.7015
+  Low: 0.1597
+  High: 0.0294
+  Close_Lag_9: 0.0188
+  Close_Lag_1: 0.0179
+  Close_Lag_3: 0.0167
+  Close_Lag_2: 0.0139
+  SMA: 0.0094
+  Close_Lag_5: 0.0085
+  EMA: 0.0076
+Evaluation results for AAPL stored in MongoDB.
+Trained XGBoost model saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/xgboost-20250424-202124/model.pkl
+Close scaler saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/xgboost-20250424-202124/close_scaler.pkl
+Other features scaler saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/xgboost-20250424-202124/other_scaler.pkl
+Target scaler saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/xgboost-20250424-202124/target_scaler.pkl
+Selected features saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/xgboost-20250424-202124/selected_features.pkl
+
+--- XGBoost Stock Price Prediction and Evaluation Completed. ---
+2025-04-24 20:21:25,934 - WARNING - Job stderr: model=xgboost, symbol=AAPL
+/home/skylap/Downloads/stockmarketprediction/train-model/train-xgboost.py:190: FutureWarning: Setting an item of incompatible dtype is deprecated and will raise in a future error of pandas. Value '[ 2.9293157  -0.61803595 -1.20431626 -1.0711731  -0.56825364 -0.79438809
+ -0.66387959 -0.1229772  -0.63848446 -0.47875858 -0.6181291  -0.72548125
+  0.07562646 -0.32623142 -0.66538986 -0.65219331  0.40988817  0.30108229
+  1.28515539  0.15598339  0.02652276 -0.15766681  1.17847187  0.54123829
+ -0.46410498 -0.1257183   1.38510923  0.45327346 -0.47803671 -0.65923568
+ -0.9817479  -0.65634488 -0.87561992 -0.19025069 -0.47218192 -0.19372031
+ -0.61679181 -0.35311686 -0.9059384  -0.90218934 -0.20758218 -0.26982255
+ -0.38003557 -0.49911726 -0.60822918 -0.08662763 -0.40762293 -0.1875994
+ -0.40617254 -0.474607   -0.43790814  0.42027043  0.55553595  0.10345665
+  0.06422958  0.02229135 -0.3780363  -0.56568884 -0.16806238 -0.35177292
+  1.15400153 -0.50357821 -0.82977961 -0.83069442 -0.74324853 -0.65263907
+  0.19499756 -0.76593916 -0.78279828  1.46308101  2.21129272  3.36080677
+  2.04325371  4.15684477  2.07720149  0.93138992  1.39435048 -0.2692404
+  0.00981001 -0.26955975 -0.42230979 -0.22545259]' has dtype incompatible with int64, please explicitly cast to a compatible dtype first.
+  X.loc[:, other_features] = other_scaler.fit_transform(X[other_features].astype(np.float64))
+2025-04-24 20:21:25,934 - INFO - Job completed: model=xgboost, symbol=AAPL
+2025-04-24 20:21:25,934 - INFO - Training Summary:
+2025-04-24 20:21:25,934 - INFO -   Total jobs: 1
+2025-04-24 20:21:25,934 - INFO -   Successful: 1
+2025-04-24 20:21:25,934 - INFO -   Failed: 0
+2025-04-24 20:21:25,934 - INFO -   Total duration: 18.14 seconds
+2025-04-24 20:23:09,103 - INFO - Prepared 1 training jobs with 4 max workers
+2025-04-24 20:23:09,108 - INFO - Starting job: model=arima, symbol=AAPL
+2025-04-24 20:25:16,770 - INFO - Prepared 1 training jobs with 4 max workers
+2025-04-24 20:25:16,773 - INFO - Starting job: model=arima, symbol=AAPL
+2025-04-24 20:25:46,980 - INFO - Job stdout: model=arima, symbol=AAPL
+ARIMA parameters: price_field='Close', feature_engineering=True
+max_p=5, max_q=5, test_size=0.2
+Differencing order (d): 1 (fixed)
+Training with date range: 2022-04-24 to 2025-04-24
+Training ARIMA model for 1 stock(s): AAPL
+Connected to MongoDB: mongodb://localhost:27017/, Database: 'stock_data'
+
+--- Processing Stock: AAPL ---
+Loaded 738 data points for AAPL.
+Applied fixed differencing d=1.
+Train set size: 589, Test set size: 148
+Searching for best ARIMA(p,1,q) order (max_p=5, max_q=5)...
+Auto search complete. Best Order: ARIMA(3, 1, 4) with AIC=2869.63
+Training ARIMA(3, 1, 4) model...
+ARIMA model training finished.
+                               SARIMAX Results                                
+==============================================================================
+Dep. Variable:                  Close   No. Observations:                  589
+Model:                 ARIMA(3, 1, 4)   Log Likelihood               -1426.814
+Date:                Thu, 24 Apr 2025   AIC                           2869.628
+Time:                        20:23:47   BIC                           2904.642
+Sample:                             0   HQIC                          2883.270
+                                - 589                                         
+Covariance Type:                  opg                                         
+==============================================================================
+                 coef    std err          z      P>|z|      [0.025      0.975]
+------------------------------------------------------------------------------
+ar.L1         -1.6369      0.087    -18.763      0.000      -1.808      -1.466
+ar.L2         -1.6476      0.067    -24.631      0.000      -1.779      -1.516
+ar.L3         -0.8999      0.088    -10.215      0.000      -1.073      -0.727
+ma.L1          0.6418      0.278      2.312      0.021       0.098       1.186
+ma.L2          0.0110      0.437      0.025      0.980      -0.845       0.867
+ma.L3         -0.7186      0.441     -1.630      0.103      -1.583       0.146
+ma.L4         -0.9336      0.254     -3.673      0.000      -1.432      -0.435
+sigma2         7.4509      2.020      3.689      0.000       3.492      11.409
+===================================================================================
+Ljung-Box (L1) (Q):                   1.05   Jarque-Bera (JB):               130.22
+Prob(Q):                              0.31   Prob(JB):                         0.00
+Heteroskedasticity (H):               0.83   Skew:                             0.10
+Prob(H) (two-sided):                  0.19   Kurtosis:                         5.30
+===================================================================================
+
+Warnings:
+[1] Covariance matrix calculated using the outer product of gradients (complex-step).
+Starting Walk-Forward Validation...
+Inverse transforming predictions...
+Calculating evaluation metrics...
+
+Model Evaluation (Original Scale - Regression Metrics):
+  RMSE: 4.7443
+  MAE:  3.1763
+  MAPE: 1.44%
+
+Model Evaluation (Direction Prediction - Classification Metrics):
+  Confusion Matrix (Rows: Actual, Cols: Predicted):
+[[30 39]
+ [31 47]]
+  Accuracy:    0.5238
+  Sensitivity: 0.6026 (Recall/TPR)
+  Specificity: 0.4348 (TNR)
+  Precision:   0.5465
+  F1-Score:    0.5732
+
+Analyzing ARIMA components...
+Error extracting ARIMA component info: 'numpy.ndarray' object has no attribute 'index'
+
+Trained ARIMA model saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/arima-20250424-202546/model.pkl
+Evaluation results for AAPL stored in MongoDB collection 'arima_evaluation_results'.
+
+MongoDB connection closed.
+
+--- ARIMA Stock Price Prediction and Evaluation Completed for all symbols. ---
+2025-04-24 20:25:46,980 - WARNING - Job stderr: model=arima, symbol=AAPL
+AIC Search:   0%|          | 0/36 [00:00<?, ?it/s]
+AIC Search:   6%|▌         | 2/36 [00:00<00:06,  4.88it/s]
+AIC Search:   8%|▊         | 3/36 [00:00<00:11,  2.87it/s]
+AIC Search:  11%|█         | 4/36 [00:01<00:16,  1.90it/s]
+AIC Search:  14%|█▍        | 5/36 [00:02<00:22,  1.38it/s]
+AIC Search:  17%|█▋        | 6/36 [00:03<00:24,  1.24it/s]
+AIC Search:  22%|██▏       | 8/36 [00:04<00:14,  1.91it/s]
+AIC Search:  25%|██▌       | 9/36 [00:04<00:13,  2.05it/s]
+AIC Search:  28%|██▊       | 10/36 [00:05<00:14,  1.79it/s]
+AIC Search:  31%|███       | 11/36 [00:05<00:12,  1.92it/s]
+AIC Search:  33%|███▎      | 12/36 [00:06<00:13,  1.74it/s]
+AIC Search:  39%|███▉      | 14/36 [00:07<00:09,  2.27it/s]
+AIC Search:  42%|████▏     | 15/36 [00:07<00:10,  2.10it/s]
+AIC Search:  44%|████▍     | 16/36 [00:08<00:12,  1.56it/s]
+AIC Search:  47%|████▋     | 17/36 [00:09<00:12,  1.49it/s]
+AIC Search:  50%|█████     | 18/36 [00:11<00:17,  1.03it/s]
+AIC Search:  56%|█████▌    | 20/36 [00:12<00:11,  1.42it/s]
+AIC Search:  58%|█████▊    | 21/36 [00:13<00:11,  1.25it/s]
+AIC Search:  61%|██████    | 22/36 [00:14<00:13,  1.05it/s]
+AIC Search:  64%|██████▍   | 23/36 [00:16<00:16,  1.23s/it]
+AIC Search:  67%|██████▋   | 24/36 [00:18<00:17,  1.49s/it]
+AIC Search:  72%|███████▏  | 26/36 [00:19<00:10,  1.02s/it]
+AIC Search:  75%|███████▌  | 27/36 [00:21<00:10,  1.18s/it]
+AIC Search:  78%|███████▊  | 28/36 [00:22<00:10,  1.26s/it]
+AIC Search:  81%|████████  | 29/36 [00:24<00:10,  1.51s/it]
+AIC Search:  83%|████████▎ | 30/36 [00:27<00:10,  1.77s/it]
+AIC Search:  89%|████████▉ | 32/36 [00:28<00:04,  1.25s/it]
+AIC Search:  92%|█████████▏| 33/36 [00:29<00:03,  1.12s/it]
+AIC Search:  94%|█████████▍| 34/36 [00:30<00:02,  1.26s/it]
+AIC Search:  97%|█████████▋| 35/36 [00:32<00:01,  1.45s/it]
+AIC Search: 100%|██████████| 36/36 [00:35<00:00,  1.69s/it]
+AIC Search: 100%|██████████| 36/36 [00:35<00:00,  1.02it/s]
+
+Walk-Forward Validation:   0%|          | 0/148 [00:00<?, ?it/s]
+Walk-Forward Validation:   1%|          | 1/148 [00:01<03:31,  1.44s/it]
+Walk-Forward Validation:   1%|▏         | 2/148 [00:02<02:18,  1.06it/s]
+Walk-Forward Validation:   2%|▏         | 3/148 [00:02<01:55,  1.26it/s]
+Walk-Forward Validation:   3%|▎         | 4/148 [00:03<01:32,  1.56it/s]
+Walk-Forward Validation:   3%|▎         | 5/148 [00:04<02:13,  1.07it/s]
+Walk-Forward Validation:   4%|▍         | 6/148 [00:05<02:22,  1.00s/it]
+Walk-Forward Validation:   5%|▍         | 7/148 [00:06<01:56,  1.21it/s]
+Walk-Forward Validation:   5%|▌         | 8/148 [00:06<01:41,  1.37it/s]
+Walk-Forward Validation:   6%|▌         | 9/148 [00:08<02:19,  1.00s/it]
+Walk-Forward Validation:   7%|▋         | 10/148 [00:09<02:31,  1.10s/it]
+Walk-Forward Validation:   7%|▋         | 11/148 [00:09<01:54,  1.20it/s]
+Walk-Forward Validation:   8%|▊         | 12/148 [00:09<01:26,  1.57it/s]
+Walk-Forward Validation:   9%|▉         | 13/148 [00:10<01:15,  1.78it/s]
+Walk-Forward Validation:   9%|▉         | 14/148 [00:11<01:21,  1.65it/s]
+Walk-Forward Validation:  10%|█         | 15/148 [00:11<01:28,  1.50it/s]
+Walk-Forward Validation:  11%|█         | 16/148 [00:12<01:34,  1.39it/s]
+Walk-Forward Validation:  11%|█▏        | 17/148 [00:12<01:14,  1.76it/s]
+Walk-Forward Validation:  12%|█▏        | 18/148 [00:13<01:08,  1.90it/s]
+Walk-Forward Validation:  13%|█▎        | 19/148 [00:14<01:27,  1.47it/s]
+Walk-Forward Validation:  14%|█▎        | 20/148 [00:14<01:10,  1.82it/s]
+Walk-Forward Validation:  14%|█▍        | 21/148 [00:15<01:26,  1.47it/s]
+Walk-Forward Validation:  15%|█▍        | 22/148 [00:16<01:18,  1.61it/s]
+Walk-Forward Validation:  16%|█▌        | 23/148 [00:16<01:03,  1.96it/s]
+Walk-Forward Validation:  16%|█▌        | 24/148 [00:16<00:54,  2.28it/s]
+Walk-Forward Validation:  17%|█▋        | 25/148 [00:16<00:42,  2.88it/s]
+Walk-Forward Validation:  18%|█▊        | 26/148 [00:17<00:52,  2.32it/s]
+Walk-Forward Validation:  18%|█▊        | 27/148 [00:18<01:11,  1.69it/s]
+Walk-Forward Validation:  19%|█▉        | 28/148 [00:18<01:01,  1.94it/s]
+Walk-Forward Validation:  20%|█▉        | 29/148 [00:19<01:05,  1.83it/s]
+Walk-Forward Validation:  20%|██        | 30/148 [00:20<01:21,  1.46it/s]
+Walk-Forward Validation:  21%|██        | 31/148 [00:21<01:28,  1.32it/s]
+Walk-Forward Validation:  22%|██▏       | 32/148 [00:21<01:19,  1.46it/s]
+Walk-Forward Validation:  22%|██▏       | 33/148 [00:21<00:59,  1.92it/s]
+Walk-Forward Validation:  23%|██▎       | 34/148 [00:22<00:52,  2.15it/s]
+Walk-Forward Validation:  24%|██▎       | 35/148 [00:22<00:42,  2.67it/s]
+Walk-Forward Validation:  24%|██▍       | 36/148 [00:22<00:48,  2.29it/s]
+Walk-Forward Validation:  25%|██▌       | 37/148 [00:23<00:40,  2.71it/s]
+Walk-Forward Validation:  26%|██▌       | 38/148 [00:23<00:32,  3.39it/s]
+Walk-Forward Validation:  26%|██▋       | 39/148 [00:23<00:31,  3.48it/s]
+Walk-Forward Validation:  27%|██▋       | 40/148 [00:23<00:32,  3.28it/s]
+Walk-Forward Validation:  28%|██▊       | 41/148 [00:24<00:43,  2.45it/s]
+Walk-Forward Validation:  28%|██▊       | 42/148 [00:25<00:45,  2.35it/s]
+Walk-Forward Validation:  29%|██▉       | 43/148 [00:25<00:36,  2.84it/s]
+Walk-Forward Validation:  30%|██▉       | 44/148 [00:25<00:29,  3.51it/s]
+Walk-Forward Validation:  30%|███       | 45/148 [00:26<00:47,  2.18it/s]
+Walk-Forward Validation:  31%|███       | 46/148 [00:26<00:36,  2.78it/s]
+Walk-Forward Validation:  32%|███▏      | 47/148 [00:26<00:35,  2.83it/s]
+Walk-Forward Validation:  32%|███▏      | 48/148 [00:27<00:35,  2.84it/s]
+Walk-Forward Validation:  33%|███▎      | 49/148 [00:27<00:28,  3.42it/s]
+Walk-Forward Validation:  34%|███▍      | 50/148 [00:27<00:25,  3.88it/s]
+Walk-Forward Validation:  35%|███▌      | 52/148 [00:27<00:23,  4.02it/s]
+Walk-Forward Validation:  36%|███▌      | 53/148 [00:28<00:22,  4.30it/s]
+Walk-Forward Validation:  36%|███▋      | 54/148 [00:28<00:24,  3.78it/s]
+Walk-Forward Validation:  37%|███▋      | 55/148 [00:28<00:27,  3.40it/s]
+Walk-Forward Validation:  38%|███▊      | 56/148 [00:29<00:27,  3.40it/s]
+Walk-Forward Validation:  39%|███▊      | 57/148 [00:29<00:22,  3.98it/s]
+Walk-Forward Validation:  39%|███▉      | 58/148 [00:29<00:36,  2.45it/s]
+Walk-Forward Validation:  40%|███▉      | 59/148 [00:30<00:30,  2.95it/s]
+Walk-Forward Validation:  41%|████      | 60/148 [00:30<00:30,  2.91it/s]
+Walk-Forward Validation:  41%|████      | 61/148 [00:30<00:32,  2.71it/s]
+Walk-Forward Validation:  42%|████▏     | 62/148 [00:31<00:27,  3.13it/s]
+Walk-Forward Validation:  43%|████▎     | 63/148 [00:31<00:24,  3.48it/s]
+Walk-Forward Validation:  43%|████▎     | 64/148 [00:31<00:31,  2.63it/s]
+Walk-Forward Validation:  44%|████▍     | 65/148 [00:32<00:34,  2.41it/s]
+Walk-Forward Validation:  45%|████▍     | 66/148 [00:32<00:36,  2.23it/s]
+Walk-Forward Validation:  45%|████▌     | 67/148 [00:33<00:35,  2.26it/s]
+Walk-Forward Validation:  46%|████▌     | 68/148 [00:33<00:31,  2.50it/s]
+Walk-Forward Validation:  47%|████▋     | 69/148 [00:34<00:32,  2.44it/s]
+Walk-Forward Validation:  47%|████▋     | 70/148 [00:34<00:25,  3.11it/s]
+Walk-Forward Validation:  48%|████▊     | 71/148 [00:34<00:22,  3.45it/s]
+Walk-Forward Validation:  49%|████▊     | 72/148 [00:34<00:19,  3.89it/s]
+Walk-Forward Validation:  49%|████▉     | 73/148 [00:36<00:48,  1.55it/s]
+Walk-Forward Validation:  50%|█████     | 74/148 [00:36<00:45,  1.63it/s]
+Walk-Forward Validation:  51%|█████     | 75/148 [00:37<00:52,  1.40it/s]
+Walk-Forward Validation:  51%|█████▏    | 76/148 [00:38<01:02,  1.16it/s]
+Walk-Forward Validation:  52%|█████▏    | 77/148 [00:39<01:02,  1.14it/s]
+Walk-Forward Validation:  53%|█████▎    | 78/148 [00:40<00:54,  1.28it/s]
+Walk-Forward Validation:  53%|█████▎    | 79/148 [00:40<00:46,  1.48it/s]
+Walk-Forward Validation:  54%|█████▍    | 80/148 [00:42<01:01,  1.11it/s]
+Walk-Forward Validation:  55%|█████▍    | 81/148 [00:42<00:46,  1.43it/s]
+Walk-Forward Validation:  55%|█████▌    | 82/148 [00:42<00:36,  1.83it/s]
+Walk-Forward Validation:  56%|█████▌    | 83/148 [00:43<00:39,  1.66it/s]
+Walk-Forward Validation:  57%|█████▋    | 84/148 [00:44<00:51,  1.25it/s]
+Walk-Forward Validation:  57%|█████▋    | 85/148 [00:45<00:50,  1.24it/s]
+Walk-Forward Validation:  58%|█████▊    | 86/148 [00:46<00:52,  1.19it/s]
+Walk-Forward Validation:  59%|█████▉    | 87/148 [00:46<00:38,  1.59it/s]
+Walk-Forward Validation:  59%|█████▉    | 88/148 [00:47<00:39,  1.52it/s]
+Walk-Forward Validation:  60%|██████    | 89/148 [00:48<00:47,  1.24it/s]
+Walk-Forward Validation:  61%|██████    | 90/148 [00:50<01:05,  1.13s/it]
+Walk-Forward Validation:  61%|██████▏   | 91/148 [00:50<00:51,  1.10it/s]
+Walk-Forward Validation:  62%|██████▏   | 92/148 [00:51<00:47,  1.17it/s]
+Walk-Forward Validation:  63%|██████▎   | 93/148 [00:51<00:36,  1.52it/s]
+Walk-Forward Validation:  64%|██████▎   | 94/148 [00:52<00:41,  1.30it/s]
+Walk-Forward Validation:  64%|██████▍   | 95/148 [00:53<00:46,  1.14it/s]
+Walk-Forward Validation:  65%|██████▍   | 96/148 [00:53<00:33,  1.54it/s]
+Walk-Forward Validation:  66%|██████▌   | 97/148 [00:54<00:29,  1.72it/s]
+Walk-Forward Validation:  66%|██████▌   | 98/148 [00:56<00:58,  1.16s/it]
+Walk-Forward Validation:  67%|██████▋   | 99/148 [00:57<00:48,  1.01it/s]
+Walk-Forward Validation:  68%|██████▊   | 100/148 [00:58<00:47,  1.00it/s]
+Walk-Forward Validation:  68%|██████▊   | 101/148 [00:58<00:37,  1.25it/s]
+Walk-Forward Validation:  69%|██████▉   | 102/148 [00:59<00:30,  1.51it/s]
+Walk-Forward Validation:  70%|██████▉   | 103/148 [00:59<00:28,  1.58it/s]
+Walk-Forward Validation:  70%|███████   | 104/148 [00:59<00:22,  1.93it/s]
+Walk-Forward Validation:  71%|███████   | 105/148 [01:00<00:23,  1.86it/s]
+Walk-Forward Validation:  72%|███████▏  | 106/148 [01:00<00:19,  2.13it/s]
+Walk-Forward Validation:  72%|███████▏  | 107/148 [01:01<00:19,  2.13it/s]
+Walk-Forward Validation:  73%|███████▎  | 108/148 [01:01<00:20,  2.00it/s]
+Walk-Forward Validation:  74%|███████▎  | 109/148 [01:02<00:15,  2.45it/s]
+Walk-Forward Validation:  74%|███████▍  | 110/148 [01:02<00:18,  2.03it/s]
+Walk-Forward Validation:  75%|███████▌  | 111/148 [01:03<00:16,  2.23it/s]
+Walk-Forward Validation:  76%|███████▌  | 112/148 [01:03<00:17,  2.00it/s]
+Walk-Forward Validation:  76%|███████▋  | 113/148 [01:03<00:15,  2.32it/s]
+Walk-Forward Validation:  77%|███████▋  | 114/148 [01:04<00:12,  2.67it/s]
+Walk-Forward Validation:  78%|███████▊  | 115/148 [01:05<00:16,  1.98it/s]
+Walk-Forward Validation:  78%|███████▊  | 116/148 [01:05<00:16,  1.93it/s]
+Walk-Forward Validation:  79%|███████▉  | 117/148 [01:06<00:17,  1.82it/s]
+Walk-Forward Validation:  80%|███████▉  | 118/148 [01:08<00:28,  1.07it/s]
+Walk-Forward Validation:  80%|████████  | 119/148 [01:09<00:30,  1.04s/it]
+Walk-Forward Validation:  81%|████████  | 120/148 [01:09<00:22,  1.24it/s]
+Walk-Forward Validation:  82%|████████▏ | 121/148 [01:11<00:33,  1.23s/it]
+Walk-Forward Validation:  82%|████████▏ | 122/148 [01:12<00:24,  1.04it/s]
+Walk-Forward Validation:  83%|████████▎ | 123/148 [01:12<00:19,  1.27it/s]
+Walk-Forward Validation:  84%|████████▍ | 124/148 [01:12<00:15,  1.55it/s]
+Walk-Forward Validation:  84%|████████▍ | 125/148 [01:13<00:12,  1.80it/s]
+Walk-Forward Validation:  85%|████████▌ | 126/148 [01:14<00:14,  1.55it/s]
+Walk-Forward Validation:  86%|████████▌ | 127/148 [01:14<00:11,  1.79it/s]
+Walk-Forward Validation:  86%|████████▋ | 128/148 [01:15<00:11,  1.68it/s]
+Walk-Forward Validation:  87%|████████▋ | 129/148 [01:15<00:10,  1.88it/s]
+Walk-Forward Validation:  88%|████████▊ | 130/148 [01:15<00:08,  2.15it/s]
+Walk-Forward Validation:  89%|████████▊ | 131/148 [01:16<00:07,  2.32it/s]
+Walk-Forward Validation:  89%|████████▉ | 132/148 [01:17<00:11,  1.44it/s]
+Walk-Forward Validation:  90%|████████▉ | 133/148 [01:18<00:13,  1.12it/s]
+Walk-Forward Validation:  91%|█████████ | 134/148 [01:18<00:09,  1.52it/s]
+Walk-Forward Validation:  91%|█████████ | 135/148 [01:19<00:06,  1.88it/s]
+Walk-Forward Validation:  92%|█████████▏| 136/148 [01:21<00:12,  1.05s/it]
+Walk-Forward Validation:  93%|█████████▎| 137/148 [01:22<00:12,  1.18s/it]
+Walk-Forward Validation:  93%|█████████▎| 138/148 [01:23<00:11,  1.15s/it]
+Walk-Forward Validation:  94%|█████████▍| 139/148 [01:25<00:11,  1.26s/it]
+Walk-Forward Validation:  95%|█████████▍| 140/148 [01:27<00:11,  1.46s/it]
+Walk-Forward Validation:  95%|█████████▌| 141/148 [01:31<00:15,  2.25s/it]
+Walk-Forward Validation:  96%|█████████▌| 142/148 [01:35<00:17,  2.88s/it]
+Walk-Forward Validation:  97%|█████████▋| 143/148 [01:40<00:17,  3.53s/it]
+Walk-Forward Validation:  97%|█████████▋| 144/148 [01:42<00:11,  2.82s/it]
+Walk-Forward Validation:  98%|█████████▊| 145/148 [01:47<00:11,  3.68s/it]
+Walk-Forward Validation:  99%|█████████▊| 146/148 [01:49<00:05,  2.96s/it]
+Walk-Forward Validation:  99%|█████████▉| 147/148 [01:53<00:03,  3.28s/it]
+Walk-Forward Validation: 100%|██████████| 148/148 [01:58<00:00,  3.90s/it]
+Walk-Forward Validation: 100%|██████████| 148/148 [01:58<00:00,  1.25it/s]
+2025-04-24 20:25:46,981 - INFO - Job completed: model=arima, symbol=AAPL
+2025-04-24 20:25:46,986 - INFO - Training Summary:
+2025-04-24 20:25:46,986 - INFO -   Total jobs: 1
+2025-04-24 20:25:46,986 - INFO -   Successful: 1
+2025-04-24 20:25:46,986 - INFO -   Failed: 0
+2025-04-24 20:25:46,986 - INFO -   Total duration: 157.88 seconds
+2025-04-24 20:25:55,870 - INFO - Job stdout: model=arima, symbol=AAPL
+ARIMA parameters: price_field='Close', feature_engineering=True
+max_p=5, max_q=5, test_size=0.2
+Differencing order (d): 1 (fixed)
+Training with date range: 2024-10-24 to 2025-04-24
+Training ARIMA model for 1 stock(s): AAPL
+Connected to MongoDB: mongodb://localhost:27017/, Database: 'stock_data'
+
+--- Processing Stock: AAPL ---
+Loaded 109 data points for AAPL.
+Applied fixed differencing d=1.
+Train set size: 86, Test set size: 22
+Searching for best ARIMA(p,1,q) order (max_p=5, max_q=5)...
+Auto search complete. Best Order: ARIMA(0, 1, 1) with AIC=472.64
+Training ARIMA(0, 1, 1) model...
+ARIMA model training finished.
+                               SARIMAX Results                                
+==============================================================================
+Dep. Variable:                  Close   No. Observations:                   86
+Model:                 ARIMA(0, 1, 1)   Log Likelihood                -234.318
+Date:                Thu, 24 Apr 2025   AIC                            472.636
+Time:                        20:25:54   BIC                            477.521
+Sample:                             0   HQIC                           474.601
+                                 - 86                                         
+Covariance Type:                  opg                                         
+==============================================================================
+                 coef    std err          z      P>|z|      [0.025      0.975]
+------------------------------------------------------------------------------
+ma.L1         -0.9556      0.038    -25.101      0.000      -1.030      -0.881
+sigma2        14.1080      1.883      7.493      0.000      10.418      17.798
+===================================================================================
+Ljung-Box (L1) (Q):                   0.17   Jarque-Bera (JB):                 3.63
+Prob(Q):                              0.68   Prob(JB):                         0.16
+Heteroskedasticity (H):               3.69   Skew:                            -0.45
+Prob(H) (two-sided):                  0.00   Kurtosis:                         3.48
+===================================================================================
+
+Warnings:
+[1] Covariance matrix calculated using the outer product of gradients (complex-step).
+Starting Walk-Forward Validation...
+Inverse transforming predictions...
+Calculating evaluation metrics...
+
+Model Evaluation (Original Scale - Regression Metrics):
+  RMSE: 8.6164
+  MAE:  5.9182
+  MAPE: 2.94%
+
+Model Evaluation (Direction Prediction - Classification Metrics):
+  Confusion Matrix (Rows: Actual, Cols: Predicted):
+[[5 5]
+ [6 5]]
+  Accuracy:    0.4762
+  Sensitivity: 0.4545 (Recall/TPR)
+  Specificity: 0.5000 (TNR)
+  Precision:   0.5000
+  F1-Score:    0.4762
+
+Analyzing ARIMA components...
+Error extracting ARIMA component info: 'numpy.ndarray' object has no attribute 'index'
+
+Trained ARIMA model saved to: /home/skylap/Downloads/stockmarketprediction/train-model/AAPL/arima-20250424-202555/model.pkl
+Evaluation results for AAPL stored in MongoDB collection 'arima_evaluation_results'.
+
+MongoDB connection closed.
+
+--- ARIMA Stock Price Prediction and Evaluation Completed for all symbols. ---
+2025-04-24 20:25:55,871 - WARNING - Job stderr: model=arima, symbol=AAPL
+AIC Search:   0%|          | 0/36 [00:00<?, ?it/s]
+AIC Search:   6%|▌         | 2/36 [00:00<00:02, 13.17it/s]
+AIC Search:  11%|█         | 4/36 [00:01<00:17,  1.80it/s]
+AIC Search:  14%|█▍        | 5/36 [00:06<00:50,  1.63s/it]
+AIC Search:  17%|█▋        | 6/36 [00:10<01:10,  2.36s/it]
+AIC Search:  22%|██▏       | 8/36 [00:10<00:38,  1.37s/it]
+AIC Search:  25%|██▌       | 9/36 [00:11<00:32,  1.20s/it]
+AIC Search:  28%|██▊       | 10/36 [00:12<00:28,  1.11s/it]
+AIC Search:  31%|███       | 11/36 [00:14<00:37,  1.49s/it]
+AIC Search:  33%|███▎      | 12/36 [00:18<00:52,  2.17s/it]
+AIC Search:  39%|███▉      | 14/36 [00:18<00:28,  1.29s/it]
+AIC Search:  42%|████▏     | 15/36 [00:19<00:23,  1.10s/it]
+AIC Search:  44%|████▍     | 16/36 [00:21<00:26,  1.32s/it]
+AIC Search:  47%|████▋     | 17/36 [00:26<00:42,  2.24s/it]
+AIC Search:  50%|█████     | 18/36 [00:27<00:34,  1.94s/it]
+AIC Search:  56%|█████▌    | 20/36 [00:27<00:18,  1.16s/it]
+AIC Search:  58%|█████▊    | 21/36 [00:27<00:13,  1.08it/s]
+AIC Search:  61%|██████    | 22/36 [00:28<00:11,  1.24it/s]
+AIC Search:  64%|██████▍   | 23/36 [00:28<00:09,  1.31it/s]
+AIC Search:  67%|██████▋   | 24/36 [00:29<00:08,  1.47it/s]
+AIC Search:  72%|███████▏  | 26/36 [00:29<00:04,  2.33it/s]
+AIC Search:  75%|███████▌  | 27/36 [00:30<00:03,  2.41it/s]
+AIC Search:  78%|███████▊  | 28/36 [00:30<00:03,  2.40it/s]
+AIC Search:  81%|████████  | 29/36 [00:31<00:03,  2.15it/s]
+AIC Search:  83%|████████▎ | 30/36 [00:31<00:03,  1.92it/s]
+AIC Search:  89%|████████▉ | 32/36 [00:32<00:01,  2.55it/s]
+AIC Search:  92%|█████████▏| 33/36 [00:32<00:01,  2.61it/s]
+AIC Search:  94%|█████████▍| 34/36 [00:33<00:00,  2.23it/s]
+AIC Search:  97%|█████████▋| 35/36 [00:33<00:00,  1.98it/s]
+AIC Search: 100%|██████████| 36/36 [00:34<00:00,  1.56it/s]
+AIC Search: 100%|██████████| 36/36 [00:34<00:00,  1.03it/s]
+
+Walk-Forward Validation:   0%|          | 0/22 [00:00<?, ?it/s]
+Walk-Forward Validation:  23%|██▎       | 5/22 [00:00<00:00, 38.99it/s]
+Walk-Forward Validation:  41%|████      | 9/22 [00:00<00:00, 33.58it/s]
+Walk-Forward Validation:  59%|█████▉    | 13/22 [00:00<00:00, 30.07it/s]
+Walk-Forward Validation:  77%|███████▋  | 17/22 [00:00<00:00, 28.02it/s]
+Walk-Forward Validation:  91%|█████████ | 20/22 [00:00<00:00, 20.99it/s]
+Walk-Forward Validation: 100%|██████████| 22/22 [00:00<00:00, 22.93it/s]
+2025-04-24 20:25:55,871 - INFO - Job completed: model=arima, symbol=AAPL
+2025-04-24 20:25:55,871 - INFO - Training Summary:
+2025-04-24 20:25:55,871 - INFO -   Total jobs: 1
+2025-04-24 20:25:55,871 - INFO -   Successful: 1
+2025-04-24 20:25:55,871 - INFO -   Failed: 0
+2025-04-24 20:25:55,872 - INFO -   Total duration: 39.10 seconds
+2025-04-24 20:27:23,283 - INFO - Prepared 1 training jobs with 4 max workers
+2025-04-24 20:27:23,286 - INFO - Starting job: model=xgboost, symbol=MSFT
+2025-04-24 20:27:41,331 - INFO - Job stdout: model=xgboost, symbol=MSFT
+Training with date range: 2024-10-24 to 2025-04-24
+Training XGBoost model for 1 stock(s): MSFT
+Using look_back=20, num_features=15
+Hyperparameter tuning with: n_estimators=100,200,300, max_depth=3,4,5, learning_rate=0.01,0.1,0.2
+
+--- Processing Stock: MSFT ---
+Best parameters: {'colsample_bytree': 0.9, 'learning_rate': 0.2, 'max_depth': 4, 'n_estimators': 100, 'subsample': 0.8}
+
+Regression Metrics:
+  Mean Squared Error (MSE): 168.7692
+  Root Mean Squared Error (RMSE): 12.9911
+  Mean Absolute Error (MAE): 9.7327
+  MAPE: 2.63%
+  R-squared (R2): -0.0612
+
+Classification Metrics:
+  Accuracy: 0.4000
+  Confusion Matrix:
+ [[4 5]
+ [4 2]]
+  Classification Report:
+               precision    recall  f1-score   support
+
+           0       0.50      0.44      0.47         9
+           1       0.29      0.33      0.31         6
+
+    accuracy                           0.40        15
+   macro avg       0.39      0.39      0.39        15
+weighted avg       0.41      0.40      0.41        15
+
+
+XGBoost Feature Importance (Top 10):
+  SMA: 0.3863
+  Low: 0.2053
+  Close: 0.2041
+  EMA: 0.0592
+  Close_Lag_1: 0.0400
+  Open: 0.0271
+  High: 0.0152
+  Close_Lag_6: 0.0151
+  Close_Lag_14: 0.0131
+  Close_Lag_7: 0.0080
+Evaluation results for MSFT stored in MongoDB.
+Trained XGBoost model saved to: /home/skylap/Downloads/stockmarketprediction/train-model/MSFT/xgboost-20250424-202739/model.pkl
+Close scaler saved to: /home/skylap/Downloads/stockmarketprediction/train-model/MSFT/xgboost-20250424-202739/close_scaler.pkl
+Other features scaler saved to: /home/skylap/Downloads/stockmarketprediction/train-model/MSFT/xgboost-20250424-202739/other_scaler.pkl
+Target scaler saved to: /home/skylap/Downloads/stockmarketprediction/train-model/MSFT/xgboost-20250424-202739/target_scaler.pkl
+Selected features saved to: /home/skylap/Downloads/stockmarketprediction/train-model/MSFT/xgboost-20250424-202739/selected_features.pkl
+
+--- XGBoost Stock Price Prediction and Evaluation Completed. ---
+2025-04-24 20:27:41,331 - WARNING - Job stderr: model=xgboost, symbol=MSFT
+/home/skylap/Downloads/stockmarketprediction/train-model/train-xgboost.py:190: FutureWarning: Setting an item of incompatible dtype is deprecated and will raise in a future error of pandas. Value '[-1.25903973e-01  3.92619868e+00 -4.99835538e-01 -1.67602456e+00
+ -1.57499671e+00 -6.01363766e-01 -1.08791043e+00 -1.07929603e+00
+ -7.21180419e-01 -7.44099818e-01 -3.60405923e-01 -5.99264129e-01
+ -9.01896348e-01 -3.96953338e-01 -6.51686367e-01 -7.17314732e-01
+ -4.52220879e-01 -8.77819205e-01  1.91376646e-01  1.80407516e-01
+  3.48976949e-01 -5.74716040e-01 -8.53339796e-01  1.11858211e+00
+ -7.40998516e-02 -6.52990378e-02  2.97671156e+00  9.78828721e-01
+  1.40514418e-01 -3.64477648e-01 -7.78066838e-01 -7.78743824e-01
+ -1.33448929e-01 -3.36436706e-01 -5.99116958e-01 -5.02857445e-01
+ -3.48543053e-02 -1.46036938e-01 -2.77058194e-01 -1.30239702e-02
+ -7.24319159e-02  3.21603180e-01  2.15532280e-01  5.04350066e-01
+ -4.54065419e-01 -3.06070464e-01  8.43657248e-01 -1.21586963e-01
+  4.99983999e-01 -7.98493241e-02 -9.24569558e-02 -2.17110622e-01
+  8.43107810e-01  6.01757512e-01  6.53102693e-04 -3.70276178e-01
+ -4.21315011e-01 -1.73920899e-01 -4.67026261e-01 -4.96597780e-01
+ -5.66749194e-01  1.51379457e+00 -3.18128658e-01 -8.31215119e-01
+ -7.98503956e-01 -1.02824738e+00 -2.56562208e-01  1.07314558e+00
+ -4.47148392e-01 -8.00054155e-01  5.83881166e-01  2.44921217e+00
+  2.56843033e+00  1.14027509e+00  2.54632527e+00  1.35175952e+00]' has dtype incompatible with int64, please explicitly cast to a compatible dtype first.
+  X.loc[:, other_features] = other_scaler.fit_transform(X[other_features].astype(np.float64))
+2025-04-24 20:27:41,331 - INFO - Job completed: model=xgboost, symbol=MSFT
+2025-04-24 20:27:41,332 - INFO - Training Summary:
+2025-04-24 20:27:41,332 - INFO -   Total jobs: 1
+2025-04-24 20:27:41,332 - INFO -   Successful: 1
+2025-04-24 20:27:41,332 - INFO -   Failed: 0
+2025-04-24 20:27:41,332 - INFO -   Total duration: 18.05 seconds
