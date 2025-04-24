@@ -67,248 +67,234 @@
     {% if model_predictions.models_available %}
     <h2>Price Predictions</h2>
     <div class="predictions-panel">
-
         <div class="prediction-grid">
             <!-- First row: ARIMA and LSTM -->
             <div class="prediction-row">
-
-                {# ARIMA Section #}
-                {% with model_type="arima" %}
-                {% with next_day_pred=model_predictions.predictions.next_day|get_item:model_type %}
-                {% if next_day_pred is not None %} {# Check if prediction exists for this model #}
-                    <div class="prediction-model-section">
-                        <h3 class="model-name">ARIMA</h3>
-                        {% with current_price=stock_info.currentPrice|default:stock_info.regularMarketPrice|default:stock_info.regularMarketPreviousClose|default:stock_historical_data.0.Close|default:206.37 %}
-                        <div class="prediction-cards">
-                            {# Next Day #}
-                            <div class="prediction-card">
-                                <div class="prediction-time">Next Day</div>
-                                <div class="prediction-date">{{ model_predictions.prediction_dates.next_day }}</div>
-                                <div class="prediction-price">${{ next_day_pred|floatformat:2 }}</div>
-                                {% with raw_change=next_day_pred|subtract:current_price %}
-                                <div class="prediction-change {% if raw_change > 0 %}positive{% elif raw_change < 0 %}negative{% else %}neutral{% endif %}">
-                                    {% if raw_change > 0 %}+{% endif %}${{ raw_change|floatformat:2 }} ({% if raw_change > 0 %}+{% endif %}{{ raw_change|multiply:100|divide:current_price|floatformat:2 }}%)
-                                </div>
-                                {% endwith %}
+                {# ARIMA Prediction Section - Conditionally Displayed #}
+                {% if 'arima' in model_predictions.model_types %}
+                <div class="prediction-model-section">
+                    <h3 class="model-name">ARIMA</h3>
+                    {% with model_type="arima" %}
+                    {% with current_price=stock_info.currentPrice|default:stock_info.regularMarketPrice|default:stock_info.regularMarketPreviousClose|default:stock_historical_data.0.Close|default:206.37 %}
+                    <div class="prediction-cards">
+                        <div class="prediction-card">
+                            <div class="prediction-time">Next Day</div>
+                            <div class="prediction-date">{{ model_predictions.prediction_dates.next_day }}</div>
+                            <div class="prediction-price">${{ model_predictions.predictions.next_day|get_item:model_type|floatformat:2 }}</div>
+                            {% with pred=model_predictions.predictions.next_day|get_item:model_type %}
+                            {% with raw_change=pred|subtract:current_price %}
+                            <div class="prediction-change {% if raw_change > 0 %}positive{% elif raw_change < 0 %}negative{% else %}neutral{% endif %}">
+                                {% if raw_change > 0 %}+{% endif %}${{ raw_change|floatformat:2 }} ({% if raw_change > 0 %}+{% endif %}{{ raw_change|multiply:100|divide:current_price|floatformat:2 }}%)
                             </div>
-                            {# Next Week #}
-                            {% with next_week_pred=model_predictions.predictions.next_week|get_item:model_type %}
-                            {% if next_week_pred is not None %}
-                            <div class="prediction-card">
-                                <div class="prediction-time">Next Week</div>
-                                <div class="prediction-date">{{ model_predictions.prediction_dates.next_week }}</div>
-                                <div class="prediction-price">${{ next_week_pred|floatformat:2 }}</div>
-                                {% with raw_change=next_week_pred|subtract:current_price %}
-                                <div class="prediction-change {% if raw_change > 0 %}positive{% elif raw_change < 0 %}negative{% else %}neutral{% endif %}">
-                                    {% if raw_change > 0 %}+{% endif %}${{ raw_change|floatformat:2 }} ({% if raw_change > 0 %}+{% endif %}{{ raw_change|multiply:100|divide:current_price|floatformat:2 }}%)
-                                </div>
-                                {% endwith %}
-                            </div>
-                            {% endif %}
                             {% endwith %}
-                            {# Next Month #}
-                            {% with next_month_pred=model_predictions.predictions.next_month|get_item:model_type %}
-                            {% if next_month_pred is not None %}
-                            <div class="prediction-card">
-                                <div class="prediction-time">Next Month</div>
-                                <div class="prediction-date">{{ model_predictions.prediction_dates.next_month }}</div>
-                                <div class="prediction-price">${{ next_month_pred|floatformat:2 }}</div>
-                                {% with raw_change=next_month_pred|subtract:current_price %}
-                                <div class="prediction-change {% if raw_change > 0 %}positive{% elif raw_change < 0 %}negative{% else %}neutral{% endif %}">
-                                    {% if raw_change > 0 %}+{% endif %}${{ raw_change|floatformat:2 }} ({% if raw_change > 0 %}+{% endif %}{{ raw_change|multiply:100|divide:current_price|floatformat:2 }}%)
-                                </div>
-                                {% endwith %}
-                            </div>
-                            {% endif %}
                             {% endwith %}
                         </div>
-                        {% endwith %} {# end with current_price #}
-                    </div>
-                {% endif %} {# end check if prediction exists #}
-                {% endwith %} {# end with next_day_pred #}
-                {% endwith %} {# end with model_type #}
-
-                {# LSTM Section #}
-                {% with model_type="lstm" %}
-                {% with next_day_pred=model_predictions.predictions.next_day|get_item:model_type %}
-                {% if next_day_pred is not None %} {# Check if prediction exists for this model #}
-                    <div class="prediction-model-section">
-                        <h3 class="model-name">LSTM</h3>
-                        {% with current_price=stock_info.currentPrice|default:stock_info.regularMarketPrice|default:stock_info.regularMarketPreviousClose|default:stock_historical_data.0.Close|default:206.37 %}
-                        <div class="prediction-cards">
-                             {# Next Day #}
-                            <div class="prediction-card">
-                                <div class="prediction-time">Next Day</div>
-                                <div class="prediction-date">{{ model_predictions.prediction_dates.next_day }}</div>
-                                <div class="prediction-price">${{ next_day_pred|floatformat:2 }}</div>
-                                {% with raw_change=next_day_pred|subtract:current_price %}
-                                <div class="prediction-change {% if raw_change > 0 %}positive{% elif raw_change < 0 %}negative{% else %}neutral{% endif %}">
-                                    {% if raw_change > 0 %}+{% endif %}${{ raw_change|floatformat:2 }} ({% if raw_change > 0 %}+{% endif %}{{ raw_change|multiply:100|divide:current_price|floatformat:2 }}%)
-                                </div>
-                                {% endwith %}
+                        <div class="prediction-card">
+                            <div class="prediction-time">Next Week</div>
+                            <div class="prediction-date">{{ model_predictions.prediction_dates.next_week }}</div>
+                            <div class="prediction-price">${{ model_predictions.predictions.next_week|get_item:model_type|floatformat:2 }}</div>
+                            {% with pred=model_predictions.predictions.next_week|get_item:model_type %}
+                            {% with raw_change=pred|subtract:current_price %}
+                            <div class="prediction-change {% if raw_change > 0 %}positive{% elif raw_change < 0 %}negative{% else %}neutral{% endif %}">
+                                {% if raw_change > 0 %}+{% endif %}${{ raw_change|floatformat:2 }} ({% if raw_change > 0 %}+{% endif %}{{ raw_change|multiply:100|divide:current_price|floatformat:2 }}%)
                             </div>
-                             {# Next Week #}
-                            {% with next_week_pred=model_predictions.predictions.next_week|get_item:model_type %}
-                            {% if next_week_pred is not None %}
-                            <div class="prediction-card">
-                                <div class="prediction-time">Next Week</div>
-                                <div class="prediction-date">{{ model_predictions.prediction_dates.next_week }}</div>
-                                <div class="prediction-price">${{ next_week_pred|floatformat:2 }}</div>
-                                {% with raw_change=next_week_pred|subtract:current_price %}
-                                <div class="prediction-change {% if raw_change > 0 %}positive{% elif raw_change < 0 %}negative{% else %}neutral{% endif %}">
-                                    {% if raw_change > 0 %}+{% endif %}${{ raw_change|floatformat:2 }} ({% if raw_change > 0 %}+{% endif %}{{ raw_change|multiply:100|divide:current_price|floatformat:2 }}%)
-                                </div>
-                                {% endwith %}
-                            </div>
-                            {% endif %}
                             {% endwith %}
-                             {# Next Month #}
-                            {% with next_month_pred=model_predictions.predictions.next_month|get_item:model_type %}
-                            {% if next_month_pred is not None %}
-                            <div class="prediction-card">
-                                <div class="prediction-time">Next Month</div>
-                                <div class="prediction-date">{{ model_predictions.prediction_dates.next_month }}</div>
-                                <div class="prediction-price">${{ next_month_pred|floatformat:2 }}</div>
-                                {% with raw_change=next_month_pred|subtract:current_price %}
-                                <div class="prediction-change {% if raw_change > 0 %}positive{% elif raw_change < 0 %}negative{% else %}neutral{% endif %}">
-                                    {% if raw_change > 0 %}+{% endif %}${{ raw_change|floatformat:2 }} ({% if raw_change > 0 %}+{% endif %}{{ raw_change|multiply:100|divide:current_price|floatformat:2 }}%)
-                                </div>
-                                {% endwith %}
-                            </div>
-                            {% endif %}
                             {% endwith %}
                         </div>
-                        {% endwith %} {# end with current_price #}
+                        <div class="prediction-card">
+                            <div class="prediction-time">Next Month</div>
+                            <div class="prediction-date">{{ model_predictions.prediction_dates.next_month }}</div>
+                            <div class="prediction-price">${{ model_predictions.predictions.next_month|get_item:model_type|floatformat:2 }}</div>
+                            {% with pred=model_predictions.predictions.next_month|get_item:model_type %}
+                            {% with raw_change=pred|subtract:current_price %}
+                            <div class="prediction-change {% if raw_change > 0 %}positive{% elif raw_change < 0 %}negative{% else %}neutral{% endif %}">
+                                {% if raw_change > 0 %}+{% endif %}${{ raw_change|floatformat:2 }} ({% if raw_change > 0 %}+{% endif %}{{ raw_change|multiply:100|divide:current_price|floatformat:2 }}%)
+                            </div>
+                            {% endwith %}
+                            {% endwith %}
+                        </div>
                     </div>
-                {% endif %} {# end check if prediction exists #}
-                {% endwith %} {# end with next_day_pred #}
-                {% endwith %} {# end with model_type #}
+                    {% endwith %}
+                    {% endwith %}
+                </div>
+                {% endif %} {# End ARIMA check #}
 
-            </div> {# End First Row #}
+                {# LSTM Prediction Section - Conditionally Displayed #}
+                {% if 'lstm' in model_predictions.model_types %}
+                <div class="prediction-model-section">
+                    <h3 class="model-name">LSTM</h3>
+                    {% with model_type="lstm" %}
+                    {% with current_price=stock_info.currentPrice|default:stock_info.regularMarketPrice|default:stock_info.regularMarketPreviousClose|default:stock_historical_data.0.Close|default:206.37 %}
+                    <div class="prediction-cards">
+                        <div class="prediction-card">
+                            <div class="prediction-time">Next Day</div>
+                            <div class="prediction-date">{{ model_predictions.prediction_dates.next_day }}</div>
+                            <div class="prediction-price">${{ model_predictions.predictions.next_day|get_item:model_type|floatformat:2 }}</div>
+                            {% with pred=model_predictions.predictions.next_day|get_item:model_type %}
+                            {% with raw_change=pred|subtract:current_price %}
+                            <div class="prediction-change {% if raw_change > 0 %}positive{% elif raw_change < 0 %}negative{% else %}neutral{% endif %}">
+                                {% if raw_change > 0 %}+{% endif %}${{ raw_change|floatformat:2 }} ({% if raw_change > 0 %}+{% endif %}{{ raw_change|multiply:100|divide:current_price|floatformat:2 }}%)
+                            </div>
+                            {% endwith %}
+                            {% endwith %}
+                        </div>
+                        <div class="prediction-card">
+                            <div class="prediction-time">Next Week</div>
+                            <div class="prediction-date">{{ model_predictions.prediction_dates.next_week }}</div>
+                            <div class="prediction-price">${{ model_predictions.predictions.next_week|get_item:model_type|floatformat:2 }}</div>
+                            {% with pred=model_predictions.predictions.next_week|get_item:model_type %}
+                            {% with raw_change=pred|subtract:current_price %}
+                            <div class="prediction-change {% if raw_change > 0 %}positive{% elif raw_change < 0 %}negative{% else %}neutral{% endif %}">
+                                {% if raw_change > 0 %}+{% endif %}${{ raw_change|floatformat:2 }} ({% if raw_change > 0 %}+{% endif %}{{ raw_change|multiply:100|divide:current_price|floatformat:2 }}%)
+                            </div>
+                            {% endwith %}
+                            {% endwith %}
+                        </div>
+                        <div class="prediction-card">
+                            <div class="prediction-time">Next Month</div>
+                            <div class="prediction-date">{{ model_predictions.prediction_dates.next_month }}</div>
+                            <div class="prediction-price">${{ model_predictions.predictions.next_month|get_item:model_type|floatformat:2 }}</div>
+                            {% with pred=model_predictions.predictions.next_month|get_item:model_type %}
+                            {% with raw_change=pred|subtract:current_price %}
+                            <div class="prediction-change {% if raw_change > 0 %}positive{% elif raw_change < 0 %}negative{% else %}neutral{% endif %}">
+                                {% if raw_change > 0 %}+{% endif %}${{ raw_change|floatformat:2 }} ({% if raw_change > 0 %}+{% endif %}{{ raw_change|multiply:100|divide:current_price|floatformat:2 }}%)
+                            </div>
+                            {% endwith %}
+                            {% endwith %}
+                        </div>
+                    </div>
+                    {% endwith %}
+                    {% endwith %}
+                </div>
+                {% endif %} {# End LSTM check #}
+            </div>
 
             <!-- Second row: SVM and XGBoost -->
             <div class="prediction-row">
-
-                {# SVM Section #}
-                {% with model_type="svm" %}
-                {% with next_day_pred=model_predictions.predictions.next_day|get_item:model_type %}
-                {% if next_day_pred is not None %} {# Check if prediction exists for this model #}
-                    <div class="prediction-model-section">
-                        <h3 class="model-name">SVM</h3>
-                        {% with current_price=stock_info.currentPrice|default:stock_info.regularMarketPrice|default:stock_info.regularMarketPreviousClose|default:stock_historical_data.0.Close|default:206.37 %}
-                        <div class="prediction-cards">
-                             {# Next Day #}
-                            <div class="prediction-card">
-                                <div class="prediction-time">Next Day</div>
-                                <div class="prediction-date">{{ model_predictions.prediction_dates.next_day }}</div>
-                                <div class="prediction-price">${{ next_day_pred|floatformat:2 }}</div>
-                                {% with raw_change=next_day_pred|subtract:current_price %}
-                                <div class="prediction-change {% if raw_change > 0 %}positive{% elif raw_change < 0 %}negative{% else %}neutral{% endif %}">
-                                    {% if raw_change > 0 %}+{% endif %}${{ raw_change|floatformat:2 }} ({% if raw_change > 0 %}+{% endif %}{{ raw_change|multiply:100|divide:current_price|floatformat:2 }}%)
-                                </div>
-                                {% endwith %}
+                {# SVM Prediction Section - Conditionally Displayed #}
+                {% if 'svm' in model_predictions.model_types %}
+                <div class="prediction-model-section">
+                    <h3 class="model-name">SVM</h3>
+                    {% with model_type="svm" %}
+                    {% with current_price=stock_info.currentPrice|default:stock_info.regularMarketPrice|default:stock_info.regularMarketPreviousClose|default:stock_historical_data.0.Close|default:206.37 %}
+                    <div class="prediction-cards">
+                        <div class="prediction-card">
+                            <div class="prediction-time">Next Day</div>
+                            <div class="prediction-date">{{ model_predictions.prediction_dates.next_day }}</div>
+                            <div class="prediction-price">${{ model_predictions.predictions.next_day|get_item:model_type|floatformat:2 }}</div>
+                            {% with pred=model_predictions.predictions.next_day|get_item:model_type %}
+                            {% with raw_change=pred|subtract:current_price %}
+                            <div class="prediction-change {% if raw_change > 0 %}positive{% elif raw_change < 0 %}negative{% else %}neutral{% endif %}">
+                                {% if raw_change > 0 %}+{% endif %}${{ raw_change|floatformat:2 }} ({% if raw_change > 0 %}+{% endif %}{{ raw_change|multiply:100|divide:current_price|floatformat:2 }}%)
                             </div>
-                             {# Next Week #}
-                            {% with next_week_pred=model_predictions.predictions.next_week|get_item:model_type %}
-                            {% if next_week_pred is not None %}
-                            <div class="prediction-card">
-                                <div class="prediction-time">Next Week</div>
-                                <div class="prediction-date">{{ model_predictions.prediction_dates.next_week }}</div>
-                                <div class="prediction-price">${{ next_week_pred|floatformat:2 }}</div>
-                                {% with raw_change=next_week_pred|subtract:current_price %}
-                                <div class="prediction-change {% if raw_change > 0 %}positive{% elif raw_change < 0 %}negative{% else %}neutral{% endif %}">
-                                    {% if raw_change > 0 %}+{% endif %}${{ raw_change|floatformat:2 }} ({% if raw_change > 0 %}+{% endif %}{{ raw_change|multiply:100|divide:current_price|floatformat:2 }}%)
-                                </div>
-                                {% endwith %}
-                            </div>
-                            {% endif %}
                             {% endwith %}
-                             {# Next Month #}
-                            {% with next_month_pred=model_predictions.predictions.next_month|get_item:model_type %}
-                            {% if next_month_pred is not None %}
-                            <div class="prediction-card">
-                                <div class="prediction-time">Next Month</div>
-                                <div class="prediction-date">{{ model_predictions.prediction_dates.next_month }}</div>
-                                <div class="prediction-price">${{ next_month_pred|floatformat:2 }}</div>
-                                {% with raw_change=next_month_pred|subtract:current_price %}
-                                <div class="prediction-change {% if raw_change > 0 %}positive{% elif raw_change < 0 %}negative{% else %}neutral{% endif %}">
-                                    {% if raw_change > 0 %}+{% endif %}${{ raw_change|floatformat:2 }} ({% if raw_change > 0 %}+{% endif %}{{ raw_change|multiply:100|divide:current_price|floatformat:2 }}%)
-                                </div>
-                                {% endwith %}
-                            </div>
-                            {% endif %}
                             {% endwith %}
                         </div>
-                        {% endwith %} {# end with current_price #}
-                    </div>
-                {% endif %} {# end check if prediction exists #}
-                {% endwith %} {# end with next_day_pred #}
-                {% endwith %} {# end with model_type #}
-
-                {# XGBOOST Section #}
-                {% with model_type="xgboost" %}
-                {% with next_day_pred=model_predictions.predictions.next_day|get_item:model_type %}
-                {% if next_day_pred is not None %} {# Check if prediction exists for this model #}
-                    <div class="prediction-model-section">
-                        {# <h3 class="model-name">XGBOOST</h3> #}
-                        {% with current_price=stock_info.currentPrice|default:stock_info.regularMarketPrice|default:stock_info.regularMarketPreviousClose|default:stock_historical_data.0.Close|default:206.37 %}
-                        <div class="prediction-cards">
-                             {# Next Day #}
-                            <div class="prediction-card">
-                                <div class="prediction-time">Next Day</div>
-                                <div class="prediction-date">{{ model_predictions.prediction_dates.next_day }}</div>
-                                <div class="prediction-price">${{ next_day_pred|floatformat:2 }}</div>
-                                {% with raw_change=next_day_pred|subtract:current_price %}
-                                <div class="prediction-change {% if raw_change > 0 %}positive{% elif raw_change < 0 %}negative{% else %}neutral{% endif %}">
-                                    {% if raw_change > 0 %}+{% endif %}${{ raw_change|floatformat:2 }} ({% if raw_change > 0 %}+{% endif %}{{ raw_change|multiply:100|divide:current_price|floatformat:2 }}%)
-                                </div>
-                                {% endwith %}
+                        <div class="prediction-card">
+                            <div class="prediction-time">Next Week</div>
+                            <div class="prediction-date">{{ model_predictions.prediction_dates.next_week }}</div>
+                            <div class="prediction-price">${{ model_predictions.predictions.next_week|get_item:model_type|floatformat:2 }}</div>
+                            {% with pred=model_predictions.predictions.next_week|get_item:model_type %}
+                            {% with raw_change=pred|subtract:current_price %}
+                            <div class="prediction-change {% if raw_change > 0 %}positive{% elif raw_change < 0 %}negative{% else %}neutral{% endif %}">
+                                {% if raw_change > 0 %}+{% endif %}${{ raw_change|floatformat:2 }} ({% if raw_change > 0 %}+{% endif %}{{ raw_change|multiply:100|divide:current_price|floatformat:2 }}%)
                             </div>
-                             {# Next Week #}
-                            {% with next_week_pred=model_predictions.predictions.next_week|get_item:model_type %}
-                            {% if next_week_pred is not None %}
-                            <div class="prediction-card">
-                                <div class="prediction-time">Next Week</div>
-                                <div class="prediction-date">{{ model_predictions.prediction_dates.next_week }}</div>
-                                <div class="prediction-price">${{ next_week_pred|floatformat:2 }}</div>
-                                {% with raw_change=next_week_pred|subtract:current_price %}
-                                <div class="prediction-change {% if raw_change > 0 %}positive{% elif raw_change < 0 %}negative{% else %}neutral{% endif %}">
-                                    {% if raw_change > 0 %}+{% endif %}${{ raw_change|floatformat:2 }} ({% if raw_change > 0 %}+{% endif %}{{ raw_change|multiply:100|divide:current_price|floatformat:2 }}%)
-                                </div>
-                                {% endwith %}
-                            </div>
-                            {% endif %}
                             {% endwith %}
-                             {# Next Month #}
-                            {% with next_month_pred=model_predictions.predictions.next_month|get_item:model_type %}
-                            {% if next_month_pred is not None %}
-                            <div class="prediction-card">
-                                <div class="prediction-time">Next Month</div>
-                                <div class="prediction-date">{{ model_predictions.prediction_dates.next_month }}</div>
-                                <div class="prediction-price">${{ next_month_pred|floatformat:2 }}</div>
-                                {% with raw_change=next_month_pred|subtract:current_price %}
-                                <div class="prediction-change {% if raw_change > 0 %}positive{% elif raw_change < 0 %}negative{% else %}neutral{% endif %}">
-                                    {% if raw_change > 0 %}+{% endif %}${{ raw_change|floatformat:2 }} ({% if raw_change > 0 %}+{% endif %}{{ raw_change|multiply:100|divide:current_price|floatformat:2 }}%)
-                                </div>
-                                {% endwith %}
-                            </div>
-                            {% endif %}
                             {% endwith %}
                         </div>
-                        {% endwith %} {# end with current_price #}
+                        <div class="prediction-card">
+                            <div class="prediction-time">Next Month</div>
+                            <div class="prediction-date">{{ model_predictions.prediction_dates.next_month }}</div>
+                            <div class="prediction-price">${{ model_predictions.predictions.next_month|get_item:model_type|floatformat:2 }}</div>
+                            {% with pred=model_predictions.predictions.next_month|get_item:model_type %}
+                            {% with raw_change=pred|subtract:current_price %}
+                            <div class="prediction-change {% if raw_change > 0 %}positive{% elif raw_change < 0 %}negative{% else %}neutral{% endif %}">
+                                {% if raw_change > 0 %}+{% endif %}${{ raw_change|floatformat:2 }} ({% if raw_change > 0 %}+{% endif %}{{ raw_change|multiply:100|divide:current_price|floatformat:2 }}%)
+                            </div>
+                            {% endwith %}
+                            {% endwith %}
+                        </div>
                     </div>
-                {% endif %} {# end check if prediction exists #}
-                {% endwith %} {# end with next_day_pred #}
-                {% endwith %} {# end with model_type #}
+                    {% endwith %}
+                    {% endwith %}
+                </div>
+                {% endif %} {# End SVM check #}
 
-            </div> {# End Second Row #}
+                {# XGBOOST Prediction Section - Conditionally Displayed #}
+                {% if 'xgboost' in model_predictions.model_types %}
+                <div class="prediction-model-section">
+                    {#<h3 class="model-name">XGBOOST</h3>#}
+                    {% with model_type="xgboost" %}
+                    {% with current_price=stock_info.currentPrice|default:stock_info.regularMarketPrice|default:stock_info.regularMarketPreviousClose|default:stock_historical_data.0.Close|default:206.37 %}
+                    <div class="prediction-cards">
+                        <div class="prediction-card">
+                            <div class="prediction-time">Next Day</div>
+                            <div class="prediction-date">{{ model_predictions.prediction_dates.next_day }}</div>
+                            <div class="prediction-price">${{ model_predictions.predictions.next_day|get_item:model_type|floatformat:2 }}</div>
+                            {% with pred=model_predictions.predictions.next_day|get_item:model_type %}
+                            {% with raw_change=pred|subtract:current_price %}
+                            <div class="prediction-change {% if raw_change > 0 %}positive{% elif raw_change < 0 %}negative{% else %}neutral{% endif %}">
+                                {% if raw_change > 0 %}+{% endif %}${{ raw_change|floatformat:2 }} ({% if raw_change > 0 %}+{% endif %}{{ raw_change|multiply:100|divide:current_price|floatformat:2 }}%)
+                            </div>
+                            {% endwith %}
+                            {% endwith %}
+                        </div>
+                        <div class="prediction-card">
+                            <div class="prediction-time">Next Week</div>
+                            <div class="prediction-date">{{ model_predictions.prediction_dates.next_week }}</div>
+                            <div class="prediction-price">${{ model_predictions.predictions.next_week|get_item:model_type|floatformat:2 }}</div>
+                            {% with pred=model_predictions.predictions.next_week|get_item:model_type %}
+                            {% with raw_change=pred|subtract:current_price %}
+                            <div class="prediction-change {% if raw_change > 0 %}positive{% elif raw_change < 0 %}negative{% else %}neutral{% endif %}">
+                                {% if raw_change > 0 %}+{% endif %}${{ raw_change|floatformat:2 }} ({% if raw_change > 0 %}+{% endif %}{{ raw_change|multiply:100|divide:current_price|floatformat:2 }}%)
+                            </div>
+                            {% endwith %}
+                            {% endwith %}
+                        </div>
+                        <div class="prediction-card">
+                            <div class="prediction-time">Next Month</div>
+                            <div class="prediction-date">{{ model_predictions.prediction_dates.next_month }}</div>
+                            <div class="prediction-price">${{ model_predictions.predictions.next_month|get_item:model_type|floatformat:2 }}</div>
+                            {% with pred=model_predictions.predictions.next_month|get_item:model_type %}
+                            {% with raw_change=pred|subtract:current_price %}
+                            <div class="prediction-change {% if raw_change > 0 %}positive{% elif raw_change < 0 %}negative{% else %}neutral{% endif %}">
+                                {% if raw_change > 0 %}+{% endif %}${{ raw_change|floatformat:2 }} ({% if raw_change > 0 %}+{% endif %}{{ raw_change|multiply:100|divide:current_price|floatformat:2 }}%)
+                            </div>
+                            {% endwith %}
+                            {% endwith %}
+                        </div>
+                    </div>
+                    {% endwith %}
+                    {% endwith %}
+                </div>
+                {% endif %} {# End XGBOOST check #}
+            </div>
         </div>
 
+        <div class="model-description">
+            <dl>
+                {# Conditionally display model descriptions based on availability #}
+                {% if 'arima' in model_predictions.model_types %}
+                {#<dt>ARIMA</dt>#}
+                {% endif %}
+
+                {% if 'lstm' in model_predictions.model_types %}
+                {#<dt>LSTM</dt>#}
+                {% endif %}
+
+                {% if 'svm' in model_predictions.model_types %}
+                {#<dt>SVM</dt>#}
+            
+                {% endif %}
+
+                {% if 'xgboost' in model_predictions.model_types %}
+                {#<dt>XGBoost</dt>#}
+                {% endif %}
+            </dl>
+        </div>
     </div>
     <hr style="margin: 30px 0;">
-    {% endif %} {# End if model_predictions.models_available #}
-
-    {# --- The rest of the template remains the same --- #}
+    {% endif %} {# End model_predictions.models_available check #}
 
     {# AI Analysis Section #}
     <h2>AI Stock Analysis</h2>
@@ -321,7 +307,7 @@
                 <i class="fas fa-desktop"></i> Analyze with Local LLM
             </button>
         </div>
-        
+
         <div id="ai-analysis-result" style="display: none; margin-top: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 5px; background-color: #f9f9f9;">
             <div id="ai-loading" style="text-align: center; display: none;">
                 <i class="fas fa-spinner fa-spin"></i> Analyzing stock data...
@@ -329,22 +315,22 @@
             <div id="ai-content">
                 <h3 id="ai-overview-title">Overview</h3>
                 <p id="ai-overview-text"></p>
-                
+
                 <h3>Pros</h3>
                 <ul id="ai-pros-list"></ul>
-                
+
                 <h3>Cons</h3>
                 <ul id="ai-cons-list"></ul>
-                
+
                 <h3>Verdict</h3>
                 <p id="ai-verdict" class="verdict"></p>
-                
+
                 <p class="ai-source"><small id="ai-source-text">Analysis provided by Model</small></p>
             </div>
             <div id="ai-error" style="color: #d9534f; display: none;"></div>
         </div>
     </div>
-    
+
     <hr style="margin: 30px 0;">
 
     {# Two-column layout for News and Sentiment Chart #}
@@ -396,7 +382,7 @@
                 <p>No recent news found for this stock.</p>
             {% endif %}
         </div>
-        
+
         {# Right Column: Sentiment Pie Chart Section #}
         <div class="column sentiment-column">
             <h2>News Sentiment Distribution</h2>
@@ -718,13 +704,13 @@
     .prediction-row {
         display: flex;
         gap: 20px;
-        flex-wrap: wrap; /* Allow wrapping on smaller screens */
+        flex-wrap: wrap; /* Allow wrapping if needed */
     }
 
     .prediction-model-section {
         flex: 1;
-        min-width: 300px; /* Minimum width before wrapping */
-        margin-bottom: 20px; /* Add margin for wrapped items */
+        min-width: 300px; /* Ensure minimum width */
+        max-width: calc(50% - 10px); /* Try to fit two per row */
     }
 
     .model-name {
@@ -735,7 +721,7 @@
     .prediction-cards {
         display: flex;
         gap: 10px;
-        flex-wrap: wrap; /* Allow cards to wrap */
+        flex-wrap: wrap; /* Allow cards to wrap on smaller screens */
     }
 
     .prediction-card {
@@ -743,11 +729,10 @@
         border: 1px solid #ddd;
         border-radius: 8px;
         padding: 10px;
-        flex: 1 1 100px; /* Allow shrinking, basis of 100px */
-        min-width: 100px; /* Prevent cards from becoming too small */
+        flex: 1;
+        min-width: 100px; /* Minimum width for cards */
         text-align: center;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        margin-bottom: 5px; /* Add spacing if cards wrap */
     }
 
     .prediction-time {
@@ -808,139 +793,27 @@
 
     /* Add responsive behavior for small screens */
     @media (max-width: 992px) { /* Adjust breakpoint if needed */
-        .prediction-row {
-           flex-direction: column;
-        }
         .prediction-model-section {
-             min-width: unset; /* Allow full width */
-             width: 100%;
-         }
+            max-width: 100%; /* Stack models vertically */
+        }
     }
-     @media (max-width: 480px) { /* Very small screens */
-         .prediction-cards {
-             flex-direction: column; /* Stack cards vertically */
-             gap: 8px;
-         }
-         .prediction-card {
-             flex-basis: auto; /* Reset basis */
-             width: 100%; /* Make cards full width */
-         }
-     }
-
-     /* AI Analysis Styles */
-    .ai-analysis-section {
-        padding: 20px;
-        background-color: #f8f8f8;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        margin-bottom: 30px;
-    }
-
-    .ai-buttons {
-        display: flex;
-        gap: 15px;
-        margin-bottom: 20px;
-        flex-wrap: wrap;
-    }
-
-    .ai-buttons .btn {
-        padding: 10px 18px;
-    }
-
-    #ai-analysis-result {
-        background-color: #fff;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        padding: 20px;
-        margin-top: 20px;
-    }
-
-    #ai-loading i {
-        font-size: 24px;
-        margin-bottom: 10px;
-    }
-
-    #ai-content h3 {
-        margin-top: 20px;
-        margin-bottom: 10px;
-        border-bottom: 1px solid #eee;
-        padding-bottom: 5px;
-    }
-    #ai-content h3:first-of-type {
-        margin-top: 0;
-    }
-
-    #ai-pros-list, #ai-cons-list {
-        list-style: none;
-        padding-left: 0;
-    }
-
-    #ai-pros-list li::before {
-        content: "\f058"; /* Font Awesome check-circle */
-        font-family: "Font Awesome 5 Free";
-        font-weight: 900;
-        color: #28a745; /* Green */
-        margin-right: 10px;
-    }
-
-    #ai-cons-list li::before {
-        content: "\f057"; /* Font Awesome times-circle */
-        font-family: "Font Awesome 5 Free";
-        font-weight: 900;
-        color: #dc3545; /* Red */
-        margin-right: 10px;
-    }
-
-    #ai-pros-list li, #ai-cons-list li {
-        margin-bottom: 8px;
-        line-height: 1.5;
-    }
-
-    .verdict {
-        font-weight: bold;
-        font-size: 1.1em;
-        padding: 10px;
-        border-radius: 4px;
-        text-align: center;
-        margin-top: 10px;
-    }
-
-    .verdict.buy, .verdict.strong_buy {
-        background-color: rgba(40, 167, 69, 0.1);
-        color: #1e7e34;
-        border: 1px solid rgba(40, 167, 69, 0.3);
-    }
-
-    .verdict.sell, .verdict.strong_sell {
-        background-color: rgba(220, 53, 69, 0.1);
-        color: #a71d2a;
-        border: 1px solid rgba(220, 53, 69, 0.3);
-    }
-
-    .verdict.hold, .verdict.neutral {
-        background-color: rgba(255, 193, 7, 0.1);
-        color: #b98705;
-        border: 1px solid rgba(255, 193, 7, 0.3);
-    }
-
-    .ai-source {
-        text-align: right;
-        margin-top: 15px;
-        font-size: 0.85em;
-        color: #888;
-    }
-
-    #ai-error {
-        background-color: rgba(220, 53, 69, 0.1);
-        color: #a71d2a;
-        padding: 10px;
-        border-radius: 4px;
-        border: 1px solid rgba(220, 53, 69, 0.3);
+    @media (max-width: 768px) {
+        .prediction-row {
+            flex-direction: column;
+        }
+        .two-column-layout {
+            flex-direction: column;
+        }
+        .stock-info-list dt {
+            width: 120px; /* Adjust for smaller screens */
+        }
+        .stock-info-list dd {
+            margin-left: 130px; /* Adjust for smaller screens */
+        }
     }
     </style>
 
-    {# Chart.js Script & Other Scripts (Keep the JS part as it was) #}
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {# Chart.js Script & Other Scripts #}
     <script>
         // --- Chart Data (Full Dataset) ---
         const fullLabels = JSON.parse('{{ chart_labels|escapejs }}');
@@ -1057,18 +930,9 @@
                     break;
                 case 'max':
                 default:
-                    startDate = fullLabels.length > 0 ? new Date(fullLabels[0]) : new Date(); // Start from the earliest date available or today if no data
+                    startDate = new Date(fullLabels[0]); // Start from the earliest date available
                     break;
             }
-
-             // Handle cases where fullLabels might be empty
-             if (fullLabels.length === 0) {
-                 stockChart.data.labels = [];
-                 stockChart.data.datasets.forEach(ds => ds.data = []);
-                 stockChart.update();
-                 return; // Exit if no historical data
-             }
-
 
             const filteredLabels = [];
             const filteredOpen = [];
@@ -1100,7 +964,7 @@
             // Also update commodity datasets based on the new labels
             updateCommodityDatasets(filteredLabels);
 
-            stockChart.update();
+            stockChart.update(); // Update chart after filtering and commodity update
         }
 
         // --- Function to Update Commodity Datasets based on Stock Labels ---
@@ -1113,16 +977,13 @@
 
                     // Create a map for quick lookup of commodity prices by date
                     const commPriceMap = new Map();
-                    // Handle empty commodity data
-                    if (commData && commData.labels && commData.labels.length > 0) {
-                        for (let i = 0; i < commData.labels.length; i++) {
-                             commPriceMap.set(commData.labels[i], commData.close[i]);
-                         }
-                     }
+                    for (let i = 0; i < commData.labels.length; i++) {
+                        commPriceMap.set(commData.labels[i], commData.close[i]);
+                    }
 
                     // Align commodity data with stock labels
                     stockLabels.forEach(label => {
-                        // Replace ?? with ternary operator for broader compatibility
+                        // Use ternary operator for broader compatibility
                         alignedClose.push(commPriceMap.has(label) ? commPriceMap.get(label) : null);
                     });
 
@@ -1181,13 +1042,11 @@
 
                         // Align data
                         const commPriceMap = new Map();
-                         if (commData && commData.labels && commData.labels.length > 0) {
-                             for (let i = 0; i < commData.labels.length; i++) {
-                                 commPriceMap.set(commData.labels[i], commData.close[i]);
-                             }
-                         }
+                        for (let i = 0; i < commData.labels.length; i++) {
+                            commPriceMap.set(commData.labels[i], commData.close[i]);
+                        }
                         currentLabels.forEach(label => {
-                            // Replace ?? with ternary operator for broader compatibility
+                            // Use ternary operator for broader compatibility
                             alignedClose.push(commPriceMap.has(label) ? commPriceMap.get(label) : (null));
                         });
 
@@ -1236,18 +1095,14 @@
                 this.textContent = isHidden ? 'Hide Other Information' : 'Show Other Information';
             });
         }
+    </script>
 
+    {# Add Chart.js library (if not already in base template) #}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
         // --- Sentiment Pie Chart ---
-        // Ensure sentiment data is available before parsing
-        const sentimentRaw = '{{ sentiment_percentages|escapejs|default:"{}" }}';
-        let sentimentData = {};
-        try {
-            sentimentData = JSON.parse(sentimentRaw);
-        } catch (e) {
-            console.error("Could not parse sentiment data:", sentimentRaw, e);
-            sentimentData = {}; // Default to empty object on error
-        }
-
+        const sentimentData = JSON.parse('{{ sentiment_percentages|escapejs }}');
         const sentimentLabels = ['Positive', 'Neutral', 'Negative']; // Order matters for colors
         const sentimentValues = [
             sentimentData.positive || 0,
@@ -1257,10 +1112,9 @@
 
         // Check if there's data to display
         const hasSentimentData = sentimentValues.some(v => v > 0);
-        const pieChartCanvas = document.getElementById('sentimentPieChart');
 
-        if (hasSentimentData && pieChartCanvas) {
-            const pieCtx = pieChartCanvas.getContext('2d');
+        if (hasSentimentData && document.getElementById('sentimentPieChart')) {
+            const pieCtx = document.getElementById('sentimentPieChart').getContext('2d');
             const sentimentPieChart = new Chart(pieCtx, {
                 type: 'pie',
                 data: {
@@ -1308,51 +1162,19 @@
                     }
                 }
             });
-        } else if (pieChartCanvas) {
+        } else {
              console.log("No sentiment data to display or canvas not found.");
-             // Optionally hide the canvas or display a message
-             // pieChartCanvas.style.display = 'none';
-             // document.querySelector('.sentiment-column p').textContent = 'Sentiment data unavailable.';
         }
 
-
-        // --- AI Analysis functionality ---
+        // AI Analysis functionality
         document.addEventListener('DOMContentLoaded', function() {
-            const groqBtn = document.getElementById('analyze-groq-btn'); // Use updated ID
+            const groqBtn = document.getElementById('analyze-groq-btn'); // Updated ID
             const localBtn = document.getElementById('analyze-local-btn');
             const resultDiv = document.getElementById('ai-analysis-result');
             const loadingDiv = document.getElementById('ai-loading');
             const contentDiv = document.getElementById('ai-content');
             const errorDiv = document.getElementById('ai-error');
-
-            // Parse key metrics safely
-            let keyMetricsData = {};
-            try {
-                keyMetricsData = JSON.parse('{{ key_metrics_json|escapejs|default:"{}" }}');
-            } catch(e) {
-                console.error("Failed to parse key metrics JSON:", e);
-            }
-
-
-            // Function to safely get prediction value
-            function getPredictionValue(period, model) {
-                 try {
-                     const pred = {{ model_predictions.predictions|default:'{}'|escapejs }}[period][model];
-                     // Check if pred is a valid number, return 0 otherwise
-                     return (typeof pred === 'number' && !isNaN(pred)) ? pred : 0;
-                 } catch (e) {
-                     return 0; // Return 0 if path doesn't exist or value is invalid
-                 }
-            }
-
-            // Function to safely get prediction date
-            function getPredictionDate(period) {
-                 try {
-                     return {{ model_predictions.prediction_dates|default:'{}'|escapejs }}[period] || '';
-                 } catch (e) {
-                     return '';
-                 }
-            }
+            const keyMetricsData = JSON.parse('{{ key_metrics_json|escapejs }}'); // Parse the JSON passed from the view
 
             // Function to handle AI analysis
             async function analyzeStock(analyzer) {
@@ -1366,22 +1188,22 @@
                 try {
                     // Gather relevant data from UI elements
                     const collectedData = {
-                        symbol: '{{ stock_data.symbol|escapejs }}',
-                        name: '{{ stock_data.name|default:stock_data.symbol|escapejs }}',
+                        symbol: '{{ stock_data.symbol }}',
+                        name: '{{ stock_data.name|default:stock_data.symbol }}',
                         analyzer: analyzer,
 
                         // Current price and key metrics
-                        currentPrice: parseFloat('{{ stock_info.currentPrice|default:stock_info.regularMarketPrice|default:stock_info.regularMarketPreviousClose|default:stock_historical_data.0.Close|default:"0"|escapejs }}') || 0,
+                        currentPrice: parseFloat('{{ stock_info.currentPrice|default:stock_info.regularMarketPrice|default:stock_info.regularMarketPreviousClose|default:stock_historical_data.0.Close|default:"0" }}'),
                         keyMetrics: {},
 
                         // Prediction data
                         predictions: {},
 
-                        // Sentiment data (using parsed data from above)
+                        // Sentiment data
                         sentiment: {
-                            positive: sentimentValues[0], // From sentiment pie chart calculation
-                            neutral: sentimentValues[1],
-                            negative: sentimentValues[2]
+                            positive: parseFloat('{{ sentiment_percentages.positive|default:"0" }}'),
+                            neutral: parseFloat('{{ sentiment_percentages.neutral|default:"0" }}'),
+                            negative: parseFloat('{{ sentiment_percentages.negative|default:"0" }}')
                         },
 
                         // News headlines
@@ -1391,47 +1213,40 @@
                     // Collect key metrics from the parsed keyMetricsData object
                     Object.keys(keyMetricsData).forEach(key => {
                         const value = keyMetricsData[key]; // Get value directly from JS object
-                        if (value !== null && value !== undefined && value !== '') { // Check if value exists and is not empty string
-                            // Try to parse as float, otherwise keep as string
-                            const numValue = parseFloat(value);
-                            collectedData.keyMetrics[key] = isNaN(numValue) ? value : numValue;
-                         }
+                        if (value !== null && value !== undefined) { // Check if value exists
+                            collectedData.keyMetrics[key] = isNaN(parseFloat(value)) ? value : parseFloat(value);
+                        }
                     });
 
-                    // Collect prediction data from prediction cards safely
-                    {% for model_type in model_predictions.model_types|default_if_none:'' %}
-                        {% if model_type %} {# Ensure model_type is not empty #}
-                            collectedData.predictions['{{ model_type|escapejs }}'] = {
-                                next_day: getPredictionValue('next_day', '{{ model_type|escapejs }}'),
-                                next_week: getPredictionValue('next_week', '{{ model_type|escapejs }}'),
-                                next_month: getPredictionValue('next_month', '{{ model_type|escapejs }}'),
-                                dates: {
-                                    next_day: getPredictionDate('next_day'),
-                                    next_week: getPredictionDate('next_week'),
-                                    next_month: getPredictionDate('next_month')
-                                }
-                            };
-                        {% endif %}
-                    {% empty %}
-                         console.log("No model types found for predictions.");
-                    {% endfor %}
+                    // Collect prediction data ONLY for available models
+                    {% if model_predictions.models_available %}
+                        {% for model_type in model_predictions.model_types %}
+                        collectedData.predictions['{{ model_type }}'] = {
+                            next_day: parseFloat('{{ model_predictions.predictions.next_day|get_item:model_type|default:"0" }}'),
+                            next_week: parseFloat('{{ model_predictions.predictions.next_week|get_item:model_type|default:"0" }}'),
+                            next_month: parseFloat('{{ model_predictions.predictions.next_month|get_item:model_type|default:"0" }}'),
+                            dates: {
+                                next_day: '{{ model_predictions.prediction_dates.next_day|escapejs }}',
+                                next_week: '{{ model_predictions.prediction_dates.next_week|escapejs }}',
+                                next_month: '{{ model_predictions.prediction_dates.next_month|escapejs }}'
+                            }
+                        };
+                        {% endfor %}
+                    {% endif %}
 
-                    // Collect news headlines safely
-                    {% for news in news_items|default_if_none:'' %}
-                     {% if news %} {# Ensure news item is not empty #}
+
+                    // Collect news headlines
+                    {% for news in news_items %}
                     collectedData.newsHeadlines.push({
-                        headline: '{{ news.headline|escapejs|default:"" }}',
-                        source: '{{ news.source|escapejs|default:"" }}',
-                        published_at: '{{ news.published_at|date:"Y-m-d H:i"|default:"" }}',
+                        headline: '{{ news.headline|escapejs }}',
+                        source: '{{ news.source|escapejs }}',
+                        published_at: '{{ news.published_at|date:"Y-m-d H:i" }}',
                         sentiment: {
                             positive: parseFloat('{{ news.sentiment_positive|default:"0" }}'),
                             neutral: parseFloat('{{ news.sentiment_neutral|default:"0" }}'),
                             negative: parseFloat('{{ news.sentiment_negative|default:"0" }}')
                         }
                     });
-                     {% endif %}
-                    {% empty %}
-                         console.log("No news items found.");
                     {% endfor %}
 
                     // Make API request with collected data
@@ -1441,14 +1256,8 @@
                             'Content-Type': 'application/json',
                             'X-CSRFToken': '{{ csrf_token }}'
                         },
-                        body: JSON.stringify(collectedData) // Send the structured data
+                        body: JSON.stringify(collectedData)
                     });
-
-                     if (!response.ok) {
-                         // Handle HTTP errors (like 500, 404)
-                         throw new Error(`HTTP error! Status: ${response.status} - ${response.statusText}`);
-                     }
-
                     const data = await response.json();
 
                     // Hide loading state
@@ -1458,84 +1267,62 @@
                         // Show error
                         errorDiv.style.display = 'block';
                         errorDiv.textContent = data.error;
-                        contentDiv.style.display = 'none'; // Hide content on error
-                    } else if (data.overview && data.pros && data.cons && data.verdict) {
-                         // Check if essential data fields exist before displaying
+                    } else {
+                        // Display results
                         contentDiv.style.display = 'block';
-                        errorDiv.style.display = 'none'; // Hide error div
 
                         // Populate UI elements with analysis data
-                        document.getElementById('ai-overview-text').textContent = data.overview || 'No overview provided.';
+                        document.getElementById('ai-overview-text').textContent = data.overview;
 
                         // Populate pros list
                         const prosList = document.getElementById('ai-pros-list');
-                        prosList.innerHTML = ''; // Clear previous items
-                        if (data.pros && data.pros.length > 0) {
-                             data.pros.forEach(pro => {
-                                const li = document.createElement('li');
-                                li.textContent = pro;
-                                prosList.appendChild(li);
-                            });
-                        } else {
-                             prosList.innerHTML = '<li>No specific pros identified.</li>';
-                         }
+                        prosList.innerHTML = '';
+                        data.pros.forEach(pro => {
+                            const li = document.createElement('li');
+                            li.textContent = pro;
+                            li.className = 'pro-item';
+                            prosList.appendChild(li);
+                        });
 
                         // Populate cons list
                         const consList = document.getElementById('ai-cons-list');
-                        consList.innerHTML = ''; // Clear previous items
-                         if (data.cons && data.cons.length > 0) {
-                             data.cons.forEach(con => {
-                                const li = document.createElement('li');
-                                li.textContent = con;
-                                consList.appendChild(li);
-                            });
-                         } else {
-                             consList.innerHTML = '<li>No specific cons identified.</li>';
-                         }
+                        consList.innerHTML = '';
+                        data.cons.forEach(con => {
+                            const li = document.createElement('li');
+                            li.textContent = con;
+                            li.className = 'con-item';
+                            consList.appendChild(li);
+                        });
 
                         // Set verdict
                         const verdictElement = document.getElementById('ai-verdict');
-                         const verdictText = data.verdict ? data.verdict.toUpperCase().replace('_', ' ') : 'UNKNOWN';
-                         const verdictClass = data.verdict ? data.verdict.toLowerCase() : 'neutral';
-                         verdictElement.textContent = verdictText;
-                         // Remove old classes and add new ones
-                         verdictElement.className = 'verdict ' + verdictClass;
+                        verdictElement.textContent = data.verdict.toUpperCase();
+                        verdictElement.className = 'verdict ' + data.verdict.toLowerCase();
 
                         // Set source information
                         let sourceText = 'Analysis provided by Unknown';
-                         if (data.analyzer_used === 'groq') { sourceText = 'Analysis provided by Groq'; }
-                         else if (data.analyzer_used === 'local') { sourceText = 'Analysis provided by Local LLM'; }
-                         else if (data.analyzer_used === 'gemini') { sourceText = 'Analysis provided by Google Gemini AI'; } // Added Gemini check
+                        if (data.analyzer_used === 'gemini') { sourceText = 'Analysis provided by Google Gemini AI'; }
+                        else if (data.analyzer_used === 'groq') { sourceText = 'Analysis provided by Groq'; }
+                        else if (data.analyzer_used === 'local') { sourceText = 'Analysis provided by Local LLM'; }
                         document.getElementById('ai-source-text').textContent = sourceText;
-                     } else {
-                         // Handle case where response is successful but data is incomplete
-                         errorDiv.style.display = 'block';
-                         errorDiv.textContent = 'Received incomplete analysis data from the server.';
-                         contentDiv.style.display = 'none';
-                     }
-
+                    }
                 } catch (error) {
-                    // Handle fetch errors or JSON parsing errors
+                    // Handle fetch errors
                     loadingDiv.style.display = 'none';
                     errorDiv.style.display = 'block';
-                    errorDiv.textContent = `Analysis Request Failed: ${error.message}. Please check the console for details.`;
-                    contentDiv.style.display = 'none'; // Hide content on error
+                    errorDiv.textContent = `Error: ${error.message}`;
                     console.error('AI analysis error:', error);
                 }
             }
 
-            // Add event listeners to buttons only if they exist
+            // Add event listeners to buttons
             if (groqBtn) {
                 groqBtn.addEventListener('click', () => analyzeStock('groq')); // Use 'groq'
-            } else {
-                console.warn("Groq analyze button not found.");
             }
 
             if (localBtn) {
                 localBtn.addEventListener('click', () => analyzeStock('local'));
-            } else {
-                 console.warn("Local LLM analyze button not found.");
-             }
+            }
         });
 
     </script>
