@@ -6,6 +6,16 @@ __pycache__/
 # C extensions
 *.so
 
+# Security & Environment files
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.jks
+secrets/
+credentials/
+
 # Distribution / packaging
 .Python
 build/

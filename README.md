@@ -268,6 +268,15 @@ stockmarketprediction/          ← Project root
     └── settings.py
 ```
 
+### 🚨 Already Committed API Keys to Git?
+
+If you accidentally committed API keys to Git history, see the detailed guide: [`REMOVE_API_KEYS_GUIDE.md`](./REMOVE_API_KEYS_GUIDE.md)
+
+**Quick emergency steps:**
+1. **Immediately revoke the exposed API keys** from your provider dashboards
+2. **Generate new API keys** before cleaning Git history
+3. **Follow the complete cleanup guide** to remove from Git/GitHub history
+
 ## �📝 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
