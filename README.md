@@ -65,6 +65,9 @@ pip install -r requirements.txt
 Create a `.env` file in the project root with the following:
 
 ```
+# Django Configuration
+SECRET_KEY=your-secret-key-here
+
 # MongoDB Configuration
 MONGO_URI=mongodb://localhost:27017/
 MONGO_DB_NAME=stock_data
@@ -72,6 +75,52 @@ MONGO_DB_NAME=stock_data
 # Finnhub API Keys (for news data)
 FINNHUB_API_KEYS=your_api_key_here
 ```
+
+### 🔑 API Keys Configuration
+
+This application requires API keys for external data services. Here's where and how to configure them:
+
+#### **Finnhub API Keys (Required for News Data)**
+
+1. **Get API Keys:**
+   - Visit [Finnhub.io](https://finnhub.io/)
+   - Sign up for a free account
+   - Navigate to your dashboard to get your API key
+
+2. **Add to .env file:**
+   ```
+   FINNHUB_API_KEYS=your_actual_api_key_here
+   ```
+   
+   **For multiple API keys (recommended for higher rate limits):**
+   ```
+   FINNHUB_API_KEYS=key1,key2,key3
+   ```
+
+3. **Location:** The `.env` file should be in the project root directory (same level as `manage.py`)
+
+#### **Django Secret Key (Required)**
+
+1. **Generate a new secret key:**
+   ```python
+   from django.core.management.utils import get_random_secret_key
+   print(get_random_secret_key())
+   ```
+
+2. **Add to .env file:**
+   ```
+   SECRET_KEY=your-generated-secret-key-here
+   ```
+
+#### **MongoDB Configuration (Optional)**
+
+If using a remote MongoDB instance:
+```
+MONGO_URI=mongodb://username:password@host:port/
+MONGO_DB_NAME=your_database_name
+```
+
+**⚠️ Security Note:** Never commit your `.env` file to version control. It's already included in `.gitignore`.
 
 5. **Run migrations**
 
@@ -188,7 +237,38 @@ The application uses a hybrid database approach:
 - Market indicators
 - Commodity prices
 
-## 📝 License
+## � Troubleshooting
+
+### Common API Key Issues
+
+**Problem: "No Finnhub API keys found" error**
+- **Solution:** Ensure your `.env` file is in the project root directory (same level as `manage.py`)
+- **Check:** Verify the variable name is exactly `FINNHUB_API_KEYS` (case-sensitive)
+- **Test:** Run `python -c "import os; from dotenv import load_dotenv; load_dotenv(); print(os.getenv('FINNHUB_API_KEYS'))"` to verify
+
+**Problem: "Invalid API key" error**
+- **Solution:** Double-check your API key from your Finnhub dashboard
+- **Note:** Free accounts have rate limits (60 calls/minute)
+
+**Problem: News data not updating**
+- **Check:** API key permissions on Finnhub dashboard
+- **Solution:** Try rotating API keys if you have multiple
+
+**Problem: Django "SECRET_KEY" errors**
+- **Solution:** Generate a new secret key and add it to your `.env` file
+- **Command:** `python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"`
+
+### Environment File Location
+```
+stockmarketprediction/          ← Project root
+├── .env                        ← Your .env file goes here
+├── manage.py
+├── requirements.txt
+└── stockmarketprediction/
+    └── settings.py
+```
+
+## �📝 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
